@@ -1,4 +1,5 @@
 # Social distancing simulator
+![Testing is key](https://github.com/garethjns/social-distancing-sim/workflows/Testing%20is%20key/badge.svg)
 
 Social distancing is an unfortunately unclear term; it means stay from other people to avoid killing yourself and them.
 
