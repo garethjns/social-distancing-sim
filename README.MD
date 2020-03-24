@@ -14,7 +14,7 @@ The code aims to be as simple and understandable as possible, and can be summari
 # Set up
 
 ````bash
-pip install social-distancing-sim
+pip install social_distancing_sim
 ````
 
 # Run a simulation
