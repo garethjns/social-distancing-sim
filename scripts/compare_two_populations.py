@@ -6,21 +6,21 @@ if __name__ == "__main__":
 
     pop = Population(name='A herd of cats',
                      disease=disease,
-                     community_n=50,
-                     community_size_mean=15,
+                     community_n=40,
+                     community_size_mean=16,
                      seed=123)
 
     pop_distanced = Population(name='A socially responsible population',
                                disease=disease,
-                               community_n=50,
-                               community_size_mean=15,
+                               community_n=40,
+                               community_size_mean=16,
                                community_p_in=0.05,
                                community_p_out=0.04,
                                seed=123)
 
-    pop_distanced.run(steps=200,
+    pop_distanced.run(steps=130,
                       plot=False)
-    pop.run(steps=200,
+    pop.run(steps=130,
             plot=False)
 
     pop_distanced.replay(duration=0.1)

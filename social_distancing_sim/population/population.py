@@ -26,7 +26,7 @@ class Population:
     community_p_in: float = 0.2
     community_p_out: float = 0.1
 
-    healthcare_capacity: float = 0.05
+    healthcare_capacity: float = 0.15
     healthcare_efficiency: float = None
 
     def __post_init__(self) -> None:
@@ -92,6 +92,19 @@ class Population:
     @property
     def current_dead_nodes(self) -> List[int]:
         return [nk for nk, nv in self.g_.nodes.data() if not nv["alive"]]
+
+    @property
+    def current_immune_nodes(self) -> List[int]:
+        return [nk for nk, nv in self.g_.nodes.data() if nv["immune"] & nv["alive"]]
+
+    @property
+    def overall_death_rate(self):
+        if len(self.current_dead_nodes) > 0:
+            death_rate = len(self.current_dead_nodes) / self.total_population
+        else:
+            death_rate = 0
+
+        return death_rate
 
     def _generate_graph(self) -> None:
         """Creates the networkx random partition graph."""
@@ -242,7 +255,9 @@ class Population:
         self._prepare_figure()
         self.plot_graph()
         self.plot_ts()
-        self._graph_ax.set_title(f"{self.name}, day {self._step}")
+
+        self._graph_ax.set_title(f"{self.name}, day {self._step}: "
+                                 f"Deaths = {len(self.current_dead_nodes)}")
 
         if save:
             plt.savefig(f"{self.output_path}/graphs/{self._step}_graph.png")
