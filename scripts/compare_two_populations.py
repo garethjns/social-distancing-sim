@@ -18,9 +18,9 @@ if __name__ == "__main__":
                                community_p_out=0.04,
                                seed=123)
 
-    pop_distanced.run(steps=130,
+    pop_distanced.run(steps=150,
                       plot=False)
-    pop.run(steps=130,
+    pop.run(steps=150,
             plot=False)
 
     pop_distanced.replay(duration=0.1)
