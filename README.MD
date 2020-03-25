@@ -9,8 +9,7 @@ This package models disease spread through a population consisting of sub commun
 
 The code aims to be as simple and understandable as possible, and can be summarised in two graphs: 
 
-![Example cats](https://github.com/garethjns/social-distancing-sim/blob/master/images/herd_of_cats.gif) 
-![Example responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/social_responsibility_2.gif) 
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif) 
 
 # Set up
 
