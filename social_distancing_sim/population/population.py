@@ -13,6 +13,10 @@ from matplotlib import pyplot as plt
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.history import History
 
+import seaborn as sns
+
+sns.set()
+
 
 @dataclass
 class Population:
@@ -82,6 +86,10 @@ class Population:
         return [nk for nk, nv in self.g_.nodes.data() if (nv["infected"] > 0) & nv["alive"]]
 
     @property
+    def current_immune_nodes(self) -> List[int]:
+        return [nk for nk, nv in self.g_.nodes.data() if nv["immune"] & nv["alive"]]
+
+    @property
     def current_clear_nodes(self) -> List[int]:
         return [nk for nk, nv in self.g_.nodes.data() if (nv["infected"] == 0) & nv["alive"]]
 
@@ -93,9 +101,6 @@ class Population:
     def current_dead_nodes(self) -> List[int]:
         return [nk for nk, nv in self.g_.nodes.data() if not nv["alive"]]
 
-    @property
-    def current_immune_nodes(self) -> List[int]:
-        return [nk for nk, nv in self.g_.nodes.data() if nv["immune"] & nv["alive"]]
 
     @property
     def overall_death_rate(self):
@@ -125,21 +130,26 @@ class Population:
 
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
                                nodelist=self.current_clear_nodes,
-                               node_color='#1f77b4',
+                               node_color=self.history.colours.get('Current clear', '#1f77b4'),
+                               node_size=10,
+                               ax=self._graph_ax)
+        nx.draw_networkx_nodes(self.g_, self.g_pos_,
+                               nodelist=self.current_immune_nodes,
+                               node_color=self.history.colours.get('Current immune', '#d62728'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
                                nodelist=self.current_infected_nodes,
-                               node_color='#d62728',
+                               node_color=self.history.colours.get('Current infections', '#9467bd'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
                                nodelist=self.current_dead_nodes,
-                               node_color='#7f7f7f',
+                               node_color=self.history.colours.get('Total deaths', 'k'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_edges(self.g_, self.g_pos_,
-                               width=0.01,
+                               width=0.1,
                                ax=self._graph_ax)
 
     def _infect_random(self) -> None:
@@ -212,13 +222,27 @@ class Population:
 
     def _log(self, new_infections: int, deaths: int, recoveries: int) -> None:
         self.history["Current infections"].append(self.n_current_infected)
+        self.history["Current clear"].append(self.total_population - self.n_current_infected)
         self.history["Current recovery rate"].append(self._modified_recovery_rate())
         self.history["Number alive"].append(len(self.current_alive_nodes))
         self.history["Total deaths"].append(len(self.current_dead_nodes))
+        self.history["Total immune"].append(len(self.current_immune_nodes))
         self.history["New infections"].append(new_infections)
         self.history["New deaths"].append(deaths)
         self.history["Total recovered"].append(recoveries)
         self.history["graph"].append(self.g_.copy())
+        self.history["Total infections"].append(np.cumsum(self.history["New infections"]))
+
+        # Stats
+        self.history["Current infection prop"].append(self.history["Current infections"][-1] /
+                                                      self.total_population)
+        self.history["Overall infection prop"].append(self.history["Total infections"][-1] /
+                                                      self.total_population)
+        self.history["Current death prop"].append(self.history["New deaths"][-1] /
+                                                  self.total_population)
+        self.history["Overall death prop"].append(self.history["Total deaths"][-1] / self.total_population)
+        self.history["Overall Infected death rate"].append(self.history["Total deaths"][-1]
+                                                           / self.history["Total infections"][-1])
 
     def replay(self, duration: float = 1) -> str:
         """
@@ -243,8 +267,9 @@ class Population:
         return output_path
 
     def plot_ts(self) -> None:
-        self.history.plot(["Current infections", "New infections", "New deaths", "Total deaths"],
+        self.history.plot(["Current infections", "Total immune", "Total deaths"],
                           ax=self._ts_ax,
+                          y_lim='auto_max',
                           show=False)
         cap = self.healthcare_capacity * self.total_population
         self._ts_ax.plot([0, self._step], [cap, cap],
