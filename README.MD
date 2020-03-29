@@ -11,13 +11,38 @@ The code aims to be as simple and understandable as possible, and can be summari
 
 ![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif) 
 
-# Set up
+## Population dynamics
 
+The dynamics of this simulation aim to be simple but interesting. They're built from reasoning and guesses at sensible values. They're not trained from data. The examples and default values aim to create simulations that do things in reasonable time, feel free to tweak them and see what happens.
+
+Populations are randomly generated using a [networkx.random_partition_graph](https://networkx.github.io/documentation/stable/reference/generated/networkx.generators.community.random_partition_graph.html#networkx.generators.community.random_partition_graph). This creates a network consisting of communities where individual members have a given chance to be connected. Each individual member also has a lower chance to be connected to members of other communities.
+
+In addition to communities, populations define a healthcare capacity. When above this capacity, the recovery rate from the disease is reduced.
+
+The connections between individuals (graph nodes) define opportunities for a member to infect another. Each day (step) every infected node has one chance to infect each of it's neighbours, the chance of this happening is defined by the disease virulence.
+
+Each day, infected nodes also have the chance to end their infection. The chance of this happening grows with the length of time the individual has been infected. If the infection ends, the individual either recovers and gains immunity, or dies. The chance of recovery is defined by the recovery rate of the disease, modified by the current burden on the healthcare system. When the heathcare system is below capacity, no penalty is applied to the recovery rate. When it's above, the recovery rate is reduced proportionally to the size of the burden. 
+
+
+# Running in Docker
+```bash
+docker pull garethjns/social-distancing-sim
+docker run -p 8000:8000 social-distancing-sim
+```
+
+For now, REST API supports get requests for running a few examples. These return either the rendered gif, or the stats for the simulation (JSON). See http://localhost:8001/docs for all implemented methods.
+
+For example (these will probably take a while to run):  
+http://localhost:8000/examples/herd_of_cats -> outputs gif  
+http://localhost:8000/examples/herd_of_cats_multiple_runs -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).  
+
+# Running in Python
 ````bash
 pip install social_distancing_sim
 ````
 
-# Run a simulation
+
+## Run a simulation
 See also scripts/run_single_population.py
 
 ````python
@@ -52,7 +77,7 @@ python3 -m social-distancing-sim.scripts.run_single_population
 ````
 
 
-# Compare two populations
+## Compare two populations
 
 ```python
 from social_distancing_sim.disease.disease import Disease
@@ -89,14 +114,3 @@ python3 -m social-distancing-sim.scripts.compare_two_populations
 ````
 
 
-# Population dynamics
-
-The dynamics of this simulation aim to be simple but interesting. They're built from reasoning and guesses at sensible values. They're not trained from data. The examples and default values aim to create simulations that do things in reasonable time, feel free to tweak them and see what happens.
-
-Populations are randomly generated using a [networkx.random_partition_graph](https://networkx.github.io/documentation/stable/reference/generated/networkx.generators.community.random_partition_graph.html#networkx.generators.community.random_partition_graph). This creates a network consisting of communities where individual members have a given chance to be connected. Each individual member also has a lower chance to be connected to members of other communities.
-
-In addition to communities, populations define a healthcare capacity. When above this capacity, the recovery rate from the disease is reduced.
-
-The connections between individuals (graph nodes) define opportunities for a member to infect another. Each day (step) every infected node has one chance to infect each of it's neighbours, the chance of this happening is defined by the disease virulence.
-
-Each day, infected nodes also have the chance to end their infection. The chance of this happening grows with the length of time the individual has been infected. If the infection ends, the individual either recovers and gains immunity, or dies. The chance of recovery is defined by the recovery rate of the disease, modified by the current burden on the healthcare system. When the heathcare system is below capacity, no penalty is applied to the recovery rate. When it's above, the recovery rate is reduced proportionally to the size of the burden. 

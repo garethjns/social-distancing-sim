@@ -8,12 +8,11 @@ from typing import Union, Dict, List, Tuple
 import imageio
 import networkx as nx
 import numpy as np
+import seaborn as sns
 from matplotlib import pyplot as plt
 
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.history import History
-
-import seaborn as sns
 
 sns.set()
 
@@ -78,6 +77,10 @@ class Population:
             warnings.warn(f"Permission denied while creating output directory, it might be fine.")
 
     @property
+    def output_gif(self) -> str:
+        return f"{self.output_path}/replay.gif"
+
+    @property
     def n_current_infected(self) -> int:
         return len(self.current_infected_nodes)
 
@@ -100,7 +103,6 @@ class Population:
     @property
     def current_dead_nodes(self) -> List[int]:
         return [nk for nk, nv in self.g_.nodes.data() if not nv["alive"]]
-
 
     @property
     def overall_death_rate(self):
@@ -231,7 +233,12 @@ class Population:
         self.history["New deaths"].append(deaths)
         self.history["Total recovered"].append(recoveries)
         self.history["graph"].append(self.g_.copy())
-        self.history["Total infections"].append(np.cumsum(self.history["New infections"]))
+
+        if self._step == 0:
+            self.history["Total infections"].append(self.history["New infections"][0])
+        else:
+            self.history["Total infections"].append(self.history["Total infections"][-1]
+                                                    + self.history["New infections"][-1])
 
         # Stats
         self.history["Current infection prop"].append(self.history["Current infections"][-1] /
@@ -241,8 +248,12 @@ class Population:
         self.history["Current death prop"].append(self.history["New deaths"][-1] /
                                                   self.total_population)
         self.history["Overall death prop"].append(self.history["Total deaths"][-1] / self.total_population)
-        self.history["Overall Infected death rate"].append(self.history["Total deaths"][-1]
-                                                           / self.history["Total infections"][-1])
+
+        if self.history["Total deaths"][-1] > 0:
+            idr = self.history["Total deaths"][-1] / self.history["Total infections"][-1]
+        else:
+            idr = 0
+        self.history["Overall Infected death rate"].append(idr)
 
     def replay(self, duration: float = 1) -> str:
         """
@@ -320,3 +331,15 @@ class Population:
         for _ in range(steps):
             self.step(plot=plot,
                       save=save)
+
+    def reset(self):
+        return Population(disease=self.disease,
+                          name=self.name,
+                          seed=self.seed,
+                          community_n=self.community_n,
+                          community_size_mean=self.community_size_mean,
+                          community_size_std=self.community_size_std,
+                          community_p_in=self.community_p_in,
+                          community_p_out=self.community_p_out,
+                          healthcare_capacity=self.healthcare_capacity,
+                          healthcare_efficiency=self.healthcare_efficiency)

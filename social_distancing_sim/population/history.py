@@ -26,7 +26,7 @@ class History(dict):
 
         default_fields = ["Current recovery rate", "Current infections", "Current clear", "Total immune",
                           "Number alive", "New infections", "New deaths", "Total deaths", "Total recovered",
-                          "Current Infection prop", "Overall infection prop", "Current death prop",
+                          "Current infection prop", "Overall infection prop", "Current death prop",
                           "Overall death prop", "graph", "Overall Infected death rate"]
 
         hist = History.with_fields(default_fields)

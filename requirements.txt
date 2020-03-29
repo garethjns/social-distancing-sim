@@ -4,3 +4,9 @@ matplotlib
 imageio
 dataclasses
 seaborn
+fastapi
+uvicorn
+aiofiles
+joblib
+tqdm
+pandas
