@@ -45,7 +45,6 @@ class History(dict):
              ax: plt.axes = None,
              y_label: str = 'Count',
              x_label: str = 'Day',
-             y_lim: Tuple[int, int] = None,
              show: bool = True,
              agg_f: Callable = None) -> plt.axes:
         """
@@ -55,7 +54,6 @@ class History(dict):
         :param ax: Axis to draw figure on. Not currently will rewrite axis labels. If not specified, will create.
         :param y_label: Y axis label.
         :param x_label: X axis label.
-        :param y_lim: y lims. None: automatic, 'auto_max' scale by max in history, or list of 2 Ints.
         :param show: Draw figure.
         :param agg_f: Aggregator function apply to y before plotting, eg. np.cumsum for cumulative plots.
                       Default no aggregation.

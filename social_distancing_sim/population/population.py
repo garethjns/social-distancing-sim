@@ -1,19 +1,23 @@
+"""
+TODO:
+  - Split out observation space from population.
+  - Split healthcare into separate object?
+"""
+
 import glob
 import os
 import shutil
-import warnings
 from dataclasses import dataclass
 from typing import Union, Dict, List, Tuple
 
 import imageio
 import networkx as nx
 import numpy as np
+import seaborn as sns
 from matplotlib import pyplot as plt
 
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.history import History
-
-import seaborn as sns
 
 sns.set()
 
@@ -32,6 +36,8 @@ class Population:
 
     healthcare_capacity: float = 0.15
     healthcare_efficiency: float = None
+    healthcare_test_rate: float = 1
+    healthcare_test_validity_period: float = 5
 
     def __post_init__(self) -> None:
         self._prepare_random_state()
@@ -71,11 +77,47 @@ class Population:
                       ignore_errors=True)
 
         self.graph_path = f"{self.output_path}/graphs/"
-        try:
-            os.makedirs(self.graph_path,
-                        exist_ok=True)
-        except PermissionError:
-            warnings.warn(f"Permission denied while creating output directory, it might be fine.")
+        os.makedirs(self.graph_path,
+                    exist_ok=True)
+
+    @property
+    def known_n_current_infected(self):
+        return len(self.known_current_infected_nodes)
+
+    @property
+    def unknown_nodes(self) -> List[int]:
+        return [nk for nk, nv in self.g_.nodes.data() if (nv.get("status", '') == '')]
+
+    @property
+    def known_current_infected_nodes(self) -> List[int]:
+        if self.healthcare_test_rate >= 1:
+            return self.current_infected_nodes
+        else:
+            return [nk for nk, nv in self.g_.nodes.data() if (nv.get("status", '') == 'infected')]
+
+    @property
+    def known_current_immune_nodes(self) -> List[int]:
+        if self.healthcare_test_rate >= 1:
+            return self.current_immune_nodes
+        else:
+            return [nk for nk, nv in self.g_.nodes.data() if (nv.get("status", '') == 'immune')]
+
+    @property
+    def known_current_clear_nodes(self) -> List[int]:
+        if self.healthcare_test_rate >= 1:
+            return self.current_clear_nodes
+        else:
+            return [nk for nk, nv in self.g_.nodes.data() if (nv.get("status", '') == 'clear')]
+
+    @property
+    def known_current_alive_nodes(self) -> List[int]:
+        """We know who's alive without testing...."""
+        return self.current_alive_nodes
+
+    @property
+    def known_current_dead_nodes(self) -> List[int]:
+        """We know who's dead without testing...."""
+        return self.current_dead_nodes
 
     @property
     def n_current_infected(self) -> int:
@@ -101,7 +143,6 @@ class Population:
     def current_dead_nodes(self) -> List[int]:
         return [nk for nk, nv in self.g_.nodes.data() if not nv["alive"]]
 
-
     @property
     def overall_death_rate(self):
         if len(self.current_dead_nodes) > 0:
@@ -126,30 +167,36 @@ class Population:
     def plot_graph(self) -> None:
         """Plot the network graph."""
         if self.g_pos_ is None:
-            self.g_pos_ = nx.spring_layout(self.g_)
+            self.g_pos_ = nx.spring_layout(self.g_,
+                                           seed=self.seed)
 
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_clear_nodes,
+                               nodelist=self.unknown_nodes,
+                               node_color=self.history.colours.get('Unknown', '#bdbcbb'),
+                               node_size=10,
+                               ax=self._graph_ax)
+        nx.draw_networkx_nodes(self.g_, self.g_pos_,
+                               nodelist=self.known_current_clear_nodes,
                                node_color=self.history.colours.get('Current clear', '#1f77b4'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_immune_nodes,
+                               nodelist=self.known_current_immune_nodes,
                                node_color=self.history.colours.get('Current immune', '#d62728'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_infected_nodes,
+                               nodelist=self.known_current_infected_nodes,
                                node_color=self.history.colours.get('Current infections', '#9467bd'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_dead_nodes,
+                               nodelist=self.known_current_dead_nodes,
                                node_color=self.history.colours.get('Total deaths', 'k'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_edges(self.g_, self.g_pos_,
-                               width=0.1,
+                               width=0.01,
                                ax=self._graph_ax)
 
     def _infect_random(self) -> None:
@@ -221,12 +268,12 @@ class Population:
         return deaths, recoveries
 
     def _log(self, new_infections: int, deaths: int, recoveries: int) -> None:
-        self.history["Current infections"].append(self.n_current_infected)
-        self.history["Current clear"].append(self.total_population - self.n_current_infected)
+        self.history["Current infections"].append(self.known_n_current_infected)
+        self.history["Current clear"].append(self.total_population - self.known_n_current_infected)
         self.history["Current recovery rate"].append(self._modified_recovery_rate())
-        self.history["Number alive"].append(len(self.current_alive_nodes))
-        self.history["Total deaths"].append(len(self.current_dead_nodes))
-        self.history["Total immune"].append(len(self.current_immune_nodes))
+        self.history["Number alive"].append(len(self.known_current_alive_nodes))
+        self.history["Total deaths"].append(len(self.known_current_dead_nodes))
+        self.history["Total immune"].append(len(self.known_current_immune_nodes))
         self.history["New infections"].append(new_infections)
         self.history["New deaths"].append(deaths)
         self.history["Total recovered"].append(recoveries)
@@ -269,7 +316,6 @@ class Population:
     def plot_ts(self) -> None:
         self.history.plot(["Current infections", "Total immune", "Total deaths"],
                           ax=self._ts_ax,
-                          y_lim='auto_max',
                           show=False)
         cap = self.healthcare_capacity * self.total_population
         self._ts_ax.plot([0, self._step], [cap, cap],
@@ -290,6 +336,62 @@ class Population:
         if show:
             plt.show()
 
+    def _test_population(self):
+        """
+        Test random members of the population, based on testing rate.
+
+        Chance of testing infected is grater than testing asymptomatic.
+        """
+        clear_test_rate = self.healthcare_test_rate / 2
+        infected_test_rate = self.healthcare_test_rate * 2
+
+        if clear_test_rate > 1:
+            clear_test_rate = 1
+        if infected_test_rate > 1:
+            infected_test_rate = 1
+
+        for n in self.current_clear_nodes:
+            if self.state.binomial(1, clear_test_rate):
+                self.g_.nodes[n]['last_tested'] = self._step
+
+        for n in self.current_infected_nodes:
+            if self.state.binomial(1, infected_test_rate):
+                self.g_.nodes[n]['last_tested'] = self._step
+
+    def _update_observed_statuses(self) -> int:
+        known_new_infections = 0
+
+        for nk, nv in self.g_.nodes.data():
+            # Is dead
+            if not nv['alive']:
+                nv['status'] = 'dead'
+                continue
+
+            # Is known immune, stays immune, stays alive, never updated
+            if nv.get("status", "") == "immune":
+                continue
+
+            # Was known to be infected, now clear,
+            if nv['infected'] == 0 and (nv.get("status", "") == "infected"):
+                nv['status'] = 'immune'
+                continue
+
+            # Is infected and tested this turn
+            if nv['infected'] > 0 and (nv.get("last_tested", -1) == self._step):
+                nv['status'] = 'infected'
+                known_new_infections += 1
+
+            # Is clear and tested this turn
+            if nv['infected'] == 0 and (nv.get("last_tested", -1) == self._step):
+                nv['status'] = 'clear'
+
+            # Test has expired (only for clear nodes)
+            if (nv.get("status", "clear")
+                    and ((self._step - nv.get("last_tested", 0)) > self.healthcare_test_validity_period)):
+                nv['status'] = ''
+
+        return known_new_infections
+
     def step(self,
              plot: bool = True,
              save: bool = True) -> None:
@@ -298,7 +400,10 @@ class Population:
 
         new_infections = self._infect_neighbours()
         deaths, recoveries = self._conclude()
-        self._log(new_infections, deaths, recoveries)
+        self._test_population()
+        known_new_infections = self._update_observed_statuses()
+
+        self._log(known_new_infections, deaths, recoveries)
 
         if plot or save:
             print(f"Step {self._step} concluded")
