@@ -371,8 +371,8 @@ class Population:
             if nv.get("status", "") == "immune":
                 continue
 
-            # Was known to be infected, now clear,
-            if nv['infected'] == 0 and (nv.get("status", "") == "infected"):
+            # Only propagate immune status if we knew node was infected
+            if nv['immune'] and (nv.get("status", "") == "infected"):
                 nv['status'] = 'immune'
                 continue
 

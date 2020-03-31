@@ -106,8 +106,9 @@ This figure compares the populations shown above, to their observable features g
 
 In the observed model, a proportion of the population (here ~4%) is tested per day the test validity is 5 days. Testing is conducted and observed status is updated as follows:
   - Each node has a specified chance of being tested per day - this chance is double for infected nodes and halved for clear nodes on the basis that people with symptoms are more likely to be tested.
-  - If the node is clear, status is marked as clear for the next 5 days* If node is infected, status is marked as infected
+  - If a node is tested and clear, status is marked as clear for the next 5 days
+  - If a node is tested and is infected, status is marked as infected
   - For known infected nodes, status is switched to "dead" or "immune" at the end of disease, depending on survival
   - For unknown infected nodes, status is set to "dead" if they die, but left as unknown if they survive - this is based on the assumption we know about all deaths, but don't know about acquired immunity unless we know about infection.  
 
-![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/socail-distancing-sim_3.gif) 
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined_2.gif) 
