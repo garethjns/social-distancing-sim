@@ -100,3 +100,15 @@ In addition to communities, populations define a healthcare capacity. When above
 The connections between individuals (graph nodes) define opportunities for a member to infect another. Each day (step) every infected node has one chance to infect each of it's neighbours, the chance of this happening is defined by the disease virulence.
 
 Each day, infected nodes also have the chance to end their infection. The chance of this happening grows with the length of time the individual has been infected. If the infection ends, the individual either recovers and gains immunity, or dies. The chance of recovery is defined by the recovery rate of the disease, modified by the current burden on the healthcare system. When the heathcare system is below capacity, no penalty is applied to the recovery rate. When it's above, the recovery rate is reduced proportionally to the size of the burden. 
+
+# Importance of testing
+This figure compares the populations shown above, to their observable features given a set level of testing.
+
+In the observed model, a proportion of the population (here ~4%) is tested per day the test validity is 5 days. Testing is conducted and observed status is updated as follows:
+  - Each node has a specified chance of being tested per day - this chance is double for infected nodes and halved for clear nodes on the basis that people with symptoms are more likely to be tested.
+  - If a node is tested and clear, status is marked as clear for the next 5 days
+  - If a node is tested and is infected, status is marked as infected
+  - For known infected nodes, status is switched to "dead" or "immune" at the end of disease, depending on survival
+  - For unknown infected nodes, status is set to "dead" if they die, but left as unknown if they survive - this is based on the assumption we know about all deaths, but don't know about acquired immunity unless we know about infection.  
+
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined_2.gif) 

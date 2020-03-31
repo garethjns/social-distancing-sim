@@ -20,8 +20,8 @@ if __name__ == "__main__":
 
     pop_distanced.run(steps=130,
                       plot=False)
+    pop_distanced.replay(duration=0.1)
+
     pop.run(steps=130,
             plot=False)
-
-    pop_distanced.replay(duration=0.1)
     pop.replay(duration=0.1)
