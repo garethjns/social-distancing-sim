@@ -20,7 +20,7 @@ if __name__ == "__main__":
     pop_full_knowledge.run(steps=130,
                            plot=False)
     pop_full_knowledge.replay(duration=0.1)
-    
+
     pop_poor_testing_knowledge.run(steps=130,
                                    plot=False)
     pop_poor_testing_knowledge.replay(duration=0.1)

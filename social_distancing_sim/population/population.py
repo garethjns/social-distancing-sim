@@ -182,12 +182,12 @@ class Population:
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
                                nodelist=self.known_current_immune_nodes,
-                               node_color=self.history.colours.get('Current immune', '#d62728'),
+                               node_color=self.history.colours.get('Current immune', '#9467bd'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
                                nodelist=self.known_current_infected_nodes,
-                               node_color=self.history.colours.get('Current infections', '#9467bd'),
+                               node_color=self.history.colours.get('Current infections', '#d62728'),
                                node_size=10,
                                ax=self._graph_ax)
         nx.draw_networkx_nodes(self.g_, self.g_pos_,
