@@ -33,7 +33,7 @@ class History(dict):
 
         hist.colours = {'Current clear': '#1f77b4',
                         'Current infections': '#d62728',
-                        'Current immune': '#9467bd',
+                        'Total immune': '#9467bd',
                         'Total deaths': 'k',
                         'Current infection prop': '#1f77b4',
                         'Current death prop': 'k',
@@ -71,7 +71,7 @@ class History(dict):
             ax.plot(y, label=k,
                     color=self.colours.get(k, None))
 
-        ax.set_ylim([-10, 600])
+        # ax.set_ylim([-10, 600])
         ax.set_ylabel(y_label)
         ax.set_xlabel(x_label)
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
