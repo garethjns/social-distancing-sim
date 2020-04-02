@@ -1,7 +1,6 @@
-from typing import Dict, Callable, Tuple, List, Union
+from typing import Dict, Callable, List, Any
 
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.ticker import MaxNLocator
 
 
@@ -23,21 +22,19 @@ class History(dict):
     @classmethod
     def with_defaults(cls) -> "History":
         """Set fields or colours for use with sim."""
-
-        default_fields = ["Current recovery rate", "Current infections", "Current clear", "Total immune",
-                          "Number alive", "New infections", "New deaths", "Total deaths", "Total recovered",
-                          "Current Infection prop", "Overall infection prop", "Current death prop",
-                          "Overall death prop", "graph", "Overall Infected death rate"]
-
-        hist = History.with_fields(default_fields)
-
+        hist = History()
         hist.colours = {'Current clear': '#1f77b4',
+                        'Known current clear': '#1f77b4',
                         'Current infections': '#d62728',
+                        'Known current infections': '#d62728',
                         'Total immune': '#9467bd',
+                        'Known total immune': '#9467bd',
                         'Total deaths': 'k',
                         'Current infection prop': '#1f77b4',
+                        'Known current infection prop': '#1f77b4',
                         'Current death prop': 'k',
-                        'Overall Infected death rate': 'k'}
+                        'Overall Infected death rate': 'k',
+                        'Known overall Infected death rate': 'k'}
 
         return hist
 
@@ -64,7 +61,8 @@ class History(dict):
                                    ncols=1)
 
         if agg_f is None:
-            agg_f = lambda x: x
+            def agg_f(x):
+                return x
 
         for k in ks:
             y = agg_f(self[k])
@@ -80,3 +78,7 @@ class History(dict):
             plt.show()
 
         return ax
+
+    def log(self, metrics: Dict[str, Any]):
+        for k, v in metrics.items():
+            self[k].append(v)
