@@ -37,4 +37,4 @@ class TestGraph(unittest.TestCase):
         graph2 = self._sut(seed=None)
 
         # Assert
-        self.assertFalse(np.array((np.array(graph1.g_.edges) == np.array(graph2.g_.edges))))
+        self.assertFalse(np.array((np.array(graph1.g_.edges) == np.array(graph2.g_.edges))).all())
