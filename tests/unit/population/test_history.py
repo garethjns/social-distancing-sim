@@ -1,15 +1,35 @@
 import unittest
+from typing import Callable
 
 from social_distancing_sim.population.history import History
 
 
 class TestHistory(unittest.TestCase):
-    _sut = History
+    _sut: Callable = History
 
-    def test_init_with_defaults(self):
+    def setUp(self):
+        self._hist = self._sut()
+
+    def test_log_to_existing_key(self):
+        # Arrange
+        self._hist["new_key"] = [1]
+
         # Act
-        history = self._sut.with_defaults()
+        self._hist.log({'new_key': 2})
 
         # Assert
-        self.assertIsInstance(history, History)
-        self.assertIn("Current infections", list(history.keys()))
+        self.assertEqual(len(self._hist.keys()), 1)
+        self.assertIsInstance(self._hist['new_key'], list)
+        self.assertEqual(len(self._hist['new_key']), 2)
+        self.assertEqual(self._hist['new_key'][0], 1)
+        self.assertEqual(self._hist['new_key'][1], 2)
+
+    def test_log_to_non_existing_key(self):
+        # Act
+        self._hist.log({'new_key2': 1})
+
+        # Assert
+        self.assertEqual(len(self._hist.keys()), 1)
+        self.assertIsInstance(self._hist['new_key2'], list)
+        self.assertEqual(len(self._hist['new_key2']), 1)
+        self.assertEqual(self._hist['new_key2'][0], 1)
