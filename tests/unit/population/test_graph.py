@@ -1,4 +1,5 @@
 import unittest
+from typing import Callable
 
 import numpy as np
 
@@ -6,7 +7,7 @@ from social_distancing_sim.population.graph import Graph
 
 
 class TestGraph(unittest.TestCase):
-    _sut = Graph
+    _sut: Callable = Graph
 
     def test_init_with_defaults(self):
         graph = self._sut()

@@ -5,7 +5,7 @@ from social_distancing_sim.population.observation_space import ObservationSpace
 
 
 class TestObservationSpace(unittest.TestCase):
-    _sut = ObservationSpace
+    _sut: ObservationSpace = ObservationSpace
     _mock_graph = MagicMock()
 
     def test_init_with_defaults(self):

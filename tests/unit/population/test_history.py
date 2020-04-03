@@ -1,10 +1,11 @@
 import unittest
+from typing import Callable
 
 from social_distancing_sim.population.history import History
 
 
 class TestHistory(unittest.TestCase):
-    _sut = History
+    _sut: Callable = History
 
     def setUp(self):
         self._hist = self._sut()

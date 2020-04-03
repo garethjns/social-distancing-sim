@@ -27,30 +27,25 @@ from social_distancing_sim.population.observation_space import ObservationSpace
 from social_distancing_sim.population.graph import Graph
 from social_distancing_sim.population.healthcare import Healthcare
 
-# Define a disease
-disease = Disease(name='COVID-19')
-
 # Create a population
 pop = Population(name="readme_example population",
-                 disease=Disease(name='COVID-19'),
-                 healthcare=Healthcare(),
-                 observation_space=ObservationSpace(
+                 disease=Disease(name='COVID-19'),  # Define a disease
+                 healthcare=Healthcare(),  # Define healthcare availability
+                 observation_space=ObservationSpace(  # Create population graph and window into it
                     graph=Graph(community_n=50,  # Number of communities
                                     community_size_mean=15, # Average number of people per community
                                     community_p_in=0.06,  # The likelihood of a connection between two community members
                                     community_p_out=0.04),  # The likelihood of a connection between two members of different communities. 
-                    test_rate=1)) 
-
+                    test_rate=1))  # Proportion of population tested per step (testing determines observable data)
 
 # Run the simulation for a number of days
 pop.run(save=True, plot=True, steps=100)
 
-# Save .gif to './example population/replay.gif'
-pop.replay()
+# Save .gif to './example population/replay.gif', duration sets time in s for each frame
+pop.replay(duration=0.25)
 
 # History can be accessed in the history attribute
 pop.history.keys()
-pop.history(list(pop.history.keys()))
 ````
 
 Or run with
@@ -58,36 +53,36 @@ Or run with
 python3 -m social-distancing-sim.scripts.run_single_population
 ````
 
-
 # Compare two populations
 
 ```python
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.population import Population
-
-disease = Disease(name='COVID-19')
+from social_distancing_sim.population.observation_space import ObservationSpace
+from social_distancing_sim.population.graph import Graph
+from social_distancing_sim.population.healthcare import Healthcare
 
 pop = Population(name='A herd of cats',
-                 disease=disease,
-                 community_n=50,
-                 community_size_mean=15,
-                 seed=123)
+                 disease=Disease(name='COVID-19'),
+                 healthcare=Healthcare(),
+                 observation_space=ObservationSpace(
+                    graph=Graph(community_n=50,  
+                                community_size_mean=15), 
+                    test_rate=1)) 
 
 pop_distanced = Population(name='A socially responsible population',
-                           disease=disease,
-                           community_n=50,
-                           community_size_mean=15,
-                           community_p_in=0.05,
-                           community_p_out=0.04,
-                           seed=123)
+                           disease=Disease(name='COVID-19'),
+                           healthcare=Healthcare(),
+                           observation_space=ObservationSpace(
+                              graph=Graph(community_n=50,
+                                          community_size_mean=15,
+                                          community_p_in=0.05,  # Reduced intra-community connections
+                                           community_p_out=0.04),  # Reduced inter-community connections
+                              test_rate=1)) 
 
-pop_distanced.run(steps=200,
-                  plot=False)
-pop.run(steps=200,
-        plot=False)
+pop_distanced.run(steps=200, plot=False, save=False).replay(duration=0.1)
+pop.run(steps=200, plot=False, save=True).replay(duration=0.1)
 
-pop_distanced.replay(duration=0.1)
-pop.replay(duration=0.1)
 ```
 
 Or run with
@@ -109,7 +104,13 @@ The connections between individuals (graph nodes) define opportunities for a mem
 Each day, infected nodes also have the chance to end their infection. The chance of this happening grows with the length of time the individual has been infected. If the infection ends, the individual either recovers and gains immunity, or dies. The chance of recovery is defined by the recovery rate of the disease, modified by the current burden on the healthcare system. When the heathcare system is below capacity, no penalty is applied to the recovery rate. When it's above, the recovery rate is reduced proportionally to the size of the burden. 
 
 # Importance of testing
-This figure compares the populations shown above, to their observable features given a set level of testing.
+
+Run with
+````bash
+python3 -m social-distancing-sim.scripts.compare_two_pop_testing_rate
+````
+
+This script and figure compares the populations shown above, to their observable features given a set level of testing.
 
 In the observed model, a proportion of the population (here ~4%) is tested per day the test validity is 5 days. Testing is conducted and observed status is updated as follows:
   - Each node has a specified chance of being tested per day - this chance is double for infected nodes and halved for clear nodes on the basis that people with symptoms are more likely to be tested.

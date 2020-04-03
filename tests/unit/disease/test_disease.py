@@ -1,5 +1,6 @@
 import copy
 import unittest
+from typing import Callable
 
 import numpy as np
 
@@ -7,7 +8,7 @@ from social_distancing_sim.disease.disease import Disease
 
 
 class TestDisease(unittest.TestCase):
-    _sut = Disease
+    _sut: Callable = Disease
 
     def setUp(self):
         self._mock_node = {}

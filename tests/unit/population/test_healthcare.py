@@ -4,7 +4,7 @@ from social_distancing_sim.population.healthcare import Healthcare
 
 
 class TestHealthcare(unittest.TestCase):
-    _sut = Healthcare()
+    _sut: Healthcare = Healthcare()
 
     def test_recovery_rate_penalty_is_0_below_capacity(self):
         # Act
