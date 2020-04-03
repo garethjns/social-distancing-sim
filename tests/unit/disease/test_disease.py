@@ -11,7 +11,9 @@ class TestDisease(unittest.TestCase):
 
     def setUp(self):
         self._mock_node = {}
+        self._mock_immune_node = {"immune": True}
         self._mock_graph = [copy.deepcopy(self._mock_node) for _ in range(20000)]
+        self._mock_immune_graph = [copy.deepcopy(self._mock_immune_node) for _ in range(5000)]
 
     def test_init_with_defaults(self):
         # Act
@@ -25,7 +27,7 @@ class TestDisease(unittest.TestCase):
         disease = self._sut(virulence=0.005)
 
         # Act
-        mv = disease._modified_virulence(0)
+        mv = disease.modified_virulence(0)
 
         self.assertAlmostEqual(0.005, mv)
 
@@ -34,7 +36,7 @@ class TestDisease(unittest.TestCase):
         disease = self._sut(virulence=0.005)
 
         # Act
-        mv = disease._modified_virulence(0.5)
+        mv = disease.modified_virulence(0.5)
 
         self.assertAlmostEqual(0.0025, mv)
 
@@ -43,16 +45,16 @@ class TestDisease(unittest.TestCase):
         disease = self._sut(virulence=0.005)
 
         # Act
-        mv = disease._modified_virulence(10000)
+        mv = disease.modified_virulence(10000)
 
-        self.assertAlmostEqual(0.00001, mv)
+        self.assertAlmostEqual(1e-7, mv)
 
     def test_modified_negative_immunity(self):
         # Arrange
         disease = self._sut(virulence=0.005)
 
         # Act
-        mv = disease._modified_virulence(-0.5)
+        mv = disease.modified_virulence(-0.5)
 
         self.assertAlmostEqual(0.0075, mv)
 
@@ -61,7 +63,7 @@ class TestDisease(unittest.TestCase):
         disease = self._sut(virulence=0.005)
 
         # Act
-        mv = disease._modified_virulence(-1000)
+        mv = disease.modified_virulence(-1000)
 
         self.assertAlmostEqual(0.999, mv)
 
@@ -116,3 +118,12 @@ class TestDisease(unittest.TestCase):
         self.assertIn(0, [n["infected"] for n in infections1])
         self.assertIn(1, [n["infected"] for n in infections1])
         self.assertFalse((np.array(infections1) == np.array(infections2)).all())
+
+    def test_cannot_infect_immune_node(self):
+        # Arrange
+        disease = self._sut()
+
+        # Act
+        infections = [disease.try_to_infect(node) for node in copy.deepcopy(self._mock_immune_graph)]
+
+        self.assertListEqual([n["infected"] for n in infections], [0] * len(infections))

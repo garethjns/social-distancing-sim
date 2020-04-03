@@ -139,7 +139,7 @@ class Population:
             "Known overall Infected death rate": (self.history["Total deaths"][-1]
                                                   / self.history["Total infections"][-1])})
 
-    def replay(self, duration: float = 1) -> str:
+    def replay(self, duration: float = 0.3) -> str:
         """
         :param duration: Frame duration,
         :return: Path to rendered gif.

@@ -19,9 +19,9 @@ class Disease:
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
 
-    def _modified_virulence(self, immunity: float) -> float:
+    def modified_virulence(self, immunity: float) -> float:
         """Reduce virulence according to immunity"""
-        return min(max(0.00001, self.virulence * (1 - immunity)), 0.999)
+        return min(max(1e-7, self.virulence * (1 - immunity)), 0.999)
 
     def conclude(self, node,
                  recovery_rate_modifier: float = 1):
@@ -55,7 +55,7 @@ class Disease:
 
     def try_to_infect(self, node):
         if not node.get("infected", 0) > 0:
-            node["infected"] = self.state.binomial(1, self._modified_virulence(node.get("immunity", 0)))
+            node["infected"] = self.state.binomial(1, self.modified_virulence(node.get("immune", 0)))
         return node
 
     @staticmethod

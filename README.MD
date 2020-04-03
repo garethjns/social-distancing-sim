@@ -23,20 +23,27 @@ See also scripts/run_single_population.py
 ````python
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.population import Population
+from social_distancing_sim.population.observation_space import ObservationSpace
+from social_distancing_sim.population.graph import Graph
+from social_distancing_sim.population.healthcare import Healthcare
 
 # Define a disease
 disease = Disease(name='COVID-19')
 
 # Create a population
-pop = Population(name="example population",
-                 disease=disease,
-                 community_n=50,  # Numebr of communities
-                 community_size_mean=15,  # Average number of people per community
-                 community_p_in=0.06,  # The likihood of a connection between two community members
-                 community_p_out=0.04)  # The liklikhood of a connection between two members of different communities.  
+pop = Population(name="readme_example population",
+                 disease=Disease(name='COVID-19'),
+                 healthcare=Healthcare(),
+                 observation_space=ObservationSpace(
+                    graph=Graph(community_n=50,  # Number of communities
+                                    community_size_mean=15, # Average number of people per community
+                                    community_p_in=0.06,  # The likelihood of a connection between two community members
+                                    community_p_out=0.04),  # The likelihood of a connection between two members of different communities. 
+                    test_rate=1)) 
+
 
 # Run the simulation for a number of days
-pop.run(steps=100)
+pop.run(save=True, plot=True, steps=100)
 
 # Save .gif to './example population/replay.gif'
 pop.replay()

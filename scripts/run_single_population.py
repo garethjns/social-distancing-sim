@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     pop.run(steps=100,
             plot=False,
-            save=save)
+            save=True)
 
     # Save .gif to './example population/replay.gif'
     if save:

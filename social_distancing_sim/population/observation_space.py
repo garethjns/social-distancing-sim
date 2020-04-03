@@ -128,7 +128,7 @@ class ObservationSpace:
                 nv['status'] = 'clear'
 
             # Test has expired (only for clear nodes)
-            if (nv.get("status", "clear")
+            if ((nv.get("status", '') == "clear")
                     and ((time_step - nv.get("last_tested", 0)) > self.test_validity_period)):
                 nv['status'] = ''
 
