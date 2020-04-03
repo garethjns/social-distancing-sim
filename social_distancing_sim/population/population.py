@@ -116,7 +116,11 @@ class Population:
                           "Number alive": len(self.observation_space.graph.current_alive_nodes),
                           "Total deaths": len(self.observation_space.graph.current_dead_nodes),
                           "Total immune": len(self.observation_space.graph.current_immune_nodes),
+                          "Mean immunity": np.mean([self.observation_space.graph.g_.nodes[n]["immune"]
+                                                    for n in self.observation_space.graph.current_immune_nodes]),
                           "Known total immune": len(self.observation_space.known_current_immune_nodes),
+                          "Known mean immunity": np.mean([self.observation_space.graph.g_.nodes[n]["immune"]
+                                                          for n in self.observation_space.known_current_immune_nodes]),
                           "New infections": new_infections,
                           "Known new infections": known_new_infections,
                           "New deaths": deaths,
@@ -185,6 +189,10 @@ class Population:
         if show:
             plt.show()
 
+    def _update_immunities(self):
+        for node in self.observation_space.graph.current_immune_nodes:
+            self.disease.decay_immunity(self.observation_space.graph.g_.nodes[node])
+
     def step(self,
              plot: bool = True,
              save: bool = True) -> None:
@@ -195,6 +203,7 @@ class Population:
         deaths, recoveries = self._conclude_all()
         self.observation_space.test_population(self._step)
         known_new_infections = self.observation_space.update_observed_statuses(self._step)
+        self._update_immunities()
 
         self._log(new_infections=known_new_infections, known_new_infections=known_new_infections,
                   deaths=deaths, recoveries=recoveries)

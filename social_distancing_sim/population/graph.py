@@ -75,7 +75,7 @@ class Graph:
     @property
     def current_immune_nodes(self) -> List[int]:
         if self._current_immune_nodes is None:
-            self._current_immune_nodes = [nk for nk, nv in self.g_.nodes.data() if nv["immune"] & nv["alive"]]
+            self._current_immune_nodes = [nk for nk, nv in self.g_.nodes.data() if (nv["immune"] > 0.05) & nv["alive"]]
         return self._current_immune_nodes
 
     @property

@@ -31,9 +31,9 @@ class ObservationSpace:
 
     def reset_cached_values(self):
         self._unknown_nodes: Union[int, None] = None
-        self._known_current_infected_nodes: Union[int, None] = None
-        self._known_current_immune_nodes: Union[int, None] = None
-        self._known_current_clear_nodes: Union[int, None] = None
+        self._known_current_infected_nodes: Union[List[int], None] = None
+        self._known_current_immune_nodes: Union[List[int], None] = None
+        self._known_current_clear_nodes: Union[List[int], None] = None
 
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
