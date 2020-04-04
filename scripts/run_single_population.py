@@ -1,3 +1,5 @@
+"""Run a single population with perfrect testing."""
+
 from social_distancing_sim.population.graph import Graph
 from social_distancing_sim.population.healthcare import Healthcare
 from social_distancing_sim.population.observation_space import ObservationSpace
@@ -16,8 +18,8 @@ if __name__ == "__main__":
                      observation_space=ObservationSpace(graph=graph,
                                                         test_rate=1))
 
-    pop.run(steps=100,
-            plot=False,
+    pop.run(steps=50,
+            plot=True,
             save=True)
 
     # Save .gif to './example population/replay.gif'

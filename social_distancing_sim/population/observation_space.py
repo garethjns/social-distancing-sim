@@ -31,6 +31,7 @@ class ObservationSpace:
 
     def reset_cached_values(self):
         self._unknown_nodes: Union[int, None] = None
+        self._known_nodes: Union[int, None] = None
         self._known_current_infected_nodes: Union[List[int], None] = None
         self._known_current_immune_nodes: Union[List[int], None] = None
         self._known_current_clear_nodes: Union[List[int], None] = None
@@ -44,9 +45,21 @@ class ObservationSpace:
 
     @property
     def unknown_nodes(self) -> List[int]:
+        """Unknwon nodes, excludes dead (as these are always known)"""
         if self._unknown_nodes is None:
             self._unknown_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if (nv.get("status", '') == '')]
         return self._unknown_nodes
+
+    @property
+    def known_current_alive_nodes(self) -> List[int]:
+        """Status known, excludes dead"""
+        if self._known_nodes is None:
+            if self.test_rate >= 1:
+                self._known_nodes = self.graph.current_alive_nodes
+            else:
+                self._known_nodes = [nk for nk, nv in self.graph.g_.nodes.data()
+                                     if (nv.get("status", '') not in ['', "dead"])]
+        return self._known_nodes
 
     @property
     def known_current_infected_nodes(self) -> List[int]:
@@ -109,14 +122,14 @@ class ObservationSpace:
                 nv['status'] = 'dead'
                 continue
 
-            # Is known immune, stays immune, stays alive, never updated
-            if nv.get("status", "") == "immune":
-                continue
-
             # Only propagate immune status if we knew node was infected
             if nv['immune'] and (nv.get("status", "") == "infected"):
                 nv['status'] = 'immune'
                 continue
+
+            # Is immune and was tested this turn
+            if (nv['immune'] > 0.3) and (nv.get("last_tested", -1) == time_step):
+                nv['status'] = "immune"
 
             # Is infected and tested this turn
             if nv['infected'] > 0 and (nv.get("last_tested", -1) == time_step):
@@ -127,8 +140,8 @@ class ObservationSpace:
             if nv['infected'] == 0 and (nv.get("last_tested", -1) == time_step):
                 nv['status'] = 'clear'
 
-            # Test has expired (only for clear nodes)
-            if ((nv.get("status", '') == "clear")
+            # Test has expired (only for clear and immune nodes)
+            if (((nv.get("status", '') == "clear") or (nv.get("status", '') == "immune"))
                     and ((time_step - nv.get("last_tested", 0)) > self.test_validity_period)):
                 nv['status'] = ''
 
