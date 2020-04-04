@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Dict, Hashable, Any
 
 import numpy as np
 
@@ -30,11 +30,11 @@ class Disease:
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
 
-    def give_immunity(self, node):
+    def give_immunity(self, node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         node["immune"] = min(self.immunity_mean + self.state.normal(scale=self.immunity_std), 1.0)
         return node
 
-    def decay_immunity(self, node):
+    def decay_immunity(self, node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         decay = self.immunity_decay_mean + self.state.normal(scale=self.immunity_decay_std)
         new_immunity = max(0.0, node["immune"] - node["immune"] * decay)
         node["immune"] = new_immunity
@@ -44,8 +44,8 @@ class Disease:
         """Reduce virulence according to immunity"""
         return min(max(1e-7, self.virulence * (1 - immunity)), 0.999)
 
-    def conclude(self, node,
-                 recovery_rate_modifier: float = 1):
+    def conclude(self, node: Dict[Hashable, Any],
+                 recovery_rate_modifier: float = 1) -> Dict[Hashable, Any]:
         """
 
         :param node: Graph node to update.
@@ -74,12 +74,12 @@ class Disease:
 
         return node
 
-    def try_to_infect(self, node):
+    def try_to_infect(self, node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         if not node.get("infected", 0) > 0:
             node["infected"] = self.state.binomial(1, self.modified_virulence(node.get("immune", 0)))
         return node
 
     @staticmethod
-    def force_infect(node):
+    def force_infect(node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         node['infected'] = 1
         return node

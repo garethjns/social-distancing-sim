@@ -34,6 +34,7 @@ class ObservationSpace:
         self._known_current_infected_nodes: Union[List[int], None] = None
         self._known_current_immune_nodes: Union[List[int], None] = None
         self._known_current_clear_nodes: Union[List[int], None] = None
+        self._known_isolated_nodes: Union[List[int], None] = None
 
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
@@ -41,6 +42,13 @@ class ObservationSpace:
     @property
     def known_n_current_infected(self):
         return len(self.known_current_infected_nodes)
+
+    @property
+    def known_isolated_nodes(self) -> List[int]:
+        # TODO: Assuming these are always known for now, as only the result of agent action
+        if self._known_isolated_nodes is None:
+            self._known_isolated_nodes = self.graph.current_isolated_nodes
+        return self._known_isolated_nodes
 
     @property
     def unknown_nodes(self) -> List[int]:
@@ -180,5 +188,5 @@ class ObservationSpace:
                                node_size=10,
                                ax=ax)
         nx.draw_networkx_edges(self.graph.g_, self.graph.g_pos_,
-                               width=0.01,
+                               width=0.1,
                                ax=ax)
