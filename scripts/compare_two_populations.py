@@ -1,10 +1,21 @@
+from joblib import Parallel, delayed
+
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.graph import Graph
 from social_distancing_sim.population.healthcare import Healthcare
 from social_distancing_sim.population.observation_space import ObservationSpace
 from social_distancing_sim.population.population import Population
 
+
+def run_and_replay(pop, *args, **kwargs):
+    pop.run(*args, **kwargs)
+    if save:
+        pop.replay()
+
+
 if __name__ == "__main__":
+    save = False
+
     disease = Disease(name='COVID-19')
     healthcare = Healthcare()
 
@@ -26,10 +37,8 @@ if __name__ == "__main__":
                                                                               seed=123),
                                                                   test_rate=1))
 
-    pop_distanced.run(steps=130,
-                      plot=False)
-    pop_distanced.replay(duration=0.1)
-
-    pop.run(steps=130,
-            plot=False)
-    pop.replay(duration=0.1)
+    Parallel(n_jobs=2,
+             backend='loky')(delayed(run_and_replay)(pop,
+                                                     steps=300,
+                                                     plot=False,
+                                                     save=save) for pop in [pop, pop_distanced])

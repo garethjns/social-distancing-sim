@@ -16,9 +16,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_tested_dead_nodes_always_identified(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': False, 'infected': True, "immune": False,
+        mock_nodes = {1: {'alive': False, 'infected': True, "immune": 0,
                           "status": "infected", "last_tested": 1},
-                      2: {'alive': True, 'infected': True, "immune": False}}
+                      2: {'alive': True, 'infected': True, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
 
@@ -33,8 +33,8 @@ class TestObservationSpace(unittest.TestCase):
     def test_untested_dead_nodes_always_identified(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': False, 'infected': True, "immune": False},
-                      2: {'alive': True, 'infected': True, "immune": False}}
+        mock_nodes = {1: {'alive': False, 'infected': True, "immune": 0},
+                      2: {'alive': True, 'infected': True, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
 
@@ -46,29 +46,53 @@ class TestObservationSpace(unittest.TestCase):
         self.assertEqual('dead', mock_nodes[1]["status"])
         self.assertEqual('', mock_nodes[2].get("status", ''))
 
-    def test_if_known_immune_always_immune(self):
+    def test_if_tested_and_immune_marked_immune(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": True,
-                          "status": "immune", "last_tested": 1},
-                      2: {'alive': True, 'infected': False, "immune": True}}
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9,
+                          "last_tested": 1},
+                      2: {'alive': True, 'infected': False, "immune": 0.9}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
+        mock_graph.considered_immune_threshold = 0.3
         obs = self._sut(graph=mock_graph)
 
         # Act
-        new_infections = obs.update_observed_statuses(time_step=100)
+        new_infections = obs.update_observed_statuses(time_step=1)
 
         # Assert
         self.assertEqual(0, new_infections)
         self.assertEqual("immune", mock_nodes[1]["status"])
         self.assertEqual('', mock_nodes[2].get("status", ''))
 
-    def test_if_known_was_infected_now_clear_and_alive_marked_as_immune(self):
+    def test_if_tested_now_clear_and_alive_marked_as_immune_or_clear(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": True,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9,
                           "status": "infected", "last_tested": 5},
-                      2: {'alive': True, 'infected': False, "immune": True}}
+                      2: {'alive': True, 'infected': False, "immune": 0.1,
+                          "status": "infected", "last_tested": 5},
+                      3: {'alive': True, 'infected': False, "immune": 0}}
+        mock_graph.g_.nodes.data.return_value = mock_nodes.items()
+        mock_graph.considered_immune_threshold = 0.3
+        obs = self._sut(graph=mock_graph)
+
+        # Act
+        new_infections = obs.update_observed_statuses(time_step=5)
+
+        # Assert
+        self.assertEqual(0, new_infections)
+        self.assertEqual("immune", mock_nodes[1]["status"])
+        self.assertEqual("clear", mock_nodes[2]["status"])
+        self.assertEqual('', mock_nodes[3].get("status", ''))
+
+    def test_if_not_tested_infected_remain_infected(self):
+        # Arrange
+        mock_graph = MagicMock()
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9,
+                          "status": "infected", "last_tested": 5},
+                      2: {'alive': True, 'infected': False, "immune": 0.1,
+                          "status": "infected", "last_tested": 5},
+                      3: {'alive': True, 'infected': False, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
 
@@ -77,15 +101,16 @@ class TestObservationSpace(unittest.TestCase):
 
         # Assert
         self.assertEqual(0, new_infections)
-        self.assertEqual("immune", mock_nodes[1]["status"])
-        self.assertEqual('', mock_nodes[2].get("status", ''))
+        self.assertEqual("infected", mock_nodes[1]["status"])
+        self.assertEqual("infected", mock_nodes[2]["status"])
+        self.assertEqual('', mock_nodes[3].get("status", ''))
 
     def test_if_infected_mark_infected_only_if_tested_this_turn(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': True, "immune": False,
+        mock_nodes = {1: {'alive': True, 'infected': True, "immune": 0,
                           "last_tested": 1},
-                      2: {'alive': True, 'infected': True, "immune": False}}
+                      2: {'alive': True, 'infected': True, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
 
@@ -100,9 +125,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_infected_and_tested_test_does_not_expire(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': True, "immune": False,
+        mock_nodes = {1: {'alive': True, 'infected': True, "immune": 0,
                           "status": "infected", "last_tested": 1},
-                      2: {'alive': True, 'infected': True, "immune": False}}
+                      2: {'alive': True, 'infected': True, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
 
@@ -117,10 +142,11 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_clear_mark_clear_only_if_tested_this_turn(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": False,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0,
                           "status": "infected", "last_tested": 10},  # Was tested while infected, but on an earlier turn
-                      2: {'alive': True, 'infected': False, "immune": False}}
+                      2: {'alive': True, 'infected': False, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
+        mock_graph.considered_immune_threshold = 0.3
         obs = self._sut(graph=mock_graph)
 
         # Act
@@ -131,16 +157,16 @@ class TestObservationSpace(unittest.TestCase):
         self.assertEqual("clear", mock_nodes[1]["status"])
         self.assertEqual('', mock_nodes[2].get("status", ''))
 
-    def test_clear_tests_expire_after_validity_period(self):
+    def test_clear_and_immune_tests_expire_after_validity_period(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": False,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0,
                           "status": "clear", "last_tested": 1},
-                      2: {'alive': True, 'infected': True, "immune": False,
+                      2: {'alive': True, 'infected': True, "immune": 0,
                           "status": "infected", "last_tested": 1},
-                      3: {'alive': True, 'infected': False, "immune": False,
+                      3: {'alive': True, 'infected': False, "immune": 0.5,
                           "status": "immune", "last_tested": 1},
-                      4: {'alive': True, 'infected': False, "immune": False}}
+                      4: {'alive': True, 'infected': False, "immune": 0}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
 
@@ -151,5 +177,7 @@ class TestObservationSpace(unittest.TestCase):
         self.assertEqual(0, new_infections)
         self.assertEqual("", mock_nodes[1]["status"])
         self.assertEqual("infected", mock_nodes[2]["status"])
-        self.assertEqual("immune", mock_nodes[3]["status"])
+        self.assertEqual("", mock_nodes[3]["status"])
         self.assertEqual('', mock_nodes[4].get("status", ''))
+
+

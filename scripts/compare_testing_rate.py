@@ -5,28 +5,20 @@ from social_distancing_sim.population.observation_space import ObservationSpace
 from social_distancing_sim.population.population import Population
 
 if __name__ == "__main__":
+    save = True
+
     disease = Disease(name='COVID-19')
     healthcare = Healthcare()
 
-    pop_full_knowledge = Population(name='A herd of cats, reality',
-                                    disease=disease,
-                                    healthcare=healthcare,
-                                    observation_space=ObservationSpace(graph=Graph(community_n=40,
-                                                                                   community_size_mean=16,
-                                                                                   seed=123),
-                                                                       test_rate=1))
-    pop_poor_testing_knowledge = Population(name='A herd of cats, observed',
-                                            disease=disease,
-                                            healthcare=healthcare,
-                                            observation_space=ObservationSpace(graph=Graph(community_n=40,
-                                                                                           community_size_mean=16,
-                                                                                           seed=123),
-                                                                               test_rate=0.01))
+    pop = Population(name='A herd of cats, observed',
+                     disease=disease,
+                     healthcare=healthcare,
+                     observation_space=ObservationSpace(graph=Graph(community_n=40,
+                                                                    community_size_mean=16,
+                                                                    seed=123),
+                                                        test_rate=0.01))
 
-    pop_full_knowledge.run(steps=130,
-                           plot=False)
-    pop_full_knowledge.replay(duration=0.1)
-
-    pop_poor_testing_knowledge.run(steps=130,
-                                   plot=False)
-    pop_poor_testing_knowledge.replay(duration=0.1)
+    pop.run(steps=130,
+            plot=False)
+    if save:
+        pop.replay(duration=0.1)

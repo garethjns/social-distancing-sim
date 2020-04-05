@@ -6,18 +6,39 @@ import numpy as np
 
 @dataclass
 class Disease:
+    """
+
+    :param immunity_mean: Mean prop. immunity gained after survival.
+    :param immunity_std:
+    :param immunity_decay_mean: Mean prop. immunity decay per step.
+    """
     seed: Union[None, int] = None
+    name: str = 'COVID-19'
     virulence: float = 0.006
     recovery_rate: float = 0.98
     duration_mean: float = 21
     duration_std: float = 5
-    name: str = 'COVID-19'
 
-    def __post_init__(self):
+    immunity_mean: float = 0.8
+    immunity_std: float = 0.02
+    immunity_decay_mean: float = 0.1
+    immunity_decay_std: float = 0.005
+
+    def __post_init__(self) -> None:
         self._prepare_random_state()
 
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
+
+    def give_immunity(self, node):
+        node["immune"] = min(self.immunity_mean + self.state.normal(scale=self.immunity_std), 1.0)
+        return node
+
+    def decay_immunity(self, node):
+        decay = self.immunity_decay_mean + self.state.normal(scale=self.immunity_decay_std)
+        new_immunity = max(0.0, node["immune"] - node["immune"] * decay)
+        node["immune"] = new_immunity
+        return node
 
     def modified_virulence(self, immunity: float) -> float:
         """Reduce virulence according to immunity"""
@@ -40,7 +61,7 @@ class Disease:
                                                 self.duration_std,
                                                 size=1):
             node["infected"] = 0
-            node["immune"] = True
+            node = self.give_immunity(node)
 
             if self.state.binomial(1, modified_recovery_rate):
                 node["alive"] = True

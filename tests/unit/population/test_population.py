@@ -10,6 +10,9 @@ class TestPopulation(unittest.TestCase):
     _mock_healthcare = MagicMock()
     _mock_disease = MagicMock()
 
+    def setUp(self):
+        self._mock_observation_space.test_rate = 1
+
     def test_init_with_defaults(self):
         pop = self._sut(disease=self._mock_disease,
                         healthcare=self._mock_healthcare,
