@@ -9,7 +9,8 @@ This package models disease spread through a population consisting of sub commun
 
 The code aims to be as simple and understandable as possible, and can be summarised in two graphs: 
 
-![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif) 
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
+([Discussion](https://new.reddit.com/r/dataisbeautiful/comments/fov56p/oc_comparing_the_effect_of_social_distancing_on/))
 
 # Set up
 
@@ -119,4 +120,15 @@ In the observed model, a proportion of the population (here ~4%) is tested per 
   - For known infected nodes, status is switched to "dead" or "immune" at the end of disease, depending on survival
   - For unknown infected nodes, status is set to "dead" if they die, but left as unknown if they survive - this is based on the assumption we know about all deaths, but don't know about acquired immunity unless we know about infection.  
 
-![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined_2.gif) 
+![Example testing rate](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined_2.gif)  
+([Discussion](https://new.reddit.com/r/dataisbeautiful/comments/fse6l1/oc_the_importance_of_testing_and_effect_on/))
+
+# Immunity effects
+Version 0.2.0 adds incomplete immunity and decay of immunity. These are part of the disease definition, and allow reinfection after a node has survived infection.
+
+Run example with
+````bash
+python3 -m social-distancing-sim.scripts.compare_two_diseases_immunity
+````  
+
+![Example testing rate](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined_3.gif)

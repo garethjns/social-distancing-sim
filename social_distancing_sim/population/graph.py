@@ -23,6 +23,8 @@ class Graph:
     community_p_in: float = 0.2
     community_p_out: float = 0.1
 
+    considered_immune_threshold: float = 0.3
+
     def __post_init__(self):
         self._prepare_random_state()
 
@@ -83,7 +85,8 @@ class Graph:
     @property
     def current_immune_nodes(self) -> List[int]:
         if self._current_immune_nodes is None:
-            self._current_immune_nodes = [nk for nk, nv in self.g_.nodes.data() if (nv["immune"] > 0.05) & nv["alive"]]
+            self._current_immune_nodes = [nk for nk, nv in self.g_.nodes.data()
+                                          if (nv["immune"] >= self.considered_immune_threshold) & nv["alive"]]
         return self._current_immune_nodes
 
     @property
@@ -179,5 +182,5 @@ class Graph:
                                node_size=10,
                                ax=ax)
         nx.draw_networkx_edges(self.g_, self.g_pos_,
-                               width=0.01,
+                               width=1 / (self.total_population / 5),
                                ax=ax)

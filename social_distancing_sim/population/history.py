@@ -1,4 +1,4 @@
-from typing import Dict, Callable, List, Any
+from typing import Dict, Callable, List, Any, Tuple, SupportsFloat
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -29,6 +29,10 @@ class History(dict):
                         'Known current infections': '#d62728',
                         'Total immune': '#9467bd',
                         'Known total immune': '#9467bd',
+                        'Mean immunity (of immune nodes)': '#6e4196',
+                        'Mean immunity (of all alive nodes)': '#9467bd',
+                        'Known mean immunity (of immune nodes)': '#6e4196',
+                        'Known mean immunity (of all alive nodes)': '#9467bd',
                         'Total deaths': 'k',
                         'Current infection prop': '#1f77b4',
                         'Known current infection prop': '#1f77b4',
@@ -40,17 +44,23 @@ class History(dict):
 
     def plot(self, ks: List[str],
              ax: plt.axes = None,
-             y_label: str = 'Count',
              x_label: str = 'Day',
+             y_label: str = 'Count',
              show: bool = True,
+             x_lim: Tuple[SupportsFloat, SupportsFloat] = None,
+             y_lim: Tuple[SupportsFloat, SupportsFloat] = None,
+             remove_x_tick_labels: bool = False,
              agg_f: Callable = None) -> plt.axes:
         """
         Plot history items.
 
         :param ks: List of keys to plot.
         :param ax: Axis to draw figure on. Not currently will rewrite axis labels. If not specified, will create.
-        :param y_label: Y axis label.
         :param x_label: X axis label.
+        :param y_label: Y axis label.
+        :param x_lim:
+        :param y_lim:
+        :param remove_x_tick_labels:
         :param show: Draw figure.
         :param agg_f: Aggregator function apply to y before plotting, eg. np.cumsum for cumulative plots.
                       Default no aggregation.
@@ -69,11 +79,16 @@ class History(dict):
             ax.plot(y, label=k,
                     color=self.colours.get(k, None))
 
-        # ax.set_ylim([-10, 600])
+        if y_lim is not None:
+            ax.set_ylim(y_lim)
+        if x_lim is not None:
+            ax.set_xlim(x_lim)
+        if remove_x_tick_labels:
+            ax.set_xticklabels([])
         ax.set_ylabel(y_label)
         ax.set_xlabel(x_label)
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        plt.legend()
+        ax.legend()
         if show:
             plt.show()
 
