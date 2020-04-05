@@ -149,5 +149,5 @@ class Graph:
                                node_size=10,
                                ax=ax)
         nx.draw_networkx_edges(self.g_, self.g_pos_,
-                               width=0.01,
+                               width=1 / (self.total_population / 5),
                                ax=ax)

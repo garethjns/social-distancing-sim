@@ -26,6 +26,8 @@ class Population:
     name: str = "unnamed_population"
     seed: Union[None, int] = None
 
+    random_infection_chance: float = 0.01
+
     plot_both: bool = True
     plot_ts_fields_g1: List[str] = None
     plot_ts_fields_g2: List[str] = None
@@ -103,7 +105,9 @@ class Population:
 
     def _infect_random(self) -> None:
         """Infect a random node."""
-        self.disease.force_infect(self.observation_space.graph.g_.nodes[self.state.randint(0, self.total_population)])
+        node_id = self.observation_space.graph.current_clear_nodes[
+            self.state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
+        self.disease.force_infect(self.observation_space.graph.g_.nodes[node_id])
 
     def _infect_neighbours(self) -> int:
         """
@@ -223,7 +227,7 @@ class Population:
     def plot_ts(self) -> None:
         for ax, fields in zip(self._ts_ax_g1, [self.plot_ts_fields_g1, self.plot_ts_obs_fields_g1]):
             self.history.plot(ks=fields,
-                              x_lim=(-10, self._total_steps),
+                              x_lim=(-1, self._total_steps),
                               y_lim=(-10, int(self.total_population + self.total_population * 0.05)),
                               x_label='Day' if not self._g2_on else None,
                               remove_x_tick_labels=self._g2_on,
@@ -274,7 +278,7 @@ class Population:
     def step(self,
              plot: bool = True,
              save: bool = True) -> None:
-        if self._step == 0:
+        if (self._step == 0) or self.state.binomial(1, self.random_infection_chance):
             self._infect_random()
 
         _ = self._infect_neighbours()

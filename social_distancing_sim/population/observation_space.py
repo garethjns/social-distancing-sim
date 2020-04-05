@@ -96,6 +96,8 @@ class ObservationSpace:
         Test random members of the population, based on testing rate.
 
         Chance of testing infected is grater than testing asymptomatic.
+
+        Already identified infected nodes get a free test each turn.
         """
         clear_test_rate = self.test_rate / 2
         infected_test_rate = self.test_rate * 2
@@ -113,6 +115,9 @@ class ObservationSpace:
             if self.state.binomial(1, infected_test_rate):
                 self.graph.g_.nodes[n]['last_tested'] = time_step
 
+        for n in self.known_current_infected_nodes:
+            self.graph.g_.nodes[n]['last_tested'] = time_step
+
     def update_observed_statuses(self, time_step: int) -> int:
         known_new_infections = 0
 
@@ -122,23 +127,17 @@ class ObservationSpace:
                 nv['status'] = 'dead'
                 continue
 
-            # Only propagate immune status if we knew node was infected
-            if nv['immune'] and (nv.get("status", "") == "infected"):
-                nv['status'] = 'immune'
-                continue
-
-            # Is immune and was tested this turn
-            if (nv['immune'] > 0.3) and (nv.get("last_tested", -1) == time_step):
-                nv['status'] = "immune"
-
             # Is infected and tested this turn
             if nv['infected'] > 0 and (nv.get("last_tested", -1) == time_step):
                 nv['status'] = 'infected'
                 known_new_infections += 1
 
-            # Is clear and tested this turn
+            # Is clear or immune and was tested this turn
             if nv['infected'] == 0 and (nv.get("last_tested", -1) == time_step):
-                nv['status'] = 'clear'
+                if nv['immune'] >= self.graph.considered_immune_threshold:
+                    nv['status'] = "immune"
+                else:
+                    nv['status'] = 'clear'
 
             # Test has expired (only for clear and immune nodes)
             if (((nv.get("status", '') == "clear") or (nv.get("status", '') == "immune"))
@@ -193,5 +192,5 @@ class ObservationSpace:
                                node_size=10,
                                ax=ax)
         nx.draw_networkx_edges(self.graph.g_, self.graph.g_pos_,
-                               width=0.01,
+                               width=1 / (self.graph.total_population / 5),
                                ax=ax)
