@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from typing import Union, Dict, Hashable, Any
 
@@ -83,3 +84,8 @@ class Disease:
     def force_infect(node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         node['infected'] = 1
         return node
+
+    def clone(self):
+        clone = copy.deepcopy(self)
+        clone._prepare_random_state()
+        return clone

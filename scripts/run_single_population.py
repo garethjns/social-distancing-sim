@@ -1,4 +1,4 @@
-"""Run a single population with perfrect testing."""
+"""Run a single population with perfect testing."""
 
 from social_distancing_sim.population.graph import Graph
 from social_distancing_sim.population.healthcare import Healthcare
@@ -16,10 +16,12 @@ if __name__ == "__main__":
                      disease=Disease(name='COVID-19'),
                      healthcare=Healthcare(),
                      observation_space=ObservationSpace(graph=graph,
-                                                        test_rate=1))
+                                                        test_rate=0.02),
+                     plot_ts_fields_g2=["Score"],
+                     plot_ts_obs_fields_g2=["Observed score"])
 
-    pop.run(steps=50,
-            plot=True,
+    pop.run(steps=150,
+            plot=False,
             save=True)
 
     # Save .gif to './example population/replay.gif'

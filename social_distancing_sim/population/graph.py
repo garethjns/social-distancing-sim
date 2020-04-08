@@ -14,7 +14,7 @@ from social_distancing_sim.population.history import History
 @dataclass
 class Graph:
     """Class to handle population graph, generation, etc."""
-    seed: int = None
+    seed: Union[int, None] = None
     layout: str = "spring_layout"
 
     community_n: int = 5
@@ -184,3 +184,14 @@ class Graph:
         nx.draw_networkx_edges(self.g_, self.g_pos_,
                                width=1 / (self.total_population / 5),
                                ax=ax)
+
+    def clone(self) -> "Graph":
+        """Clone a fresh object with same seed (could be None)."""
+        return Graph(seed=self.seed,
+                     layout=self.layout,
+                     community_n=self.community_n,
+                     community_size_mean=self.community_size_mean,
+                     community_size_std=self.community_size_std,
+                     community_p_in=self.community_p_in,
+                     community_p_out=self.community_p_out,
+                     considered_immune_threshold=self.considered_immune_threshold)
