@@ -1,6 +1,6 @@
 import abc
 import copy
-from typing import List, Callable, Union, Dict, Tuple
+from typing import List, Union, Dict, Tuple
 
 import numpy as np
 
@@ -58,43 +58,3 @@ class Agent(metaclass=abc.ABCMeta):
         return clone
 
 
-class IsolationAgent(Agent):
-    def available_actions(self) -> List[str]:
-        return ['isolate']
-
-    def select_target(self, pop: Population) -> int:
-        infected_not_isolated = set(pop.observation_space.current_infected_nodes).difference(
-            pop.observation_space.isolated_nodes)
-        if len(infected_not_isolated):
-            return self.state.choice(list(infected_not_isolated))
-
-    def select_action(self, pop: Population) -> str:
-        return self.available_actions()[0]
-
-
-class VaccinationAgent(Agent):
-    def available_actions(self) -> List[str]:
-        return ['vaccinate']
-
-    def select_target(self, pop: Population) -> int:
-        not_immune = set(pop.observation_space.current_clear_nodes).difference(
-            pop.observation_space.current_immune_nodes)
-        if len(not_immune) > 0:
-            return self.state.choice(list(not_immune))
-
-    def select_action(self, pop: Population) -> str:
-        return self.available_actions()[0]
-
-
-class IsoVaccAgent:
-    isolation_agent = IsolationAgent()
-    vaccination_agent = VaccinationAgent()
-
-    def available_actions(self) -> List[Callable]:
-        return self.isolation_agent.available_actions() + self.vaccination_agent.available_actions()
-
-    def select_target(self):
-        pass
-
-    def select_action(self):
-        pass

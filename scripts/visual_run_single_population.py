@@ -16,12 +16,12 @@ if __name__ == "__main__":
                      disease=Disease(name='COVID-19'),
                      healthcare=Healthcare(),
                      observation_space=ObservationSpace(graph=graph,
-                                                        test_rate=0.02),
+                                                        test_rate=.2),
                      plot_ts_fields_g2=["Score"],
                      plot_ts_obs_fields_g2=["Observed score"])
 
     pop.run(steps=150,
-            plot=False,
+            plot=True,
             save=True)
 
     # Save .gif to './example population/replay.gif'

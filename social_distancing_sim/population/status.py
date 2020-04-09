@@ -15,11 +15,12 @@ class Status:
     """
 
     def __init__(self,
-                 alive: Union[bool, None] = None,
+                 alive: Union[bool, None] = True,
                  infected: Union[bool, None] = None,
                  clear: Union[bool, None] = None,
                  isolated: Union[bool, None] = None,
-                 immune: Union[bool, None] = None):
+                 immune: Union[bool, None] = None,
+                 last_tested: Union[int, None] = -999):
 
         if infected is not None:
             if clear is not None:
@@ -29,17 +30,27 @@ class Status:
                 if infected & immune:
                     raise ValueError("Node cannot have status infected and immune")
 
-        self._alive = alive
-        self._clear = clear
-        self._infected = infected
-        self._isolated = isolated
-        self._immune = immune
+        self._clear = None
+        self._infected = None
+        self._immune = None
+        self._alive = None
 
-        self.last_tested: int = -1
+        # Don't set Nones to avoid overwriting behaviour, eg if clear=False but infected=None
+        # (Setters still set Nones)
+        self.alive = alive
+        if clear is not None:
+            self.clear = clear
+        if infected is not None:
+            self.infected = infected
+        self._isolated = isolated
+        if immune is not None:
+            self.immune = immune
+
+        self.last_tested: int = last_tested
 
     def __repr__(self) -> str:
         return f"Status(alive={self.alive}, infected={self.infected}, clear={self.clear}, isolated={self.isolated}, " \
-               f"immune={self.immune})"
+               f"immune={self.immune}, last_tested={self.last_tested})"
 
     def __hash__(self) -> int:
         return hash(self.__repr__())
@@ -78,10 +89,11 @@ class Status:
     @infected.setter
     def infected(self, flag: bool):
         """Infected -> True voids immunity and clear"""
-        self.clear = not flag
+        if flag is not None:
+            self.clear = not flag
 
-        if flag:
-            self.immune = False
+            if flag:
+                self.immune = False
 
         self._infected = flag
 
@@ -92,10 +104,11 @@ class Status:
     @clear.setter
     def clear(self, flag: bool):
         # Can't be clear and infected
-        self._infected = not flag
+        if flag is not None:
+            self._infected = not flag
 
-        if not flag:
-            self.immune = False
+            if not flag:
+                self.immune = False
 
         self._clear = flag
 
@@ -107,7 +120,6 @@ class Status:
     def recovered(self, flag: bool):
         """Sets to clear and immune"""
         self.clear = flag
-        self.immune = flag
 
     @property
     def isolated(self) -> bool:
@@ -125,6 +137,10 @@ class Status:
 
     @immune.setter
     def immune(self, flag: bool):
+        if flag is not None:
+            if flag:
+                self.clear = True
+
         self._immune = flag
 
 

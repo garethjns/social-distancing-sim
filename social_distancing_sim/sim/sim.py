@@ -4,7 +4,8 @@ from typing import Dict, Any, Iterable
 
 from tqdm import tqdm
 
-from social_distancing_sim.agent.agent import Agent, VaccinationAgent
+from social_distancing_sim.agent.agent import Agent
+from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
 from social_distancing_sim.population.history import History
 from social_distancing_sim.population.population import Population
 

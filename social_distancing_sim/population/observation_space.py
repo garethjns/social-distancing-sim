@@ -143,16 +143,15 @@ class ObservationSpace:
                 continue
 
             # Is infected and tested this turn
-            if nv['infected'] > 0 and (nv["status"].last_tested == time_step):
+            if (nv['infected'] > 0) and (nv["status"].last_tested == time_step):
                 nv['status'].infected = True
                 known_new_infections += 1
 
             # Is clear or immune and was tested this turn
             if nv['infected'] == 0 and (nv["status"].last_tested == time_step):
+                nv['status'].recovered = True
                 if nv['immune'] >= self.graph.considered_immune_threshold:
                     nv['status'].immune = True
-                else:
-                    nv['status'].clear = True
 
             # Test has expired (only for clear and immune nodes)
             if ((nv["status"].clear or nv["status"].immune)

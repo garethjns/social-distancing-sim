@@ -51,7 +51,7 @@ class Population:
         self.state = np.random.RandomState(seed=self.seed)
 
     def _prepare_figure(self) -> None:
-        # plt.close()
+        plt.close()
 
         self._g2_on = False
         ts_ax_g2 = None
@@ -281,9 +281,10 @@ class Population:
         for node in self.observation_space.graph.current_immune_nodes:
             self.disease.decay_immunity(self.observation_space.graph.g_.nodes[node])
 
-    def step(self,
-             plot: bool = True,
-             save: bool = True) -> None:
+    def step(self) -> None:
+        self.observation_space.reset_cached_values()
+        self.observation_space.graph.reset_cached_values()
+
         if (self._step == 0) or self.state.binomial(1, self.random_infection_chance):
             self._infect_random()
 

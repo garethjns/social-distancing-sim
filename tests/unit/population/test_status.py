@@ -90,7 +90,7 @@ class TestStatus(unittest.TestCase):
         self.assertTrue(status.clear)
         self.assertFalse(status.infected)
 
-    def test_recovered_voids_infection_and_gives_clear_and_immunity(self):
+    def test_recovered_voids_infection_and_gives_clear(self):
         # Arrange
         status = self._sut()
 
@@ -100,7 +100,6 @@ class TestStatus(unittest.TestCase):
         # Assert
         self.assertTrue(status.clear)
         self.assertFalse(status.infected)
-        self.assertTrue(status.immune)
 
     def test_infection_to_false_voids_infection_and_gives_clear(self):
         # Arrange

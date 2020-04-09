@@ -8,7 +8,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from social_distancing_sim.agent.agent import VaccinationAgent
+from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
 from social_distancing_sim.population.history import History
 from social_distancing_sim.sim.sim import Sim
 
@@ -21,14 +21,18 @@ class MultiSim:
     name: str = 'Unnamed experiment'
 
     def __post_init__(self):
-        self._runs = [self.sim.clone() for _ in range(self.n_reps)]
         self._mlflow_exp = None
         self.results = pd.DataFrame()
 
+    def _run(self):
+        sim = self.sim.clone()
+        results = sim.run()
+        return results
+
     def run(self):
         results = Parallel(n_jobs=self.n_jobs,
-                           backend='loky')(delayed(s.run)() for s in tqdm(self._runs,
-                                                                          desc=self.sim.pop.name))
+                           backend='loky')(delayed(self._run)() for _ in tqdm(range(self.n_reps),
+                                                                              desc=self.sim.pop.name))
 
         # Place in fake history container for now
         results_hist = History()
@@ -77,6 +81,7 @@ class MultiSim:
                            'agent_name': self.sim.agent.name,
                            'agent_type': self.sim.agent.__class__.__name__,
                            'agent_delay': self.sim.agent_delay,
+                           'agent_actions_per_turn': self.sim.agent.actions_per_turn,
                            'agent_action_space_vaccinate_cost': self.sim.agent.action_space.vaccinate_cost,
                            'agent_action_space_isolate_cost': self.sim.agent.action_space.isolate_cost})
 

@@ -1,4 +1,4 @@
-from social_distancing_sim.agent.agent import VaccinationAgent
+from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
 from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.graph import Graph
 from social_distancing_sim.population.healthcare import Healthcare
