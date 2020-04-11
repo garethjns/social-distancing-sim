@@ -11,6 +11,7 @@ class IsolationAgent(Agent):
     def select_target(self, pop: Population) -> int:
         infected_not_isolated = set(pop.observation_space.current_infected_nodes).difference(
             pop.observation_space.isolated_nodes)
+
         if len(infected_not_isolated):
             return self.state.choice(list(infected_not_isolated))
 

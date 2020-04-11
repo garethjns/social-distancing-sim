@@ -12,7 +12,7 @@ class Agent(metaclass=abc.ABCMeta):
     action_space = ActionSpace()
 
     def __init__(self,
-                 name: str='unnamed_agent',
+                 name: str = 'unnamed_agent',
                  seed: Union[None, int] = None,
                  actions_per_turn: int = 5) -> None:
         self.seed = seed

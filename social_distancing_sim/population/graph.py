@@ -117,7 +117,7 @@ class Graph:
         return death_rate
 
     def isolate_node(self, node_id: int,
-                     effectiveness: float = 1):
+                     effectiveness: float = 0.95):
         """
         Remove some or all edges from a node, and store on node.
 

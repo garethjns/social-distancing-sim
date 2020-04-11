@@ -38,26 +38,26 @@ if __name__ == "__main__":
 
     sim_1 = Sim(Population(name="Vaccination agent - early",
                            **common_population_kwargs),
-                agent_delay=20,
-                agent=VaccinationAgent(actions_per_turn=12),
+                agent_delay=21,
+                agent=VaccinationAgent(actions_per_turn=10),
                 **sim_common_kwargs)
 
     sim_2 = Sim(Population(name="Vaccination agent - late",
                            **common_population_kwargs),
                 agent_delay=40,
-                agent=VaccinationAgent(actions_per_turn=12),
+                agent=VaccinationAgent(actions_per_turn=10),
                 **sim_common_kwargs)
 
     sim_3 = Sim(Population(name="Isolation agent - early",
                            **common_population_kwargs),
-                agent_delay=20,
-                agent=IsolationAgent(actions_per_turn=12),
+                agent_delay=27,
+                agent=IsolationAgent(actions_per_turn=8),
                 **sim_common_kwargs)
 
     sim_4 = Sim(Population(name="Isolation agent - late",
                            **common_population_kwargs),
                 agent_delay=40,
-                agent=IsolationAgent(actions_per_turn=12),
+                agent=IsolationAgent(actions_per_turn=10),
                 **sim_common_kwargs)
 
     Parallel(n_jobs=4,

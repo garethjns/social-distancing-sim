@@ -7,10 +7,20 @@ But why?
 
 This package models disease spread through a population consisting of sub communities. These communities are inter and intra connected, the probability of these connections can be modified to model "normal" populations and populations exercising social distancing. Fewer connections mean fewer opportunities for disease to spread, slower progression through the population, a lower peak burden on the health care system, and fewer deaths..   
 
-The code aims to be as simple and understandable as possible, and can be summarised in two graphs: 
+The code aims to be as simple and understandable as possible, but is still WIP (along with the documentation). See the Scripts/ folder for up to date usage examples.
 
 ![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
 ([Discussion](https://new.reddit.com/r/dataisbeautiful/comments/fov56p/oc_comparing_the_effect_of_social_distancing_on/))
+
+## Features and modelled components
+ - [NetworkX](https://networkx.github.io/) graph-based population environment of inter and intra connected communities, where edge probabilities can model connected or socially distanced communities. Examples: **scripts/visual_compare_two_populations.py**, **scripts/visual_run_single_population.py**.
+ - Disease virulence and imperfect and decaying immunity. Examples: **scripts/visual_compare_two_diseases_immunity**, **scripts/visual_compare_two_diseases_immunity_small.py**, **scripts/visual_compare_two_diseases_immunity.py**.
+ - Healthcare capacity, effects on survival when overburdened
+ - Test-driven observation space. Examples: **scripts/visual_compare_testing_rate.py**, **scripts/visual_compare_two_pop_testing_rate.py**.
+ - Action space allowing for control strategies such as vaccination and isolation Examples: **scripts/visual_run_simulation_with_agent.py**, **scripts/visual_compare_basic_agents.py**.
+ - Scoring system (WIP) for defining reinforcement agent rewards, ongoing economic costs, etc.
+ - Visual simulation with history logging. Examples: **scripts/visual_*.py**.
+ - Statistical simulation for multiple runs of the same parameters, aggregate statistics, experiment comparison (using [MLFlow](https://mlflow.org/)). Examples **scripts/stats_*.py**.
 
 # Set up
 
@@ -132,3 +142,16 @@ python3 -m social-distancing-sim.scripts.compare_two_diseases_immunity
 ````  
 
 ![Example testing rate](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined_3.gif)
+
+
+# Basic agents and strategy comparison
+
+This simulation compares how different responses, and when they applied, to a disease outbreak can affect the duration of the disease and number of deaths. 
+
+The left column shows a mass vaccination response starting on day 21 (top) and day 40 (bottom). In this strategy 10 randomly selected uninfected nodes are vaccinated (ie. given 99% immunity) each day. Earlier activation of this strategy reduces infection peak and reduces deaths.  
+
+The right hand column shows an isolation strategy, which is activated on day 25 (top) and day 40 (bottom). In this strategy, up to 8 randomly infected infected nodes are "isolated" per day - 95% of their edges are randomly removed. Edges are not re-added before the end of this simulation. Early adoption of this strategy is enough to totally stop the spread of disease.  
+
+Later adoption of either strategy results in a similar outcomes, with greater peak infections and more deaths. One import thing to note here is that, although the early adoption of an isolation strategy performs best in this model set up, it relies on the rate of testing much more than the vaccination strategy - it needs the infected nodes to be identified wheres the vaccination strategy doesn't.  
+
+![Example testing rate](https://github.com/garethjns/social-distancing-sim/blob/master/images/strat_comparison.gif)
