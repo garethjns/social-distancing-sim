@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -27,3 +28,6 @@ class Healthcare:
 
         # Reduce disease survivability by this %
         return max(recovery_rate_penalty, self.max_penalty)
+
+    def clone(self):
+        return copy.deepcopy(self)

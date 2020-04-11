@@ -6,4 +6,5 @@ dataclasses
 seaborn
 tqdm
 joblib
-
+pandas
+mlflow

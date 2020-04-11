@@ -16,13 +16,15 @@ from social_distancing_sim.disease.disease import Disease
 from social_distancing_sim.population.healthcare import Healthcare
 from social_distancing_sim.population.history import History
 from social_distancing_sim.population.observation_space import ObservationSpace
+from social_distancing_sim.population.scoring import Scoring
 
 
 @dataclass
 class Population:
-    disease: Disease
-    healthcare: Healthcare
     observation_space: ObservationSpace
+    disease: Disease = Disease()
+    healthcare: Healthcare = Healthcare()
+    scoring: Scoring = Scoring()
     name: str = "unnamed_population"
     seed: Union[None, int] = None
 
@@ -41,9 +43,9 @@ class Population:
         self._step: int = 0
         self.history: History[str, List[int]] = History.with_defaults()
         self._total_steps: int = 0
+        self.output_path: Union[str, None] = None
 
-        self._prepare_output_path()
-        self._prepare_figure()
+        sns.set()
 
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
@@ -95,13 +97,14 @@ class Population:
         self._ts_ax_g2: List[plt.Axes] = ts_ax_g2
 
     def _prepare_output_path(self) -> None:
-        self.output_path = f"{self.name}"
-        shutil.rmtree(self.output_path,
-                      ignore_errors=True)
+        if self.output_path is None:
+            self.output_path = f"{self.name}"
+            shutil.rmtree(self.output_path,
+                          ignore_errors=True)
 
-        self.graph_path = f"{self.output_path}/graphs/"
-        os.makedirs(self.graph_path,
-                    exist_ok=True)
+            self.graph_path = f"{self.output_path}/graphs/"
+            os.makedirs(self.graph_path,
+                        exist_ok=True)
 
     def _infect_random(self) -> None:
         """Infect a random node."""
@@ -152,7 +155,9 @@ class Population:
 
         return deaths, recoveries
 
-    def _log(self, new_infections: int, known_new_infections: int, deaths: int, recoveries: int) -> None:
+    def _log(self, new_infections: int, known_new_infections: int, deaths: int, recoveries: int,
+             score: float = 0.0,
+             obs_score: float = 0.0) -> None:
         """Log full space and observed space."""
         self.history.log({"Current infections": self.observation_space.graph.n_current_infected,
                           "Known current infections": self.observation_space.known_n_current_infected,
@@ -172,20 +177,22 @@ class Population:
                                for n in
                                self.observation_space.graph.current_alive_nodes]),
                           "Known total immune": len(
-                              self.observation_space.known_current_immune_nodes),
+                              self.observation_space.current_immune_nodes),
                           "Known mean immunity (of immune nodes)": np.mean(
                               [self.observation_space.graph.g_.nodes[n]["immune"]
-                               for n in self.observation_space.known_current_immune_nodes]),
+                               for n in self.observation_space.current_immune_nodes]),
                           "Known mean immunity (of all alive nodes)": np.mean(
                               [self.observation_space.graph.g_.nodes[n].get("immune", 0)
                                for n in
-                               self.observation_space.known_current_alive_nodes]),
+                               self.observation_space.current_alive_nodes]),
                           "New infections": new_infections,
                           "Known new infections": known_new_infections,
                           "New deaths": deaths,
                           "Total recovered": recoveries,
-                          "Total infections": np.cumsum(self.history["New infections"]),
-                          "Known total infections": np.cumsum(self.history["Known new infections"])})
+                          "Total infections": np.sum(self.history["New infections"]),
+                          "Known total infections": np.sum(self.history["Known new infections"]),
+                          "Score": score,
+                          "Observed score": obs_score})
 
         # Dependent
         self.history.log({
@@ -208,7 +215,6 @@ class Population:
         :return: Path to rendered gif.
         """
         # Find all previously saved steps
-
         fns = glob.glob(f"{self.graph_path}*_graph.png")
         # Ensure ordering
         fns = [f.replace('\\', '/') for f in fns]
@@ -240,9 +246,9 @@ class Population:
         if self._g2_on:
             for ax, fields in zip(self._ts_ax_g2, [self.plot_ts_fields_g2, self.plot_ts_obs_fields_g2]):
                 self.history.plot(ks=fields,
-                                  y_label='Prop.',
+                                  y_label='Score',
                                   x_lim=(-1, self._total_steps),
-                                  y_lim=(-0.1, 1.1),
+                                  # y_lim=(-0.1, 1.1),
                                   ax=ax,
                                   show=False)
 
@@ -257,7 +263,6 @@ class Population:
             self._graph_ax[1].set_title(f"Observed: {title}")
 
     def plot(self, save: bool = True, show: bool = True) -> None:
-        sns.set()
 
         self._prepare_figure()
         self.plot_graphs()
@@ -266,6 +271,7 @@ class Population:
         self._figure.tight_layout()
 
         if save:
+            self._prepare_output_path()
             plt.savefig(f"{self.output_path}/graphs/{self._step}_graph.png")
 
         if show:
@@ -275,27 +281,32 @@ class Population:
         for node in self.observation_space.graph.current_immune_nodes:
             self.disease.decay_immunity(self.observation_space.graph.g_.nodes[node])
 
-    def step(self,
-             plot: bool = True,
-             save: bool = True) -> None:
+    def step(self) -> None:
+        self.observation_space.reset_cached_values()
+        self.observation_space.graph.reset_cached_values()
+
         if (self._step == 0) or self.state.binomial(1, self.random_infection_chance):
             self._infect_random()
 
-        _ = self._infect_neighbours()
+        new_infections = self._infect_neighbours()
         deaths, recoveries = self._conclude_all()
         self.observation_space.test_population(self._step)
         known_new_infections = self.observation_space.update_observed_statuses(self._step)
         self._update_immunities()
 
-        self._log(new_infections=known_new_infections, known_new_infections=known_new_infections,
-                  deaths=deaths, recoveries=recoveries)
+        score = self.scoring.score(graph=self.observation_space.graph,
+                                   new_infections=new_infections,
+                                   new_deaths=deaths)
+        obs_score = self.scoring.score(graph=self.observation_space,
+                                       new_infections=known_new_infections,
+                                       new_deaths=deaths)
 
-        if plot or save:
-            self.plot(show=plot,
-                      save=save)
-
-        self.observation_space.graph.reset_cached_values()
-        self.observation_space.reset_cached_values()
+        self._log(new_infections=known_new_infections,
+                  known_new_infections=known_new_infections,
+                  deaths=deaths,
+                  recoveries=recoveries,
+                  score=score,
+                  obs_score=obs_score)
 
         self._step += 1
 
@@ -311,10 +322,28 @@ class Population:
         """
         self._total_steps += steps
         t0 = time.time()
-        for _ in tqdm(range(steps), desc=self.name):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
-                self.step(plot=plot,
-                          save=save)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
+            for _ in tqdm(range(steps), desc=self.name):
+                self.step()
+
+                if plot or save:
+                    self.plot(show=plot,
+                              save=save)
 
         print(f"Ran {steps} steps in {np.round(time.time() - t0, 2)}s")
+
+    def clone(self) -> "Population":
+        """Clone a fresh object with same seed (could be None)."""
+        return Population(disease=self.disease.clone(),
+                          observation_space=self.observation_space.clone(),
+                          healthcare=self.healthcare.clone(),
+                          scoring=self.scoring.clone(),
+                          name=self.name,
+                          seed=self.seed,
+                          random_infection_chance=self.random_infection_chance,
+                          plot_both=self.plot_both,
+                          plot_ts_fields_g1=self.plot_ts_fields_g1,
+                          plot_ts_fields_g2=self.plot_ts_fields_g2,
+                          plot_ts_obs_fields_g1=self.plot_ts_obs_fields_g1,
+                          plot_ts_obs_fields_g2=self.plot_ts_obs_fields_g2)

@@ -14,7 +14,7 @@ from social_distancing_sim.population.history import History
 @dataclass
 class Graph:
     """Class to handle population graph, generation, etc."""
-    seed: int = None
+    seed: Union[int, None] = None
     layout: str = "spring_layout"
 
     community_n: int = 5
@@ -40,6 +40,7 @@ class Graph:
 
     def reset_cached_values(self):
         self._current_infected_nodes: Union[int, None] = None
+        self._current_isolated_nodes: Union[int, None] = None
         self._current_immune_nodes: Union[int, None] = None
         self._current_clear_nodes: Union[int, None] = None
         self._current_alive_nodes: Union[int, None] = None
@@ -67,6 +68,13 @@ class Graph:
     @property
     def n_current_infected(self) -> int:
         return len(self.current_infected_nodes)
+
+    @property
+    def current_isolated_nodes(self) -> List[int]:
+        if self._current_isolated_nodes is None:
+            self._current_isolated_nodes = [nk for nk, nv in self.g_.nodes.data()
+                                            if (nv["infected"] > 0) & (nv.get("isolated", False))]
+        return self._current_isolated_nodes
 
     @property
     def current_infected_nodes(self) -> List[int]:
@@ -107,6 +115,31 @@ class Graph:
             death_rate = 0
 
         return death_rate
+
+    def isolate_node(self, node_id: int,
+                     effectiveness: float = 0.95):
+        """
+        Remove some or all edges from a node, and store on node.
+
+        :param node_id: Node index.
+        :param effectiveness: Proportion of edges to remove
+        """
+        node = self.g_.nodes[node_id]
+        node["_edges"] = self.g_.edges(node_id)
+        node["isolated"] = True
+
+        # Select edges to remove
+        to_remove = []
+        for uv in self.g_.edges(node_id):
+            if self.state.binomial(1, effectiveness):
+                to_remove.append(uv)
+
+        self.g_.remove_edges_from(to_remove)
+
+    def reconnect_node(self, node_id: int):
+        node = self.g_.nodes[node_id]
+        self.g_.add_edges_from(node["_edges"])
+        node["isolated"] = False
 
     def plot(self,
              ax: Union[None, plt.Axes] = None,
@@ -151,3 +184,14 @@ class Graph:
         nx.draw_networkx_edges(self.g_, self.g_pos_,
                                width=1 / (self.total_population / 5),
                                ax=ax)
+
+    def clone(self) -> "Graph":
+        """Clone a fresh object with same seed (could be None)."""
+        return Graph(seed=self.seed,
+                     layout=self.layout,
+                     community_n=self.community_n,
+                     community_size_mean=self.community_size_mean,
+                     community_size_std=self.community_size_std,
+                     community_p_in=self.community_p_in,
+                     community_p_out=self.community_p_out,
+                     considered_immune_threshold=self.considered_immune_threshold)
