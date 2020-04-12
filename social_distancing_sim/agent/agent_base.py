@@ -63,6 +63,8 @@ class AgentBase(metaclass=abc.ABCMeta):
         pass
 
     def sample(self, obs: ObservationSpace, n: int) -> Dict[int, str]:
+        n = self._check_available_targets(obs, n)
+
         # Randomly pick n actions and targets
         actions = self.state.choice(self.available_actions,
                                     size=n)
@@ -77,5 +79,3 @@ class AgentBase(metaclass=abc.ABCMeta):
         clone = copy.deepcopy(self)
         clone._prepare_random_state()
         return clone
-
-

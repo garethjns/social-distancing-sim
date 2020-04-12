@@ -9,6 +9,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
+from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
 from social_distancing_sim.environment.history import History
 from social_distancing_sim.sim.sim import Sim
 
@@ -32,7 +33,7 @@ class MultiSim:
     def run(self):
         results = Parallel(n_jobs=self.n_jobs,
                            backend='loky')(delayed(self._run)() for _ in tqdm(range(self.n_reps),
-                                                                              desc=self.sim.pop.name))
+                                                                              desc=self.sim.env.name))
 
         # Place in fake history container for now
         results_hist = History()
@@ -42,7 +43,8 @@ class MultiSim:
         self.results = pd.DataFrame(results_hist)
         self.log()
 
-    def _agg_stats(self, x: pd.Series) -> Dict[str, float]:
+    @staticmethod
+    def _agg_stats(x: pd.Series) -> Dict[str, float]:
         m = x.mean()
         ci = np.percentile(x, [2.5, 97.5])
         name = "".join([s for s in str(x.name) if s.isalpha() or (s in ['_', '.', '-', ' ', '/'])])
@@ -54,33 +56,33 @@ class MultiSim:
         self._mlflow_exp = mlflow.set_experiment(self.name)
         mlflow.start_run()
         mlflow.log_params({'sim_n_steps': self.sim.n_steps,
-                           'pop_total_population': self.sim.pop.total_population,
-                           'pop_name': self.sim.pop.name,
-                           'pop_random_infection_chance': self.sim.pop.random_infection_chance,
-                           'disease_name': self.sim.pop.disease.name,
-                           'disease_virulence': self.sim.pop.disease.virulence,
-                           'recovery_rate': self.sim.pop.disease.recovery_rate,
-                           'duration_mean': self.sim.pop.disease.duration_mean,
-                           'duration_std': self.sim.pop.disease.duration_std,
-                           'immunity_mean': self.sim.pop.disease.immunity_mean,
-                           'immunity_std': self.sim.pop.disease.immunity_std,
-                           'immunity_decay_mean': self.sim.pop.disease.immunity_decay_mean,
-                           'immunity_decay_std': self.sim.pop.disease.immunity_decay_std,
-                           'obs_test_rate': self.sim.pop.observation_space.test_rate,
-                           'obs_test_validity_period': self.sim.pop.observation_space.test_validity_period,
-                           'graph_community_n': self.sim.pop.observation_space.graph.community_n,
-                           'graph_community_size_mean': self.sim.pop.observation_space.graph.community_size_mean,
-                           'graph_community_size_std': self.sim.pop.observation_space.graph.community_size_std,
-                           'graph_community_p_in': self.sim.pop.observation_space.graph.community_p_in,
-                           'graph_community_p_out': self.sim.pop.observation_space.graph.community_p_out,
+                           'pop_total_population': self.sim.env.total_population,
+                           'pop_name': self.sim.env.name,
+                           'pop_random_infection_chance': self.sim.env.random_infection_chance,
+                           'disease_name': self.sim.env.disease.name,
+                           'disease_virulence': self.sim.env.disease.virulence,
+                           'recovery_rate': self.sim.env.disease.recovery_rate,
+                           'duration_mean': self.sim.env.disease.duration_mean,
+                           'duration_std': self.sim.env.disease.duration_std,
+                           'immunity_mean': self.sim.env.disease.immunity_mean,
+                           'immunity_std': self.sim.env.disease.immunity_std,
+                           'immunity_decay_mean': self.sim.env.disease.immunity_decay_mean,
+                           'immunity_decay_std': self.sim.env.disease.immunity_decay_std,
+                           'obs_test_rate': self.sim.env.observation_space.test_rate,
+                           'obs_test_validity_period': self.sim.env.observation_space.test_validity_period,
+                           'graph_community_n': self.sim.env.observation_space.graph.community_n,
+                           'graph_community_size_mean': self.sim.env.observation_space.graph.community_size_mean,
+                           'graph_community_size_std': self.sim.env.observation_space.graph.community_size_std,
+                           'graph_community_p_in': self.sim.env.observation_space.graph.community_p_in,
+                           'graph_community_p_out': self.sim.env.observation_space.graph.community_p_out,
                            'graph_considered_immune_threshold':
-                               self.sim.pop.observation_space.graph.considered_immune_threshold,
-                           'scoring_clear_yield_per_edge': self.sim.pop.scoring.clear_yield_per_edge,
-                           'scoring_infection_penalty': self.sim.pop.scoring.infection_penalty,
-                           'scoring_death_penalty': self.sim.pop.scoring.death_penalty,
+                               self.sim.env.observation_space.graph.considered_immune_threshold,
+                           'scoring_clear_yield_per_edge': self.sim.env.scoring.clear_yield_per_edge,
+                           'scoring_infection_penalty': self.sim.env.scoring.infection_penalty,
+                           'scoring_death_penalty': self.sim.env.scoring.death_penalty,
                            'agent_name': self.sim.agent.name,
                            'agent_type': self.sim.agent.__class__.__name__,
-                           'agent_delay': self.sim.agent_delay,
+                           'agent_delay': NotImplemented,  # TODO: Add back later if used
                            'agent_actions_per_turn': self.sim.agent.actions_per_turn,
                            'agent_action_space_vaccinate_cost': self.sim.agent.action_space.vaccinate_cost,
                            'agent_action_space_isolate_cost': self.sim.agent.action_space.isolate_cost})
@@ -91,6 +93,7 @@ class MultiSim:
         mlflow.log_metrics(metrics_to_log)
 
         mlflow.end_run()
+
 
 if __name__ == "__main__":
     from social_distancing_sim.environment.graph import Graph
@@ -103,23 +106,23 @@ if __name__ == "__main__":
 
     pop = Environment(name="multi sim environment",
                       disease=Disease(name='COVID-19',
-                                     virulence=0.01,
-                                     seed=seed,
-                                     immunity_mean=0.95,
-                                     immunity_decay_mean=0.05),
+                                      virulence=0.01,
+                                      seed=seed,
+                                      immunity_mean=0.95,
+                                      immunity_decay_mean=0.05),
                       healthcare=Healthcare(capacity=5),
                       observation_space=ObservationSpace(graph=Graph(community_n=15,
-                                                                    community_size_mean=10,
-                                                                    seed=seed),
-                                                        test_rate=1,
-                                                        seed=seed),
+                                                                     community_size_mean=10,
+                                                                     seed=seed),
+                                                         test_rate=1,
+                                                         seed=seed),
                       seed=seed,
-                      plot_ts_fields_g2=["Score", "Action cost", "Overall score"],
-                      plot_ts_obs_fields_g2=["Observed Score", "Action cost", "Observed overall score"])
+                      environment_plotting=EnvironmentPlotting(ts_fields_g2=["Score", "Action cost", "Overall score"],
+                                                               ts_obs_fields_g2=["Observed Score", "Action cost",
+                                                                                 "Observed overall score"]))
 
-    sim = Sim(pop=pop,
+    sim = Sim(env=pop,
               n_steps=150,
-              agent_delay=30,
               agent=VaccinationAgent(actions_per_turn=10,
                                      seed=seed))
 

@@ -23,7 +23,7 @@ class ActionSpace:
 
     @property
     def available_actions(self) -> List[str]:
-        return ['vaccinate', 'isolate']
+        return ['vaccinate', 'isolate', 'reconnect']
 
     def vaccinate(self, **kwargs) -> int:
         kwargs["env"].disease.give_immunity(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]])

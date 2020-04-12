@@ -18,4 +18,4 @@ class TestVaccinationAgent(unittest.TestCase):
         agent = self._sut()
 
         # Assert
-        self.assertListEqual(['isolate'], agent.available_actions())
+        self.assertListEqual(['isolate', 'reconnect'], agent.available_actions)
