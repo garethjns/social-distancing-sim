@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from typing import Callable
 from typing import Dict
@@ -8,12 +9,12 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 
-from social_distancing_sim.population.history import History
+from social_distancing_sim.environment.history import History
 
 
 @dataclass
 class Graph:
-    """Class to handle population graph, generation, etc."""
+    """Class to handle environment graph, generation, etc."""
     seed: Union[int, None] = None
     layout: str = "spring_layout"
 
@@ -72,8 +73,7 @@ class Graph:
     @property
     def current_isolated_nodes(self) -> List[int]:
         if self._current_isolated_nodes is None:
-            self._current_isolated_nodes = [nk for nk, nv in self.g_.nodes.data()
-                                            if (nv["infected"] > 0) & (nv.get("isolated", False))]
+            self._current_isolated_nodes = [nk for nk, nv in self.g_.nodes.data() if nv.get("isolated", False)]
         return self._current_isolated_nodes
 
     @property
@@ -125,7 +125,7 @@ class Graph:
         :param effectiveness: Proportion of edges to remove
         """
         node = self.g_.nodes[node_id]
-        node["_edges"] = self.g_.edges(node_id)
+        node["_edges"] = copy.deepcopy(self.g_.edges(node_id))
         node["isolated"] = True
 
         # Select edges to remove

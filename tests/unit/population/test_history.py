@@ -1,7 +1,7 @@
 import unittest
 from typing import Callable
 
-from social_distancing_sim.population.history import History
+from social_distancing_sim.environment.history import History
 
 
 class TestHistory(unittest.TestCase):

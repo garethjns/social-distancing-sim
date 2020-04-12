@@ -33,26 +33,26 @@ See also scripts/run_single_population.py
 
 ````python
 from social_distancing_sim.disease.disease import Disease
-from social_distancing_sim.population.population import Population
-from social_distancing_sim.population.observation_space import ObservationSpace
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.healthcare import Healthcare
+from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.observation_space import ObservationSpace
+from social_distancing_sim.environment.graph import Graph
+from social_distancing_sim.environment.healthcare import Healthcare
 
-# Create a population
-pop = Population(name="readme_example population",
+# Create a environment
+pop = Environment(name="readme_example environment",
                  disease=Disease(name='COVID-19'),  # Define a disease
                  healthcare=Healthcare(),  # Define healthcare availability
-                 observation_space=ObservationSpace(  # Create population graph and window into it
+                 observation_space=ObservationSpace(  # Create environment graph and window into it
                     graph=Graph(community_n=50,  # Number of communities
                                     community_size_mean=15, # Average number of people per community
                                     community_p_in=0.06,  # The likelihood of a connection between two community members
                                     community_p_out=0.04),  # The likelihood of a connection between two members of different communities. 
-                    test_rate=1))  # Proportion of population tested per step (testing determines observable data)
+                    test_rate=1))  # Proportion of environment tested per step (testing determines observable data)
 
 # Run the simulation for a number of days
 pop.run(save=True, plot=True, steps=100)
 
-# Save .gif to './example population/replay.gif', duration sets time in s for each frame
+# Save .gif to './example environment/replay.gif', duration sets time in s for each frame
 pop.replay(duration=0.25)
 
 # History can be accessed in the history attribute
@@ -68,23 +68,23 @@ python3 -m social-distancing-sim.scripts.run_single_population
 
 ```python
 from social_distancing_sim.disease.disease import Disease
-from social_distancing_sim.population.population import Population
-from social_distancing_sim.population.observation_space import ObservationSpace
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.healthcare import Healthcare
+from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.observation_space import ObservationSpace
+from social_distancing_sim.environment.graph import Graph
+from social_distancing_sim.environment.healthcare import Healthcare
 
-pop = Population(name='A herd of cats',
-                 disease=Disease(name='COVID-19'),
-                 healthcare=Healthcare(),
-                 observation_space=ObservationSpace(
+pop = Environment(name='A herd of cats',
+                  disease=Disease(name='COVID-19'),
+                  healthcare=Healthcare(),
+                  observation_space=ObservationSpace(
                     graph=Graph(community_n=50,  
                                 community_size_mean=15), 
                     test_rate=1)) 
 
-pop_distanced = Population(name='A socially responsible population',
-                           disease=Disease(name='COVID-19'),
-                           healthcare=Healthcare(),
-                           observation_space=ObservationSpace(
+pop_distanced = Environment(name='A socially responsible environment',
+                            disease=Disease(name='COVID-19'),
+                            healthcare=Healthcare(),
+                            observation_space=ObservationSpace(
                               graph=Graph(community_n=50,
                                           community_size_mean=15,
                                           community_p_in=0.05,  # Reduced intra-community connections

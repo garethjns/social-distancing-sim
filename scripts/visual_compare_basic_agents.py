@@ -3,17 +3,17 @@ from joblib import Parallel, delayed
 from social_distancing_sim.agent.isolation_agent import IsolationAgent
 from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
 from social_distancing_sim.disease.disease import Disease
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.healthcare import Healthcare
-from social_distancing_sim.population.observation_space import ObservationSpace
-from social_distancing_sim.population.population import Population
+from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.graph import Graph
+from social_distancing_sim.environment.healthcare import Healthcare
+from social_distancing_sim.environment.observation_space import ObservationSpace
 from social_distancing_sim.sim.sim import Sim
 
 
 def run_and_replay(sim):
     sim.run()
     if sim.save:
-        sim.pop.replay()
+        sim.env.replay()
 
 
 if __name__ == "__main__":
@@ -29,6 +29,7 @@ if __name__ == "__main__":
                                                                                   seed=seed + 1),
                                                                       test_rate=1,
                                                                       seed=seed + 2),
+                                "initial_infections": 5,
                                 "seed": seed + 3}
 
     sim_common_kwargs = {"n_steps": 130,
@@ -36,28 +37,24 @@ if __name__ == "__main__":
                          'save': True,
                          'tqdm_on': True}
 
-    sim_1 = Sim(Population(name="Vaccination agent - early",
-                           **common_population_kwargs),
-                agent_delay=21,
-                agent=VaccinationAgent(actions_per_turn=10),
+    sim_1 = Sim(Environment(name="Vaccination agent - early",
+                            **common_population_kwargs),
+                agent=VaccinationAgent(actions_per_turn=3),
                 **sim_common_kwargs)
 
-    sim_2 = Sim(Population(name="Vaccination agent - late",
-                           **common_population_kwargs),
-                agent_delay=40,
-                agent=VaccinationAgent(actions_per_turn=10),
+    sim_2 = Sim(Environment(name="Vaccination agent - late",
+                            **common_population_kwargs),
+                agent=VaccinationAgent(actions_per_turn=3),
                 **sim_common_kwargs)
 
-    sim_3 = Sim(Population(name="Isolation agent - early",
-                           **common_population_kwargs),
-                agent_delay=27,
-                agent=IsolationAgent(actions_per_turn=8),
+    sim_3 = Sim(Environment(name="Isolation agent - early",
+                            **common_population_kwargs),
+                agent=IsolationAgent(actions_per_turn=3),
                 **sim_common_kwargs)
 
-    sim_4 = Sim(Population(name="Isolation agent - late",
-                           **common_population_kwargs),
-                agent_delay=40,
-                agent=IsolationAgent(actions_per_turn=10),
+    sim_4 = Sim(Environment(name="Isolation agent - late",
+                            **common_population_kwargs),
+                agent=IsolationAgent(actions_per_turn=3),
                 **sim_common_kwargs)
 
     Parallel(n_jobs=4,

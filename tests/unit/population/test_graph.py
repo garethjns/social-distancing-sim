@@ -3,7 +3,7 @@ from typing import Callable
 
 import numpy as np
 
-from social_distancing_sim.population.graph import Graph
+from social_distancing_sim.environment.graph import Graph
 
 
 class TestGraph(unittest.TestCase):

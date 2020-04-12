@@ -1,6 +1,6 @@
 import unittest
 
-from social_distancing_sim.population.status import Status
+from social_distancing_sim.environment.status import Status
 
 
 class TestStatus(unittest.TestCase):

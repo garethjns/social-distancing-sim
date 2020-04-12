@@ -1,23 +1,21 @@
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Any, Iterable
+from typing import Dict, Any, Iterable, Union
 
 from tqdm import tqdm
 
-from social_distancing_sim.agent.agent import Agent
-from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
-from social_distancing_sim.population.history import History
-from social_distancing_sim.population.population import Population
+from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.history import History
 
 
 @dataclass
 class Sim:
-    pop: Population
-    agent: Agent
+    env: Environment
+    agent: Union[AgentBase, None] = None
     n_steps: int = 100
     plot: bool = False
     save: bool = False
-    agent_delay: int = 1
     tqdm_on: bool = False
 
     def __post_init__(self):
@@ -29,89 +27,101 @@ class Sim:
         return x
 
     def _log(self, completed_actions: Dict[str, Any], action_cost: float = 0):
-        if len(self.pop.history["Score"]) > 0:
-            score = self.pop.history["Score"][-1]
-            obs_score = self.pop.history["Observed score"][-1]
+        if len(self.env.history["Score"]) > 0:
+            score = self.env.history["Score"][-1]
+            obs_score = self.env.history["Observed score"][-1]
         else:
             score = 0
             obs_score = 0
 
-        self.pop.history.log({'Action cost': action_cost,
+        self.env.history.log({'Action cost': action_cost,
                               'Overall score': score - action_cost,
                               'Observed overall score': obs_score - action_cost,
                               'Completed actions': completed_actions})
 
     def run(self) -> History:
-        self.pop._total_steps = self.n_steps
+        self.env._total_steps = self.n_steps
 
         # TODO: Might want to add own history and plotting rather than using populations
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
+
             for s in self._tqdm(range(self.n_steps),
-                                desc=self.pop.name):
+                                desc=self.env.name):
+
+                # Pick action
+                if self.agent is None:
+                    actions = {}
+                else:
+                    actions = self.agent.select_actions(obs=self.env.observation_space,
+                                                        n=1)
+
                 # Step the simulation
-                self.pop.step()
+                observation, reward, done, info = self.env.step(actions)
 
-                # Act
-                completed_actions = {}
-                action_cost = 0
-                if s > self.agent_delay:
-                    completed_actions, action_cost = self.agent.act(self.pop,
-                                                                    step=s)
+                # Log action related info to environment object
+                self._log(completed_actions=actions,
+                          action_cost=observation.get("action_cost", 1))
 
-                # Log action related info to population object
-                self._log(completed_actions=completed_actions,
-                          action_cost=action_cost)
-
-                # PLot population after logging so sim-added logs are available to population history
+                # PLot environment after logging so sim-added logs are available to environment history
                 if self.plot or self.save:
-                    self.pop.plot(show=self.plot,
-                                  save=self.save)
+                    self.env.environment_plotting.plot(obs=self.env.observation_space,
+                                                       history=self.env.history,
+                                                       healthcare=self.env.healthcare,
+                                                       total_steps=self.n_steps,
+                                                       step=s,
+                                                       show=self.plot,
+                                                       save=self.save)
 
-        final_hist = History()
-        for k, v in self.pop.history.items():
-            # Skip any non-sensible ones
-            if k in ["Completed actions"]:
-                continue
-            final_hist.log({k: v[-1]})
+            final_hist = History()
+            for k, v in self.env.history.items():
+                # Skip any non-sensible ones
+                if k in ["Completed actions"]:
+                    continue
+                final_hist.log({k: v[-1]})
 
-        return final_hist
+            return final_hist
 
     def clone(self) -> "Sim":
         """Clone a fresh object with same seed (could be None)."""
-        return Sim(pop=self.pop.clone(), agent=self.agent.clone(), n_steps=self.n_steps, plot=self.plot,
-                   save=self.save, tqdm_on=self.tqdm_on, agent_delay=self.agent_delay)
+        return Sim(env=self.env.clone(), agent=self.agent.clone(), n_steps=self.n_steps, plot=self.plot,
+                   save=self.save, tqdm_on=self.tqdm_on)
 
 
 if __name__ == "__main__":
-    from social_distancing_sim.population.graph import Graph
-    from social_distancing_sim.population.healthcare import Healthcare
-    from social_distancing_sim.population.observation_space import ObservationSpace
-    from social_distancing_sim.population.population import Population
+    from social_distancing_sim.environment.graph import Graph
+    from social_distancing_sim.environment.healthcare import Healthcare
+    from social_distancing_sim.environment.observation_space import ObservationSpace
+    from social_distancing_sim.environment.environment import Environment
     from social_distancing_sim.disease.disease import Disease
+    from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
+    import social_distancing_sim.agent as agents
 
     seed = 123
 
-    pop = Population(name="example population",
-                     disease=Disease(name='COVID-19',
-                                     virulence=0.01,
-                                     seed=seed,
-                                     immunity_mean=0.95,
-                                     immunity_decay_mean=0.05),
-                     healthcare=Healthcare(capacity=5),
-                     observation_space=ObservationSpace(graph=Graph(community_n=15,
-                                                                    community_size_mean=10,
-                                                                    seed=seed + 1),
-                                                        test_rate=1,
-                                                        seed=seed + 2),
-                     seed=seed + 3,
-                     plot_ts_fields_g2=["Score", "Action cost", "Overall score"],
-                     plot_ts_obs_fields_g2=["Observed Score", "Action cost", "Observed overall score"])
+    env = Environment(name="example environment",
+                      disease=Disease(name='COVID-19',
+                                      virulence=0.1,
+                                      duration_mean=5,
+                                      seed=seed,
+                                      immunity_mean=0.95,
+                                      immunity_decay_mean=0.05),
+                      healthcare=Healthcare(capacity=5),
+                      observation_space=ObservationSpace(graph=Graph(community_n=4,
+                                                                     community_size_mean=5,
+                                                                     community_p_in=1,
+                                                                     community_p_out=0.3,
+                                                                     seed=seed + 1),
+                                                         test_rate=1,
+                                                         seed=seed + 2),
+                      environment_plotting=EnvironmentPlotting(ts_fields_g2=["Score", "Action cost",
+                                                                             "Overall score"],
+                                                               ts_obs_fields_g2=["Observed Score", "Action cost",
+                                                                                 "Observed overall score"]),
+                      seed=seed + 3)
 
-    sim = Sim(pop=pop,
-              agent_delay=10,
-              agent=VaccinationAgent(actions_per_turn=25,
-                                     seed=seed),
+    sim = Sim(env=env,
+              agent=agents.RandomAgent(),
               plot=True,
               save=True)
 

@@ -1,6 +1,6 @@
 import unittest
 
-from social_distancing_sim.population.healthcare import Healthcare
+from social_distancing_sim.environment.healthcare import Healthcare
 
 
 class TestHealthcare(unittest.TestCase):

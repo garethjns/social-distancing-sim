@@ -1,14 +1,14 @@
 import copy
 from dataclasses import dataclass
 
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.observation_space import ObservationSpace
+from social_distancing_sim.environment.graph import Graph
+from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 @dataclass
 class Scoring:
     """
-    Class holding values/methods used for scoring population (not action costs).
+    Class holding values/methods used for scoring environment (not action costs).
 
     Each alive, clear node yields a number of points depending on their number of connections. Doesn't matter what
     they're connected to. This means actions like isolation (even if free), and events like infection and death have

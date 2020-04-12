@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import MagicMock
 
-from social_distancing_sim.population.population import Population
+from social_distancing_sim.environment.environment import Environment
 
 
 class TestPopulation(unittest.TestCase):
-    _sut = Population
+    _sut = Environment
     _mock_observation_space = MagicMock()
     _mock_healthcare = MagicMock()
     _mock_disease = MagicMock()
@@ -18,4 +18,4 @@ class TestPopulation(unittest.TestCase):
                         healthcare=self._mock_healthcare,
                         observation_space=self._mock_observation_space)
 
-        self.assertIsInstance(pop, Population)
+        self.assertIsInstance(pop, Environment)

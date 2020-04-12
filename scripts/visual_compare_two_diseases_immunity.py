@@ -1,12 +1,12 @@
-"""Run a single population for 2 years with imperfect immunity and limited test rate."""
+"""Run a single environment for 2 years with imperfect immunity and limited test rate."""
 
 from joblib import Parallel, delayed
 
 from social_distancing_sim.disease.disease import Disease
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.healthcare import Healthcare
-from social_distancing_sim.population.observation_space import ObservationSpace
-from social_distancing_sim.population.population import Population
+from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.graph import Graph
+from social_distancing_sim.environment.healthcare import Healthcare
+from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 def run_and_replay(pop, *args, **kwargs):
@@ -30,21 +30,21 @@ if __name__ == "__main__":
                                                          test_rate=0.05),
                    'healthcare': Healthcare(capacity=200)}
 
-    pop_low_immunity = Population(name="Low immunity population",
-                                  disease=Disease(name='COVID-19',
-                                                  virulence=0.005,
-                                                  recovery_rate=0.99,
-                                                  immunity_mean=0.66,
-                                                  immunity_decay_mean=0.1),
-                                  **common_args)
-
-    pop_high_immunity = Population(name="High immunity population",
+    pop_low_immunity = Environment(name="Low immunity environment",
                                    disease=Disease(name='COVID-19',
                                                    virulence=0.005,
                                                    recovery_rate=0.99,
-                                                   immunity_mean=0.98,
-                                                   immunity_decay_mean=0.01),
+                                                   immunity_mean=0.66,
+                                                   immunity_decay_mean=0.1),
                                    **common_args)
+
+    pop_high_immunity = Environment(name="High immunity environment",
+                                    disease=Disease(name='COVID-19',
+                                                    virulence=0.005,
+                                                    recovery_rate=0.99,
+                                                    immunity_mean=0.98,
+                                                    immunity_decay_mean=0.01),
+                                    **common_args)
 
     Parallel(n_jobs=2,
              backend='loky')(delayed(run_and_replay)(pop,

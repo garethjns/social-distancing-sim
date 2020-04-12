@@ -1,4 +1,3 @@
-import copy
 from dataclasses import dataclass
 from typing import List, Union
 
@@ -7,9 +6,9 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.history import History
-from social_distancing_sim.population.status import Status
+from social_distancing_sim.environment.graph import Graph
+from social_distancing_sim.environment.history import History
+from social_distancing_sim.environment.status import Status
 
 
 @dataclass
@@ -60,7 +59,7 @@ class ObservationSpace:
 
     @property
     def unknown_nodes(self) -> List[int]:
-        """Unknwon nodes, excludes dead (as these are always known)"""
+        """Unknown nodes, excludes dead (as these are always known)"""
         if self._unknown_nodes is None:
             self._unknown_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].clear is None]
         return self._unknown_nodes
@@ -108,7 +107,7 @@ class ObservationSpace:
 
     def test_population(self, time_step: int) -> None:
         """
-        Test random members of the population, based on testing rate.
+        Test random members of the environment, based on testing rate.
 
         Chance of testing infected is grater than testing asymptomatic.
 
