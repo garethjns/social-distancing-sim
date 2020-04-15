@@ -369,15 +369,14 @@ for n_act, agt in np.array(np.meshgrid(n_actions,
                         save=True,
                         tqdm_on=True))  # Show progress bars for running sims
     
-    # Run all the prepared Sims
-    Parallel(n_jobs=4,
-             backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
+# Run all the prepared Sims
+Parallel(n_jobs=4,
+         backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
 
 
 ```
 
 # MultiSims: Statistical comparisons - basic agents and strategy comparison
-![Example stats basic agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/agent_comparison_score_example.png)
 
 ````bash
 python3 -m social-distancing-sim.scripts.stats_compare_basic_agents
