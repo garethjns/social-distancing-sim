@@ -5,6 +5,8 @@ Social distancing is an unfortunately unclear term; it means stay from other peo
 
 But why?
 
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
+
 This package models disease spread through a population, allowing modification of many dynamics affecting spread. These simulations can be viewed as animations, or run many times to collect statistics. The simulation supports agent input, and can test the affect of policies such a mass vaccination and social distancing and isolation. Some examples are shown below.
 
 The code aims to be as simple and understandable as possible, but is still WIP (along with the documentation). The documentation is mainly example driven see below and the Scripts/ folder for up to date usage examples.
