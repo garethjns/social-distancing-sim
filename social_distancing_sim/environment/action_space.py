@@ -11,7 +11,7 @@ class ActionSpace:
 
     TODO: Standardise api and remove **kwargs
     """
-    vaccinate_cost: int = -50
+    vaccinate_cost: int = -2
     isolate_cost: int = 0
     seed: Union[int, None] = None
 

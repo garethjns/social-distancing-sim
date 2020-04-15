@@ -4,7 +4,7 @@ from typing import Callable
 
 import numpy as np
 
-from social_distancing_sim.disease.disease import Disease
+from social_distancing_sim.environment.disease import Disease
 
 
 class TestDisease(unittest.TestCase):

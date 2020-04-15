@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from social_distancing_sim.agent.isolation_agent import IsolationAgent
 from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
-from social_distancing_sim.disease.disease import Disease
+from social_distancing_sim.environment.disease import Disease
 from social_distancing_sim.environment.environment import Environment
 from social_distancing_sim.environment.graph import Graph
 from social_distancing_sim.environment.healthcare import Healthcare

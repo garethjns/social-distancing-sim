@@ -1,12 +1,13 @@
-from typing import Dict
+from typing import Dict, List
 
 from social_distancing_sim.agent.agent_base import AgentBase
 from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 class RandomAgent(AgentBase):
-    def select_actions(self, obs: ObservationSpace,
-                       n: int = 1) -> Dict[int, str]:
-        n = self._check_available_targets(obs, n)
+    @property
+    def available_actions(self) -> List[str]:
+        return ['vaccinate', 'isolate']
 
-        return self.sample(obs, n)
+    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+        return self.sample(obs)

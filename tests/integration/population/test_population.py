@@ -2,7 +2,7 @@ import unittest
 
 from joblib import Parallel, delayed
 
-from social_distancing_sim.disease.disease import Disease
+from social_distancing_sim.environment.disease import Disease
 from social_distancing_sim.environment.environment import Environment
 from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
 from social_distancing_sim.environment.graph import Graph

@@ -26,6 +26,8 @@ class EnvironmentPlotting:
     def __post_init__(self):
         self.name: Union[str, None] = None
         self.output_path: Union[str, None] = None
+        self.graph_path: Union[str, None] = None
+        self.name: Union[str, None] = None
 
         sns.set()
 

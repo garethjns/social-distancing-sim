@@ -1,4 +1,6 @@
-from typing import Union
+from typing import Union, Tuple, List
+
+import numpy as np
 
 
 class Status:
@@ -142,6 +144,17 @@ class Status:
                 self.clear = True
 
         self._immune = flag
+
+    @property
+    def state_features_names(self) -> List[str]:
+        """Status fields to use to co construct state."""
+        return ['alive', 'clear', 'infected', 'immune', 'isolated']
+
+    @property
+    def state(self) -> np.ndarray:
+        """Convert node status into state array."""
+        return np.array([getattr(self, a) for a in self.state_features_names],
+                        dtype=bool)
 
 
 if __name__ == "__main__":

@@ -11,11 +11,10 @@ class TestAgentBase(unittest.TestCase):
         # Arrange
         mock_obs = unittest.mock.MagicMock(kind=ObservationSpace)
         mock_obs.current_alive_nodes = [1, 2, 3]
-        agent = AgentBase()
+        agent = AgentBase(actions_per_turn=1)
 
         # Act
-        actions = agent.sample(obs=mock_obs,
-                               n=1)
+        actions = agent.sample(obs=mock_obs)
 
         # Assert
         self.assertIsInstance(actions, dict)
@@ -26,11 +25,10 @@ class TestAgentBase(unittest.TestCase):
         # Arrange
         mock_obs = unittest.mock.MagicMock(kind=ObservationSpace)
         mock_obs.current_alive_nodes = [1, 2, 3]
-        agent = AgentBase()
+        agent = AgentBase(actions_per_turn=6)
 
         # Act
-        actions = agent.sample(obs=mock_obs,
-                               n=6)
+        actions = agent.sample(obs=mock_obs)
 
         # Assert
         self.assertIsInstance(actions, dict)

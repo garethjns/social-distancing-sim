@@ -2,11 +2,7 @@
 
 from joblib import Parallel, delayed
 
-from social_distancing_sim.disease.disease import Disease
-from social_distancing_sim.environment.environment import Environment
-from social_distancing_sim.environment.graph import Graph
-from social_distancing_sim.environment.healthcare import Healthcare
-from social_distancing_sim.environment.observation_space import ObservationSpace
+import social_distancing_sim.environment as env
 
 
 def run_and_replay(pop, *args, **kwargs):
@@ -19,32 +15,38 @@ if __name__ == "__main__":
     save = True
     duration = 0.1
 
-    common_args = {'plot_ts_fields_g2': ["Mean immunity (of immune nodes)",
-                                         "Mean immunity (of all alive nodes)"],
-                   'plot_ts_obs_fields_g2': ["Known mean immunity (of immune nodes)",
-                                             "Known mean immunity (of all alive nodes)"],
-                   'observation_space': ObservationSpace(graph=Graph(community_n=50,
-                                                                     community_size_mean=15,
-                                                                     community_p_in=0.08,
-                                                                     community_p_out=0.04),
-                                                         test_rate=0.05),
-                   'healthcare': Healthcare(capacity=200)}
+    # Create two environments, one containing a disease with imparts high immunity in survival, with a slow decay. The
+    # other with with a disease that imparts less immunity, which decays quicker.
+    pop_low_immunity = env.Environment(name="Low immunity environment",
+                                       disease=env.Disease(name='COVID-19',
+                                                           virulence=0.005,
+                                                           recovery_rate=0.99,
+                                                           immunity_mean=0.66,
+                                                           immunity_decay_mean=0.1),
+                                       environment_plotting=env.EnvironmentPlotting(
+                                           ts_fields_g2=["Mean immunity (of immune nodes)",
+                                                         "Mean immunity (of all alive nodes)"],
+                                           ts_obs_fields_g2=["Known mean immunity (of immune nodes)",
+                                                             "Known mean immunity (of all alive nodes)"]),
+                                       observation_space=env.ObservationSpace(graph=env.Graph(community_n=50,
+                                                                                              community_size_mean=15,
+                                                                                              community_p_in=0.08,
+                                                                                              community_p_out=0.04),
+                                                                              test_rate=0.05),
+                                       healthcare=env.Healthcare(capacity=200))
 
-    pop_low_immunity = Environment(name="Low immunity environment",
-                                   disease=Disease(name='COVID-19',
-                                                   virulence=0.005,
-                                                   recovery_rate=0.99,
-                                                   immunity_mean=0.66,
-                                                   immunity_decay_mean=0.1),
-                                   **common_args)
-
-    pop_high_immunity = Environment(name="High immunity environment",
-                                    disease=Disease(name='COVID-19',
-                                                    virulence=0.005,
-                                                    recovery_rate=0.99,
-                                                    immunity_mean=0.98,
-                                                    immunity_decay_mean=0.01),
-                                    **common_args)
+    pop_high_immunity = env.Environment(name="High immunity environment",
+                                        environment_plotting=env.EnvironmentPlotting(
+                                            ts_fields_g2=["Mean immunity (of immune nodes)",
+                                                          "Mean immunity (of all alive nodes)"],
+                                            ts_obs_fields_g2=["Known mean immunity (of immune nodes)",
+                                                              "Known mean immunity (of all alive nodes)"]),
+                                        observation_space=env.ObservationSpace(graph=env.Graph(community_n=50,
+                                                                                               community_size_mean=15,
+                                                                                               community_p_in=0.08,
+                                                                                               community_p_out=0.04),
+                                                                               test_rate=0.05),
+                                        healthcare=env.Healthcare(capacity=200))
 
     Parallel(n_jobs=2,
              backend='loky')(delayed(run_and_replay)(pop,

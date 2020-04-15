@@ -8,7 +8,6 @@ import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
 from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
 from social_distancing_sim.environment.history import History
 from social_distancing_sim.sim.sim import Sim
@@ -88,7 +87,7 @@ class MultiSim:
                            'agent_action_space_isolate_cost': self.sim.agent.action_space.isolate_cost})
 
         metrics_to_log = {}
-        for c in ["Observed overall score", "Observed score", "Overall score", "Score"]:
+        for c in ["Observed overall score", "Observed turn score", "Overall score", "Turn score"]:
             metrics_to_log.update(self._agg_stats(self.results[c]))
         mlflow.log_metrics(metrics_to_log)
 
@@ -96,6 +95,7 @@ class MultiSim:
 
 
 if __name__ == "__main__":
+    from social_distancing_sim.agent import RandomAgent
     from social_distancing_sim.environment.graph import Graph
     from social_distancing_sim.environment.healthcare import Healthcare
     from social_distancing_sim.environment.observation_space import ObservationSpace
@@ -117,14 +117,15 @@ if __name__ == "__main__":
                                                          test_rate=1,
                                                          seed=seed),
                       seed=seed,
-                      environment_plotting=EnvironmentPlotting(ts_fields_g2=["Score", "Action cost", "Overall score"],
-                                                               ts_obs_fields_g2=["Observed Score", "Action cost",
+                      environment_plotting=EnvironmentPlotting(ts_fields_g2=["Turn score", "Action cost",
+                                                                             "Overall score"],
+                                                               ts_obs_fields_g2=["Observed turn score", "Action cost",
                                                                                  "Observed overall score"]))
 
     sim = Sim(env=pop,
               n_steps=150,
-              agent=VaccinationAgent(actions_per_turn=10,
-                                     seed=seed))
+              agent=RandomAgent(actions_per_turn=10,
+                                seed=seed),)
 
     multi_sim = MultiSim(sim)
     multi_sim.run()

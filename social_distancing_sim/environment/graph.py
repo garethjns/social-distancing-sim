@@ -31,9 +31,9 @@ class Graph:
 
         self._layout: Callable = getattr(nx, self.layout)
 
-        self._community_sizes: np.ndarray = self.state.poisson(self.state.normal(size=self.community_n)
-                                                               * self.community_size_std
-                                                               + self.community_size_mean)
+        self._community_sizes: np.ndarray = self._random_state.poisson(self._random_state.normal(size=self.community_n)
+                                                                       * self.community_size_std
+                                                                       + self.community_size_mean)
         self.g_: nx.classes.graph.Graph
         self.g_pos_: Union[None, Dict[int, np.ndarray]] = None
         self._generate_graph()
@@ -64,7 +64,7 @@ class Graph:
             nv["alive"] = True
 
     def _prepare_random_state(self) -> None:
-        self.state = np.random.RandomState(seed=self.seed)
+        self._random_state = np.random.RandomState(seed=self.seed)
 
     @property
     def n_current_infected(self) -> int:
@@ -125,13 +125,14 @@ class Graph:
         :param effectiveness: Proportion of edges to remove
         """
         node = self.g_.nodes[node_id]
-        node["_edges"] = copy.deepcopy(self.g_.edges(node_id))
+        # Do NOT deepcopy EdgeView!!! Copy won't work either.
+        node["_edges"] = copy.deepcopy(list(self.g_.edges(node_id)))
         node["isolated"] = True
 
         # Select edges to remove
         to_remove = []
         for uv in self.g_.edges(node_id):
-            if self.state.binomial(1, effectiveness):
+            if self._random_state.binomial(1, effectiveness):
                 to_remove.append(uv)
 
         self.g_.remove_edges_from(to_remove)

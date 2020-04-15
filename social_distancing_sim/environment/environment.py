@@ -6,7 +6,7 @@ from typing import List, Tuple, Union, Any, Dict
 import numpy as np
 from tqdm import tqdm
 
-from social_distancing_sim.disease.disease import Disease
+from social_distancing_sim.environment.disease import Disease
 from social_distancing_sim.environment.action_space import ActionSpace
 from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
 from social_distancing_sim.environment.healthcare import Healthcare
@@ -22,7 +22,7 @@ class Environment:
     disease: Disease = Disease()
     healthcare: Healthcare = Healthcare()
     scoring: Scoring = Scoring()
-    environment_plotting: EnvironmentPlotting = EnvironmentPlotting()
+    environment_plotting: EnvironmentPlotting = None  # This is mutable, and will be changed don't init for default!!
     name: str = "unnamed_population"
     seed: Union[None, int] = None
 
@@ -37,15 +37,17 @@ class Environment:
         self.history: History[str, List[int]] = History.with_defaults()
         self._total_steps: int = 0
 
+        if self.environment_plotting is None:
+            self.environment_plotting = EnvironmentPlotting()
         self.environment_plotting.prepare_output_path(name=self.name)
 
     def _prepare_random_state(self) -> None:
-        self.state = np.random.RandomState(seed=self.seed)
+        self._random_state = np.random.RandomState(seed=self.seed)
 
     def _infect_random(self) -> None:
         """Infect a random node."""
         node_id = self.observation_space.graph.current_clear_nodes[
-            self.state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
+            self._random_state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
         self.disease.force_infect(self.observation_space.graph.g_.nodes[node_id])
 
     def _infect_neighbours(self) -> int:
@@ -82,7 +84,7 @@ class Environment:
             node = self.disease.conclude(self.observation_space.graph.g_.nodes[n],
                                          recovery_rate_modifier=recovery_rate_modifier)
 
-            # Outcome is either recovery, death, or continuation
+            # Outcome is either recovery, death, or continuationddd
             if node["alive"]:
                 if node["infected"] == 0:
                     recoveries += 1
@@ -92,9 +94,18 @@ class Environment:
         return deaths, recoveries
 
     def _log(self, new_infections: int, known_new_infections: int, deaths: int, recoveries: int,
-             score: float = 0.0,
-             obs_score: float = 0.0) -> None:
-        """Log full space and observed space."""
+             turn_score: float = 0.0,
+             obs_turn_score: float = 0.0) -> None:
+
+        # Log counts/score for this turn
+        self.history.log({"Turn score": turn_score,
+                          "Observed turn score": obs_turn_score,
+                          "New infections": new_infections,
+                          "Known new infections": known_new_infections,
+                          "New deaths": deaths,
+                          "Current recovered": recoveries})
+
+        # Log full space and observed space
         self.history.log({"Current infections": self.observation_space.graph.n_current_infected,
                           "Known current infections": self.observation_space.known_n_current_infected,
                           "Current clear": self.total_population - self.observation_space.graph.n_current_infected,
@@ -121,36 +132,32 @@ class Environment:
                               [self.observation_space.graph.g_.nodes[n].get("immune", 0)
                                for n in
                                self.observation_space.current_alive_nodes]),
-                          "New infections": new_infections,
-                          "Known new infections": known_new_infections,
-                          "New deaths": deaths,
-                          "Total recovered": recoveries,
+                          "Total recovered": np.sum(self.history["Current recoveries"]),
                           "Total infections": np.sum(self.history["New infections"]),
                           "Known total infections": np.sum(self.history["Known new infections"]),
-                          "Score": score,
-                          "Observed score": obs_score})
+                          "Overall score": np.sum(self.history["Turn score"]),
+                          "Observed overall score": np.sum(self.history["Observed turn score"])})
 
         # Dependent
-        self.history.log({
-            "Current infection prop": self.history["Current infections"][-1] / self.total_population,
-            "Known current infection prop": (self.history["Known current infections"][-1]
-                                             / self.total_population),
-            "Overall infection prop": self.history["Total infections"][-1] / self.total_population,
-            "Known overall infection prop": (self.history["Known total infections"][-1]
-                                             / self.total_population),
-            "Current death prop": self.history["New deaths"][-1] / self.total_population,
-            "Overall death prop": self.history["Total deaths"][-1] / self.total_population,
-            "Overall Infected death rate": (self.history["Total deaths"][-1]
-                                            / self.history["Total infections"][-1]),
-            "Known overall Infected death rate": (self.history["Total deaths"][-1]
-                                                  / self.history["Total infections"][-1])})
+        self.history.log({"Current infection prop": self.history["Current infections"][-1] / self.total_population,
+                          "Known current infection prop": (self.history["Known current infections"][-1]
+                                                           / self.total_population),
+                          "Overall infection prop": self.history["Total infections"][-1] / self.total_population,
+                          "Known overall infection prop": (self.history["Known total infections"][-1]
+                                                           / self.total_population),
+                          "Current death prop": self.history["New deaths"][-1] / self.total_population,
+                          "Overall death prop": self.history["Total deaths"][-1] / self.total_population,
+                          "Overall Infected death rate": (self.history["Total deaths"][-1]
+                                                          / self.history["Total infections"][-1]),
+                          "Known overall Infected death rate": (self.history["Total deaths"][-1]
+                                                                / self.history["Total infections"][-1])})
 
     def _update_immunities(self):
         for node in self.observation_space.graph.current_immune_nodes:
             self.disease.decay_immunity(self.observation_space.graph.g_.nodes[node])
 
     def _select_random_nodes(self, n: int) -> int:
-        return self.state.choice(self.observation_space.graph.g_.nodes, size=n, replace=True)
+        return self._random_state.choice(self.observation_space.graph.g_.nodes, size=n, replace=True)
 
     def _act(self, actions: Dict[int, str]) -> Tuple[Dict[int, str], float]:
 
@@ -175,7 +182,7 @@ class Environment:
             for _ in range(self.initial_infections):
                 self._infect_random()
         # Random infections
-        if self.state.binomial(1, self.random_infection_chance):
+        if self._random_state.binomial(1, self.random_infection_chance):
             self._infect_random()
 
         # Act
@@ -189,29 +196,31 @@ class Environment:
         self._update_immunities()
 
         # Score and log complete env history
-        score = self.scoring.score(graph=self.observation_space.graph,
-                                   new_infections=new_infections,
-                                   new_deaths=deaths)
-        obs_score = self.scoring.score(graph=self.observation_space,
-                                       new_infections=known_new_infections,
-                                       new_deaths=deaths)
+        turn_score = self.scoring.score_turn(graph=self.observation_space.graph,
+                                             action_cost=action_costs,
+                                             new_infections=new_infections,
+                                             new_deaths=deaths)
+        obs_turn_score = self.scoring.score_turn(graph=self.observation_space,
+                                                 action_cost=action_costs,
+                                                 new_infections=known_new_infections,
+                                                 new_deaths=deaths)
 
-        self._log(new_infections=known_new_infections,
+        self._log(new_infections=new_infections,
                   known_new_infections=known_new_infections,
                   deaths=deaths,
                   recoveries=recoveries,
-                  score=score,
-                  obs_score=obs_score)
+                  turn_score=turn_score,
+                  obs_turn_score=obs_turn_score)
 
         self._step += 1
 
         # Gym api
         observation = {'obs': self.observation_space,
-                       'score': score,
-                       'obs_score': obs_score,
+                       'turn_score': turn_score,
+                       'obs_score': obs_turn_score,
                        'action_costs': action_costs,
                        'completed_actions': completed_actions}
-        reward = obs_score
+        reward = obs_turn_score
         if self._step == self._total_steps:
             done = True
         info = {}
@@ -246,8 +255,8 @@ class Environment:
 
         print(f"Ran {steps} steps in {np.round(time.time() - t0, 2)}s")
 
-    def replay(self):
-        self.environment_plotting.replay()
+    def replay(self, duration: float = 0.1):
+        self.environment_plotting.replay(duration=duration)
 
     def clone(self) -> "Environment":
         """Clone a fresh object with same seed (could be None)."""
@@ -258,3 +267,7 @@ class Environment:
                            environment_plotting=self.environment_plotting.clone(),
                            name=self.name,
                            seed=self.seed)
+
+    @property
+    def state(self) -> np.ndarray:
+        return np.concatenate([nv['status'].state for _, nv in self.observation_space.graph.g_.nodes.data()])

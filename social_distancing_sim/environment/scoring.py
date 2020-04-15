@@ -16,13 +16,14 @@ class Scoring:
 
     Death has an additional cost defined in death penalty
     """
-    clear_yield_per_edge: int = 0.1
+    clear_yield_per_edge: int = 0.01
     infection_penalty: int = -1
-    death_penalty: int = -200
+    death_penalty: int = -100
 
-    def score(self, graph: [Graph, ObservationSpace],
-              new_infections: int = 0,
-              new_deaths: int = 0) -> float:
+    def score_turn(self, graph: [Graph, ObservationSpace],
+                   action_cost: float = 0,
+                   new_infections: int = 0,
+                   new_deaths: int = 0) -> float:
 
         infection_penalty = new_infections * self.infection_penalty
         death_penalty = new_deaths * self.death_penalty
@@ -36,9 +37,7 @@ class Scoring:
         for node_id in graph.current_clear_nodes:
             clear_yield += self.clear_yield_per_edge * len(list(g_.neighbors(node_id)))
 
-        score = infection_penalty + clear_yield + death_penalty
-
-        return score
+        return infection_penalty + clear_yield + death_penalty + action_cost
 
     def clone(self) -> "Scoring":
         """Clone, nothing stochastic to handle."""

@@ -44,7 +44,7 @@ class ObservationSpace:
             nv["status"] = Status()
 
     def _prepare_random_state(self) -> None:
-        self.state = np.random.RandomState(seed=self.seed)
+        self._random_state = np.random.RandomState(seed=self.seed)
 
     @property
     def known_n_current_infected(self):
@@ -122,11 +122,11 @@ class ObservationSpace:
             infected_test_rate = 1
 
         for n in self.graph.current_clear_nodes:
-            if self.state.binomial(1, clear_test_rate):
+            if self._random_state.binomial(1, clear_test_rate):
                 self.graph.g_.nodes[n]['status'].last_tested = time_step
 
         for n in self.graph.current_infected_nodes:
-            if self.state.binomial(1, infected_test_rate):
+            if self._random_state.binomial(1, infected_test_rate):
                 self.graph.g_.nodes[n]['status'].last_tested = time_step
 
         for n in self.current_infected_nodes:
