@@ -1,18 +1,18 @@
-from typing import List
+from typing import List, Dict
 
-from social_distancing_sim.agent.agent import Agent
-from social_distancing_sim.population.population import Population
+from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
-class VaccinationAgent(Agent):
+class VaccinationAgent(AgentBase):
+    @property
     def available_actions(self) -> List[str]:
+        """Isolation agent can only isolate. It can't even un-isolate (yet?)"""
         return ['vaccinate']
 
-    def select_target(self, pop: Population) -> int:
-        not_immune = set(pop.observation_space.current_clear_nodes).difference(
-            pop.observation_space.current_immune_nodes)
-        if len(not_immune) > 0:
-            return self.state.choice(list(not_immune))
+    @staticmethod
+    def available_targets(obs: ObservationSpace) -> List[int]:
+        return list(set(obs.current_clear_nodes).difference(obs.current_immune_nodes))
 
-    def select_action(self, pop: Population) -> str:
-        return self.available_actions()[0]
+    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+        return self.sample(obs)

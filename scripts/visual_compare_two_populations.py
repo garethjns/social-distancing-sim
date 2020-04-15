@@ -1,10 +1,6 @@
 from joblib import Parallel, delayed
 
-from social_distancing_sim.disease.disease import Disease
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.healthcare import Healthcare
-from social_distancing_sim.population.observation_space import ObservationSpace
-from social_distancing_sim.population.population import Population
+import social_distancing_sim.environment as env
 
 
 def run_and_replay(pop, *args, **kwargs):
@@ -14,29 +10,29 @@ def run_and_replay(pop, *args, **kwargs):
 
 
 if __name__ == "__main__":
-    save = False
+    save = True
 
-    disease = Disease(name='COVID-19')
-    healthcare = Healthcare()
+    # Create a population with high inter and intra connectivity
+    pop = env.Environment(name='A herd of cats',
+                          disease=env.Disease(name='COVID-19'),
+                          observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
+                                                                                 community_size_mean=16,
+                                                                                 seed=123),
+                                                                 test_rate=1),
+                          environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Turn score"]))
 
-    pop = Population(name='A herd of cats',
-                     disease=disease,
-                     healthcare=healthcare,
-                     observation_space=ObservationSpace(graph=Graph(community_n=40,
-                                                                    community_size_mean=16,
-                                                                    seed=123),
-                                                        test_rate=1))
+    # Create a population with reduced inter and intra connectivity
+    pop_distanced = env.Environment(name='A socially responsible environment',
+                                    disease=env.Disease(name='COVID-19'),
+                                    observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
+                                                                                           community_size_mean=16,
+                                                                                           community_p_in=0.05,
+                                                                                           community_p_out=0.04,
+                                                                                           seed=123),
+                                                                           test_rate=1),
+                                    environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Turn score"]))
 
-    pop_distanced = Population(name='A socially responsible population',
-                               disease=disease,
-                               healthcare=healthcare,
-                               observation_space=ObservationSpace(graph=Graph(community_n=40,
-                                                                              community_size_mean=16,
-                                                                              community_p_in=0.05,
-                                                                              community_p_out=0.04,
-                                                                              seed=123),
-                                                                  test_rate=1))
-
+    # Run and save both simulations in parallel
     Parallel(n_jobs=2,
              backend='loky')(delayed(run_and_replay)(pop,
                                                      steps=300,

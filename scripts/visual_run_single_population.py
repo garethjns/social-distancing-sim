@@ -1,29 +1,43 @@
-"""Run a single population with perfect testing."""
+"""Run a single environment with perfect testing."""
 
-from social_distancing_sim.population.graph import Graph
-from social_distancing_sim.population.healthcare import Healthcare
-from social_distancing_sim.population.observation_space import ObservationSpace
-from social_distancing_sim.population.population import Population
-from social_distancing_sim.disease.disease import Disease
+import social_distancing_sim.environment as env
 
 if __name__ == "__main__":
-    save = True
+    # The graph is the "true" population model, containing all the nodes and their data
+    graph = env.Graph(community_n=50,
+                      community_size_mean=15,
+                      community_p_in=0.06,  # The likelihood of intra-community connections
+                      community_p_out=0.04)  # The likelihood of inter-community connections
 
-    graph = Graph(community_n=50,
-                  community_size_mean=15)
+    # The ObservationSpace wraps the true graph to filter the available information about the Graph. Here
+    # test_rate = 1 means the ObservationSpace has access to the full Graph.
+    observation_space = env.ObservationSpace(graph=graph,  # Create environment graph and window into it
+                                             test_rate=1)
 
-    pop = Population(name="example population",
-                     disease=Disease(name='COVID-19'),
-                     healthcare=Healthcare(),
-                     observation_space=ObservationSpace(graph=graph,
-                                                        test_rate=.2),
-                     plot_ts_fields_g2=["Score"],
-                     plot_ts_obs_fields_g2=["Observed score"])
+    # Define a Disease with default paramters
+    disease = env.Disease(name='COVID-19')
 
+    # Define Healthcare availability with default settings
+    healthcare = env.Healthcare()
+
+    # Set the default plotting options, and add a second time-series plot to the figure showing turn score
+    environment_plotting = env.EnvironmentPlotting(ts_fields_g2=["Turn score"])
+
+    # Construct the environment
+    pop = env.Environment(name="example environment",
+                          disease=disease,
+                          healthcare=healthcare,
+                          environment_plotting=environment_plotting,
+                          observation_space=observation_space)
+
+    # Run the environment, plotting and saving at each step
     pop.run(steps=150,
             plot=True,
             save=True)
 
-    # Save .gif to './example population/replay.gif'
-    if save:
-        pop.replay()
+    # Save .gif to './example environment/replay.gif'
+    pop.replay()
+
+    # History can be accessed in the History object. These keys can also be set to plot during the simulation in the
+    # EnvironmentPlotting options
+    print(pop.history.keys())

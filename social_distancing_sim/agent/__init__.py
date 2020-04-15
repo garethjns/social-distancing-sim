@@ -1,0 +1,4 @@
+from social_distancing_sim.agent.random_agent import RandomAgent
+from social_distancing_sim.agent.isolation_agent import IsolationAgent
+from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
+from social_distancing_sim.agent.dummy_agent import DummyAgent
