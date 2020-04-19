@@ -5,6 +5,7 @@ from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 class VaccinationAgent(AgentBase):
+    """VaccinationAgent randomly vaccinates clear nodes."""
     @property
     def available_actions(self) -> List[str]:
         """Isolation agent can only isolate. It can't even un-isolate (yet?)"""
@@ -15,4 +16,6 @@ class VaccinationAgent(AgentBase):
         return list(set(obs.current_clear_nodes).difference(obs.current_immune_nodes))
 
     def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
-        return self.sample(obs)
+        # Don't track sample call here as self.get_actions() will handle that.
+        return self.sample(obs,
+                           track=False)

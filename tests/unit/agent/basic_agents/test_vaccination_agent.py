@@ -1,6 +1,6 @@
 import unittest
 
-from social_distancing_sim.agent.vaccination_agent import VaccinationAgent
+from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
 
 
 class TestVaccinationAgent(unittest.TestCase):

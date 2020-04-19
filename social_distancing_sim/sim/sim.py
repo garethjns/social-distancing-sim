@@ -5,7 +5,7 @@ from typing import Iterable, Union
 from tqdm import tqdm
 
 from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.agent.dummy_agent import DummyAgent
+from social_distancing_sim.agent.basic_agents.dummy_agent import DummyAgent
 from social_distancing_sim.environment.environment import Environment
 from social_distancing_sim.environment.history import History
 
@@ -41,7 +41,7 @@ class Sim:
                                 desc=self.env.name):
 
                 # Pick action
-                actions = self.agent.select_actions(obs=self.env.observation_space)
+                actions = self.agent.get_actions(obs=self.env.observation_space)
 
                 # Step the simulation
                 observation, reward, done, info = self.env.step(actions)
@@ -72,46 +72,3 @@ class Sim:
                    agent=self.agent.clone() if self.agent is not None else None,
                    n_steps=self.n_steps, plot=self.plot,
                    save=self.save, tqdm_on=self.tqdm_on)
-
-
-if __name__ == "__main__":
-    from social_distancing_sim.environment.graph import Graph
-    from social_distancing_sim.environment.healthcare import Healthcare
-    from social_distancing_sim.environment.observation_space import ObservationSpace
-    from social_distancing_sim.environment.environment import Environment
-    from social_distancing_sim.disease.disease import Disease
-    from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
-    import social_distancing_sim.agent as agents
-
-    seed = 100
-
-    env = Environment(name="example environment",
-                      disease=Disease(name='COVID-19',
-                                      virulence=0.1,
-                                      duration_mean=5,
-                                      seed=seed,
-                                      immunity_mean=0.95,
-                                      immunity_decay_mean=0.05),
-                      healthcare=Healthcare(capacity=5),
-                      observation_space=ObservationSpace(graph=Graph(community_n=15,
-                                                                     community_size_mean=10,
-                                                                     community_p_in=1,
-                                                                     community_p_out=0.3,
-                                                                     seed=seed + 1),
-                                                         test_rate=1,
-                                                         seed=seed + 2),
-                      environment_plotting=EnvironmentPlotting(ts_fields_g2=["Turn score", "Action cost",
-                                                                             "Overall score"],
-                                                               ts_obs_fields_g2=["Observed turn score", "Action cost",
-                                                                                 "Observed overall score"]),
-                      seed=seed + 3)
-
-    sim = Sim(env=env,
-              n_steps=150,
-              agent=agents.VaccinationAgent(seed=8,
-                                            actions_per_turn=10),
-              tqdm_on=True,
-              plot=True,
-              save=False)
-
-    sim.run()

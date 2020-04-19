@@ -16,7 +16,9 @@ class IsolationAgent(AgentBase):
                 'reconnect': list(set(obs.current_clear_nodes).intersection(obs.isolated_nodes))}
 
     def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+        """Selects randomly between both actions, any time frames are totally ignored."""
         actions = self._random_state.choice(self.available_actions,
+                                            replace=True,
                                             size=self.actions_per_turn)
         available_targets = self.available_targets(obs)
 

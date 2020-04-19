@@ -96,7 +96,7 @@ python3 -m social-distancing-sim.scripts.run_single_population
 
 ````python
 import social_distancing_sim.environment as env
-# The graph is the "true" population model, containing all the nodes and their data
+# The graph is the "true" environment model, containing all the nodes and their data
 graph = env.Graph(community_n=50,
                   community_size_mean=15,
                   community_p_in=0.06,  # The likelihood of intra-community connections
@@ -159,7 +159,7 @@ def run_and_replay(pop, *args, **kwargs):
 
 save = True
 
-# Create a population with high inter and intra connectivity
+# Create a environment with high inter and intra connectivity
 pop = env.Environment(name='A herd of cats',
                       disease=env.Disease(name='COVID-19'),
                       observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
@@ -168,7 +168,7 @@ pop = env.Environment(name='A herd of cats',
                                                              test_rate=1),
                       environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Turn score"]))
 
-# Create a population with reduced inter and intra connectivity
+# Create a environment with reduced inter and intra connectivity
 pop_distanced = env.Environment(name='A socially responsible environment',
                                 disease=env.Disease(name='COVID-19'),
                                 observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
@@ -312,7 +312,6 @@ Parallel(n_jobs=2,
 
 
 # Basic agents and strategy comparison
-![Test basic agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/basic_agents_example.gif)
 
 ````bash
 python3 -m social-distancing-sim.scripts.visual_compare_basic_agents
@@ -379,6 +378,7 @@ Parallel(n_jobs=4,
 ```
 
 # MultiSims: Statistical comparisons - basic agents and strategy comparison
+![Test basic agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/agent_comparison_score_example.png)
 
 ````bash
 python3 -m social-distancing-sim.scripts.stats_compare_basic_agents

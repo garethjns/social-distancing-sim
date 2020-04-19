@@ -1,6 +1,6 @@
 import unittest
 
-from social_distancing_sim.agent.random_agent import RandomAgent
+from social_distancing_sim.agent.basic_agents.random_agent import RandomAgent
 
 
 class TestRandomAgent(unittest.TestCase):

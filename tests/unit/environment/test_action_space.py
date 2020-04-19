@@ -1,25 +1,29 @@
 import unittest
+
 from social_distancing_sim.environment.action_space import ActionSpace
 
 
 class TestActionSpace(unittest.TestCase):
     _sut = ActionSpace()
+    _implemented_actions = ['vaccinate', 'isolate', 'reconnect', 'treat']
 
     def test_expected_default_actions_are_available(self):
+        # Act
+        available_actions = self._sut.available_actions
+
         # Assert
-        self.assertListEqual(['vaccinate', 'isolate', 'reconnect'], self._sut.available_actions)
+        self.assertListEqual(self._implemented_actions, available_actions)
 
-    @unittest.skip(reason='TODO')
-    def test_vaccinate_action(self):
-        # TODO
-        pass
+    def test_n_returns_expected_n_actions(self):
+        # Act
+        n_available_actions = self._sut.n
 
-    @unittest.skip(reason='TODO')
-    def test_isolate_action(self):
-        # TODO
-        pass
+        # Assert
+        self.assertEqual(len(self._implemented_actions), n_available_actions)
 
-    @unittest.skip(reason='TODO')
-    def test_reconnect_action(self):
-        # TODO
-        pass
+    def test_sampled_returns_valid_action(self):
+        # Act
+        action = self._sut.sample()
+
+        # Assert
+        self.assertIn(action, self._implemented_actions)

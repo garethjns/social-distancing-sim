@@ -1,9 +1,4 @@
-
-"""
-Run all the basic agents with a number of actions per turn (n reps = 1). Generate and save .gif.
-
-Parameters here match the stats version run in scripts/stats_compare_basic_agents.py.
-"""
+"""Run all the basic agents with a number of actions per turn (n reps = 1). Generate and save .gif."""
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -62,4 +57,3 @@ if __name__ == "__main__":
         # Run all the prepared Sims
         Parallel(n_jobs=4,
                  backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
-

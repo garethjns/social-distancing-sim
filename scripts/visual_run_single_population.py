@@ -3,7 +3,7 @@
 import social_distancing_sim.environment as env
 
 if __name__ == "__main__":
-    # The graph is the "true" population model, containing all the nodes and their data
+    # The graph is the "true" environment model, containing all the nodes and their data
     graph = env.Graph(community_n=50,
                       community_size_mean=15,
                       community_p_in=0.06,  # The likelihood of intra-community connections

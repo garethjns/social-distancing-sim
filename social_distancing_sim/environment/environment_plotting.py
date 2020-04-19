@@ -18,6 +18,8 @@ from social_distancing_sim.environment.observation_space import ObservationSpace
 @dataclass
 class EnvironmentPlotting:
     both: bool = True
+    auto_lim_x: bool = True
+    auto_lim_y: bool = True
     ts_fields_g1: List[str] = None
     ts_fields_g2: List[str] = None
     ts_obs_fields_g1: List[str] = None
@@ -117,8 +119,8 @@ class EnvironmentPlotting:
                 step: int) -> None:
         for ax, fields in zip(self._ts_ax_g1, [self.ts_fields_g1, self.ts_obs_fields_g1]):
             history.plot(ks=fields,
-                         x_lim=(-1, total_steps),
-                         y_lim=(-10, int(total_population + total_population * 0.05)),
+                         x_lim=(-1, total_steps) if self.auto_lim_x else None,
+                         y_lim=(-10, int(total_population + total_population * 0.05)) if self.auto_lim_y else None,
                          x_label='Day' if not self._g2_on else None,
                          remove_x_tick_labels=self._g2_on,
                          ax=ax,
@@ -130,15 +132,15 @@ class EnvironmentPlotting:
         if self._g2_on:
             for ax, fields in zip(self._ts_ax_g2, [self.ts_fields_g2, self.ts_obs_fields_g2]):
                 history.plot(ks=fields,
-                             y_label='Score',
-                             x_lim=(-1, total_steps),
+                             y_label='',
+                             x_lim=(-1, total_steps) if self.auto_lim_x else None,
                              # y_lim=(-0.1, 1.1),
                              ax=ax,
                              show=False)
 
     def plot_graphs(self, obs: ObservationSpace, title: str):
         obs.graph.plot(ax=self._graph_ax[0])
-        self._graph_ax[0].set_title(f"Full sim: {title}")
+        self._graph_ax[0].set_title(f"Full sim: {title}", fontsize=14)
 
         if (obs.test_rate < 1) & self.both:
             obs.plot(ax=self._graph_ax[1])
