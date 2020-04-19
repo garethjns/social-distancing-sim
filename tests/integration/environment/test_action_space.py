@@ -143,7 +143,7 @@ class TestActionSpace(unittest.TestCase):
     def test_treatment_removes_infection_when_forced(self):
         # Arrange
         action_space = self._sut(treatment_conclusion_chance= 1,
-                                 treatment_recover_rate_modifier=10)
+                                 treatment_recovery_rate_modifier=10)
         self.env.observation_space.graph.g_.nodes[1]["infected"] = 3
         self.env.observation_space.graph.g_.nodes[1]["status"].infected = True
 
