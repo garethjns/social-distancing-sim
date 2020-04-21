@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
     pop = env.Environment(name='A herd of cats, observed',
                           disease=env.Disease(name='COVID-19'),
-                          healthcare=env.healthcare(),
+                          healthcare=env.Healthcare(),
                           observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
                                                                                  community_size_mean=16,
                                                                                  seed=123),

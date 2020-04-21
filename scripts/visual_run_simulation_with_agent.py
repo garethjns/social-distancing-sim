@@ -24,8 +24,8 @@ if __name__ == "__main__":
                                                                                          "Observed overall score"]))
 
     sim = sim.Sim(env=pop,
-                  agent=env.accinationAgent(actions_per_turn=25,
-                                            seed=seed),
+                  agent=env.VaccinationAgent(actions_per_turn=25,
+                                             seed=seed),
                   plot=True,
                   save=True)
 

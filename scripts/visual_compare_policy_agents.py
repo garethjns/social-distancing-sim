@@ -8,7 +8,6 @@ from joblib import Parallel, delayed
 import social_distancing_sim.agent as agent
 import social_distancing_sim.environment as env
 import social_distancing_sim.sim as sim
-from social_distancing_sim.environment.action_space import ActionSpace
 
 
 def run_and_replay(sim):
@@ -44,8 +43,8 @@ if __name__ == "__main__":
 
         # Name the environment according to the agent used
         env_ = env.Environment(name=f"{type(agt_).__name__} - {n_act} actions",
-                               action_space=ActionSpace(isolate_efficiency=0.5,
-                                                        vaccinate_efficiency=0.95),
+                               action_space=env.ActionSpace(isolate_efficiency=0.5,
+                                                            vaccinate_efficiency=0.95),
                                disease=env.Disease(name='COVID-19',
                                                    virulence=0.008,
                                                    seed=seed,
@@ -53,7 +52,8 @@ if __name__ == "__main__":
                                                    recovery_rate=0.9,
                                                    immunity_decay_mean=0.01),
                                healthcare=env.Healthcare(capacity=75),
-                               environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Actions taken"]),
+                               environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Actions taken",
+                                                                                          "Overall score"]),
                                observation_space=env.ObservationSpace(
                                    graph=env.Graph(community_n=20,
                                                    community_size_mean=15,
@@ -71,6 +71,6 @@ if __name__ == "__main__":
                             save=True,
                             tqdm_on=True))  # Show progress bars for running sims
 
-        # Run all the prepared Sims
+    # Run all the prepared Sims
     Parallel(n_jobs=4,
              backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
