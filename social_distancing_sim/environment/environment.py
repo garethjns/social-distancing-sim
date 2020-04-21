@@ -6,8 +6,8 @@ from typing import List, Tuple, Union, Any, Dict
 import numpy as np
 from tqdm import tqdm
 
-from social_distancing_sim.environment.disease import Disease
 from social_distancing_sim.environment.action_space import ActionSpace
+from social_distancing_sim.environment.disease import Disease
 from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
 from social_distancing_sim.environment.healthcare import Healthcare
 from social_distancing_sim.environment.history import History
@@ -95,7 +95,8 @@ class Environment:
 
     def _log(self, new_infections: int, known_new_infections: int, deaths: int, recoveries: int,
              turn_score: float = 0.0,
-             obs_turn_score: float = 0.0) -> None:
+             obs_turn_score: float = 0.0,
+             actions_taken: Dict[int, str] = 0) -> None:
 
         # Log counts/score for this turn
         self.history.log({"Turn score": turn_score,
@@ -104,6 +105,13 @@ class Environment:
                           "Known new infections": known_new_infections,
                           "New deaths": deaths,
                           "Current recovered": recoveries})
+        # Log actions
+        # TODO: Might be worth making this less manual and/or handling it somewhere else?
+        self.history.log({"Actions taken": len(actions_taken.values()),
+                          "Vaccinate actions": len([a for a in actions_taken.values() if a == 'vaccinate']),
+                          "Isolate actions": len([a for a in actions_taken.values() if a == 'isolate']),
+                          "Reconnect actions": len([a for a in actions_taken.values() if a == 'reconnect']),
+                          "Treat actions": len([a for a in actions_taken.values() if a == 'treat'])})
 
         # Log full space and observed space
         self.history.log({"Current infections": self.observation_space.graph.n_current_infected,
@@ -210,7 +218,8 @@ class Environment:
                   deaths=deaths,
                   recoveries=recoveries,
                   turn_score=turn_score,
-                  obs_turn_score=obs_turn_score)
+                  obs_turn_score=obs_turn_score,
+                  actions_taken=actions)
 
         self._step += 1
 

@@ -11,8 +11,14 @@ class ActionSpace:
 
     TODO: Standardise api and remove **kwargs
     """
-    vaccinate_cost: int = -2
-    isolate_cost: int = 0
+    vaccinate_cost: float = -2
+    isolate_cost: float = 0
+    treat_cost: float = -3
+    vaccinate_efficiency: float = 0.95
+    isolate_efficiency: float = 0.95
+    reconnect_efficiency: float = 0.95
+    treatment_conclusion_chance: float = 0.9
+    treatment_recovery_rate_modifier: float = 1.5
     seed: Union[int, None] = None
 
     def __post_init__(self) -> None:
@@ -22,24 +28,40 @@ class ActionSpace:
         self.state = np.random.RandomState(seed=self.seed)
 
     @property
-    def available_actions(self) -> List[str]:
-        return ['vaccinate', 'isolate', 'reconnect']
+    def n(self):
+        return len(self.available_actions)
 
-    def vaccinate(self, **kwargs) -> int:
-        kwargs["env"].disease.give_immunity(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]])
+    @property
+    def available_actions(self) -> List[str]:
+        return ['vaccinate', 'isolate', 'reconnect', 'treat']
+
+    def treat(self, **kwargs) -> float:
+        kwargs["env"].disease.conclude(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
+                                       chance_to_force=self.treatment_conclusion_chance,
+                                       recovery_rate_modifier=self.treatment_recovery_rate_modifier)
+        kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].immune = True
+        kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["last_tested"] = kwargs["step"]
+
+        return self.treat_cost
+
+    def vaccinate(self, **kwargs) -> float:
+        kwargs["env"].disease.give_immunity(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
+                                            immunity=self.vaccinate_efficiency)
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].immune = True
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["last_tested"] = kwargs["step"]
 
         return self.vaccinate_cost
 
-    def isolate(self, **kwargs) -> int:
-        kwargs["env"].observation_space.graph.isolate_node(kwargs["target_node_id"])
+    def isolate(self, **kwargs) -> float:
+        kwargs["env"].observation_space.graph.isolate_node(kwargs["target_node_id"],
+                                                           effectiveness=self.isolate_efficiency)
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].isolated = True
 
         return self.isolate_cost
 
-    def reconnect(self, **kwargs) -> int:
-        kwargs["env"].observation_space.graph.reconnect_node(kwargs["target_node_id"])
+    def reconnect(self, **kwargs) -> float:
+        kwargs["env"].observation_space.graph.reconnect_node(kwargs["target_node_id"],
+                                                             effectiveness=self.reconnect_efficiency)
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].isolated = False
 
         return self.isolate_cost

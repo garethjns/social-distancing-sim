@@ -62,6 +62,8 @@ class Graph:
             nv["infected"] = 0
             nv["immune"] = False
             nv["alive"] = True
+            nv["_edges"] = []
+            nv["isolated"] = False
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
@@ -117,16 +119,16 @@ class Graph:
         return death_rate
 
     def isolate_node(self, node_id: int,
-                     effectiveness: float = 0.95):
+                     effectiveness: float = 0.95) -> None:
         """
         Remove some or all edges from a node, and store on node.
+
+        Flag node as isolated if any edges removed and stored in _edges.
 
         :param node_id: Node index.
         :param effectiveness: Proportion of edges to remove
         """
         node = self.g_.nodes[node_id]
-        # Do NOT deepcopy EdgeView!!! Copy won't work either.
-        node["_edges"] = copy.deepcopy(list(self.g_.edges(node_id)))
         node["isolated"] = True
 
         # Select edges to remove
@@ -135,12 +137,34 @@ class Graph:
             if self._random_state.binomial(1, effectiveness):
                 to_remove.append(uv)
 
+        # Do NOT deepcopy EdgeView!!! Copy won't work either.
+        node["_edges"] += to_remove
+
         self.g_.remove_edges_from(to_remove)
 
-    def reconnect_node(self, node_id: int):
+    def reconnect_node(self, node_id: int,
+                       effectiveness: float = 0.95) -> None:
+        """
+        Restore edges with probability defined in effectiveness.
+
+        Flag node as not isolated when all edges have been restored.
+
+        :param node_id: Node index.
+        :param effectiveness: Proportion of edges to re-add.
+        """
         node = self.g_.nodes[node_id]
-        self.g_.add_edges_from(node["_edges"])
-        node["isolated"] = False
+        to_add = []
+        leave = []
+        for uv in node["_edges"]:
+            if self._random_state.binomial(1, effectiveness):
+                to_add.append(uv)
+            else:
+                leave.append(uv)
+
+        self.g_.add_edges_from(to_add)
+        node["_edges"] = leave
+        if len(node["_edges"]) == 0:
+            node["isolated"] = False
 
     def plot(self,
              ax: Union[None, plt.Axes] = None,

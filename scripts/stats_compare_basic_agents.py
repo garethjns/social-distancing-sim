@@ -2,8 +2,9 @@
 Run all the basic agents with a number of actions per turn using a MultiSim (n reps = 100). Doesn't save .gifs of
 each rep, rather plots distributions of final scores.
 
-Parameters here match the visual version run in scripts/stats_compare_basic_agents.py.
+Parameters here are similar to the visual version run in scripts/visual_compare_basic_agents.py.
 """
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,7 +16,8 @@ import social_distancing_sim.environment as env
 import social_distancing_sim.sim as sim
 
 
-def plot_dists(result: str = "Overall score") -> plt.Figure:
+def plot_dists(multi_sims: List[sim.MultiSim],
+               result: str = "Overall score") -> plt.Figure:
     """Plot final score distributions across repetitions, for all agents."""
     fig, axs = plt.subplots(nrows=4,
                             ncols=1,
@@ -84,17 +86,17 @@ if __name__ == "__main__":
                        n_steps=125)
 
         multi_sims.append(sim.MultiSim(sim_,
-                                       name='basic agent comparison 2',
+                                       name='basic agent comparison',
                                        n_reps=100))
 
     # Run all the sims. No need to parallelize here as it's done across n reps in MultiSim.run()
     for ms in tqdm(multi_sims):
         ms.run()
 
-    fig = plot_dists("Overall score")
+    fig = plot_dists(multi_sims, "Overall score")
     plt.show()
-    fig.savefig('agent_comparison_score.png')
+    fig.savefig('basic_agent_comparison_score.png')
 
-    fig = plot_dists("Total deaths")
+    fig = plot_dists(multi_sims, "Total deaths")
     plt.show()
-    fig.savefig('agent_comparison_deaths.png')
+    fig.savefig('basic_agent_comparison_deaths.png')
