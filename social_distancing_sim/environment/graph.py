@@ -1,4 +1,3 @@
-import copy
 from dataclasses import dataclass
 from typing import Callable
 from typing import Dict
@@ -46,6 +45,26 @@ class Graph:
         self._current_clear_nodes: Union[int, None] = None
         self._current_alive_nodes: Union[int, None] = None
         self._current_dead_nodes: Union[int, None] = None
+
+    def state_summary(self) -> np.ndarray:
+        """Vector representing n of each node type."""
+        return np.array([len(self.current_clear_nodes), self.n_current_infected, len(self.current_isolated_nodes),
+                         len(self.current_immune_nodes), len(self.current_alive_nodes)])
+
+    def state_graph(self) -> np.ndarray:
+        """Node x node matrix representing graph."""
+        return nx.convert_matrix.to_numpy_array(self.g_,
+                                                dtype=np.int16)
+
+    def state_nodes(self) -> np.ndarray:
+        """Node x node_state matrix."""
+        return np.array([[nd[c] for c in ["alive", "infected", "immune", "isolated"]]
+                         for nv, nd in self.g_.nodes.data()])
+
+    def state_full(self) -> np.ndarray:
+        """.state_nodes + .state_graph"""
+        return np.concatenate([self.state_nodes(), self.state_graph()],
+                              axis=1)
 
     @property
     def total_population(self) -> int:
@@ -166,6 +185,26 @@ class Graph:
         if len(node["_edges"]) == 0:
             node["isolated"] = False
 
+    def plot_matrix(self,
+                    ax: Union[None, plt.Axes] = None) -> plt.Figure:
+        fig = sns.heatmap(self.state_graph(),
+                          ax=ax)
+
+        return fig
+
+    def plot_summary(self,
+                     ax: Union[None, plt.Axes] = None) -> plt.Axes:
+
+        ax_ = ax
+        for i, c in enumerate(["alive", "infected", "immune", "isolated"]):
+            ax_ = sns.distplot(self.state_nodes()[:, i],
+                               label=c,
+                               kde=False,
+                               ax=ax)
+        plt.legend()
+
+        return ax_
+
     def plot(self,
              ax: Union[None, plt.Axes] = None,
              history: History = None) -> None:
@@ -220,3 +259,13 @@ class Graph:
                      community_p_in=self.community_p_in,
                      community_p_out=self.community_p_out,
                      considered_immune_threshold=self.considered_immune_threshold)
+
+
+if __name__ == "__main__":
+    g = Graph()
+    g.state_summary()
+    g.state_full()
+    g.state_nodes()
+    g.state_graph()
+
+    g.plot_summary()

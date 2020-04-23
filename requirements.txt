@@ -8,3 +8,4 @@ tqdm
 joblib
 pandas
 mlflow
+gym

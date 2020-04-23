@@ -34,6 +34,7 @@ class EnvironmentPlotting:
         sns.set()
 
     def prepare_output_path(self, name: str) -> None:
+        # TODO: Change to only clear/make dirs when actually plotting.
         if self.output_path is None:
             self.name = name
             self.output_path = f"{name}"
@@ -52,6 +53,8 @@ class EnvironmentPlotting:
         - 2x row for network plot                   |  2x row for network plot (if testing rate < 1)
         - 1x row for ts plot                        | 1x row for ts plot (if testing rate < 1)
         - 1x row for additional ts plot (optional)  | 1x row for additional ts plot (optional, if testing rate < 1)
+
+        TODO: Add new specs with .plot_matrix and .plot_summary available in Graph and ObservationSpace.
         """
         plt.close()
 
@@ -145,6 +148,14 @@ class EnvironmentPlotting:
         if (obs.test_rate < 1) & self.both:
             obs.plot(ax=self._graph_ax[1])
             self._graph_ax[1].set_title(f"Observed: {title}")
+
+    def plot_matrices(self):
+        # TODO
+        pass
+
+    def plot_summaries(self):
+        # TODO
+        pass
 
     def replay(self, duration: float = 0.2) -> str:
         """

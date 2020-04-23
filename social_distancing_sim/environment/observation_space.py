@@ -46,6 +46,45 @@ class ObservationSpace:
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
 
+    def state_summary(self) -> np.ndarray:
+        """Vector representing n of each node type. Contains known values."""
+        return np.array([len(self.current_clear_nodes), len(self.current_infected_nodes),
+                         len(self.isolated_nodes), len(self.current_immune_nodes),
+                         len(self.current_alive_nodes), len(self.unknown_nodes)])
+
+    def state_graph(self) -> np.ndarray:
+        """Node x node matrix representing graph. All connections are known, so same as .graph."""
+        return self.graph.state_graph()
+
+    def state_nodes(self) -> np.ndarray:
+        """Node x node_state matrix. Uses node["status"] which handles known node state."""
+        return np.array([nd["status"].state for _, nd in self.graph.g_.nodes.data()])
+
+    def state_full(self) -> np.ndarray:
+        """.state_nodes + .state_graph"""
+        return np.concatenate([self.state_nodes(), self.state_graph()],
+                              axis=1)
+
+    def plot_matrix(self,
+                    ax: Union[None, plt.Axes] = None) -> plt.Figure:
+        fig = sns.heatmap(self.state_graph(),
+                          ax=ax)
+
+        return fig
+
+    def plot_summary(self,
+                     ax: Union[None, plt.Axes] = None) -> plt.Axes:
+
+        ax_ = ax
+        for i, c in enumerate(Status().state_features_names):
+            ax_ = sns.distplot(self.state_nodes()[:, i],
+                               label=c,
+                               kde=False,
+                               ax=ax)
+        plt.legend()
+
+        return ax_
+
     @property
     def known_n_current_infected(self):
         return len(self.current_infected_nodes)
@@ -212,3 +251,10 @@ class ObservationSpace:
         """Clone a fresh object with same seed (could be None)."""
         return ObservationSpace(graph=self.graph.clone(), test_rate=self.test_rate,
                                 test_validity_period=self.test_validity_period, seed=self.seed)
+
+
+if __name__ == "__main__":
+    obs = ObservationSpace(Graph())
+
+    obs.plot_matrix()
+    obs.plot_summary()

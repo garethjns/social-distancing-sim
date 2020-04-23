@@ -84,7 +84,7 @@ class Environment:
             node = self.disease.conclude(self.observation_space.graph.g_.nodes[n],
                                          recovery_rate_modifier=recovery_rate_modifier)
 
-            # Outcome is either recovery, death, or continuationddd
+            # Outcome is either recovery, death, or continuation
             if node["alive"]:
                 if node["infected"] == 0:
                     recoveries += 1
@@ -178,7 +178,7 @@ class Environment:
 
         return completed_actions, total_action_cost
 
-    def step(self, actions: Dict[int, str]) -> Tuple[Dict[str, Any], float, bool, Dict[str, Any]]:
+    def step(self, actions: Dict[int, str]) -> Tuple[Dict[str, Any], float, bool]:
         self.observation_space.reset_cached_values()
         self.observation_space.graph.reset_cached_values()
 
@@ -223,18 +223,15 @@ class Environment:
 
         self._step += 1
 
-        # Gym api
         observation = {'obs': self.observation_space,
                        'turn_score': turn_score,
                        'obs_score': obs_turn_score,
                        'action_costs': action_costs,
                        'completed_actions': completed_actions}
-        reward = obs_turn_score
         if self._step == self._total_steps:
             done = True
-        info = {}
 
-        return observation, reward, done, info
+        return observation, obs_turn_score, done
 
     def run(self, steps: 10,
             plot: bool = True,
