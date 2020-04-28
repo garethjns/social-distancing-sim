@@ -44,7 +44,7 @@ class Sim:
                 actions = self.agent.get_actions(obs=self.env.observation_space)
 
                 # Step the simulation
-                observation, reward, done, info = self.env.step(actions)
+                observation, reward, done = self.env.step(actions)
 
                 # PLot environment after logging so sim-added logs are available to environment history
                 if self.plot or self.save:
