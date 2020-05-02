@@ -10,5 +10,6 @@ class DummyAgent(AgentBase):
     def available_actions(self) -> list:
         return []
 
-    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+    def select_actions(self) -> Dict[int, str]:
         return {}
+

@@ -10,7 +10,6 @@ class Pop746(TemplateBase):
               graph_seed: int = 20200423,
               disease_seed: int = None,
               observation_space_seed: int = None) -> env.Environment:
-
         return env.Environment(name="example environment",
                                disease=env.Disease(name='COVID-19',
                                                    virulence=0.006,

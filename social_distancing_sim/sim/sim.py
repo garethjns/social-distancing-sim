@@ -14,6 +14,7 @@ from social_distancing_sim.environment.history import History
 class Sim:
     env: Environment
     agent: Union[AgentBase, None] = None
+    training: bool = False
     n_steps: int = 100
     plot: bool = False
     save: bool = False
@@ -24,37 +25,53 @@ class Sim:
             self._tqdm = tqdm
 
         if self.agent is None:
-            self.agent = DummyAgent()
+            self.agent = DummyAgent(env=self.env)
+
+        if self.agent.env is None:
+            self.agent.set_env(env=self.env)
+
+        self._step: int = 0
 
     @staticmethod
     def _tqdm(x: Iterable, *args, **kwargs) -> Iterable:
         return x
 
+    def step(self):
+        # Observe state from last step
+        s = self.env.observation_space.state
+
+        # Pick action
+        actions, targets = self.agent.get_actions(state=s)
+
+        # Step the simulation and observe for this step
+        observation, reward, done = self.env.step(actions, targets)
+
+        # Update agent
+        if self.training:
+            self.agent.update(observation, reward, done)
+
+        # Plot environment after logging so sim-added logs are available to environment history
+        if self.plot or self.save:
+            self.env.environment_plotting.plot(obs=self.env.observation_space,
+                                               history=self.env.history,
+                                               healthcare=self.env.healthcare,
+                                               total_steps=self.n_steps,
+                                               step=self._step,
+                                               show=self.plot,
+                                               save=self.save)
+
     def run(self) -> History:
         self.env._total_steps = self.n_steps
+        self.env.plot(plot=self.plot, save=self.save)
 
         # TODO: Might want to add own history and plotting rather than using populations
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
 
-            for s in self._tqdm(range(self.n_steps),
+            for _ in self._tqdm(range(self.n_steps),
                                 desc=self.env.name):
-
-                # Pick action
-                actions = self.agent.get_actions(obs=self.env.observation_space)
-
-                # Step the simulation
-                observation, reward, done = self.env.step(actions)
-
-                # PLot environment after logging so sim-added logs are available to environment history
-                if self.plot or self.save:
-                    self.env.environment_plotting.plot(obs=self.env.observation_space,
-                                                       history=self.env.history,
-                                                       healthcare=self.env.healthcare,
-                                                       total_steps=self.n_steps,
-                                                       step=s,
-                                                       show=self.plot,
-                                                       save=self.save)
+                self.step()
+                self._step += 1
 
             final_hist = History()
             for k, v in self.env.history.items():

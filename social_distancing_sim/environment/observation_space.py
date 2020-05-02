@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Tuple, Dict
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -7,7 +7,6 @@ import numpy as np
 import seaborn as sns
 
 from social_distancing_sim.environment.graph import Graph
-from social_distancing_sim.environment.history import History
 from social_distancing_sim.environment.status import Status
 
 
@@ -64,6 +63,12 @@ class ObservationSpace:
         """.state_nodes + .state_graph"""
         return np.concatenate([self.state_nodes(), self.state_graph()],
                               axis=1)
+
+    @property
+    def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return (self.state_summary(),
+                self.state_graph(),
+                self.state_nodes())
 
     def plot_matrix(self,
                     ax: Union[None, plt.Axes] = None) -> plt.Figure:
@@ -200,18 +205,18 @@ class ObservationSpace:
 
     def plot(self,
              ax: Union[None, plt.Axes] = None,
-             history: History = None) -> None:
+             colours: Dict[str, str] = None) -> None:
         """
         Plot the observed network graph.
 
+        TODO: Duplicates functionality with Graph.plot...
+
         :param ax: Matplotlib to draw on.
-        :param history: If provided, gets colours from defaults set in history, if available.
+        :param colours: Colours to use for plots, for example, from defaults set in history, if available.
         """
         sns.set()
 
-        if history is not None:
-            colours = history.colours
-        else:
+        if colours is None:
             colours = {}
 
         if self.graph.g_pos_ is None:

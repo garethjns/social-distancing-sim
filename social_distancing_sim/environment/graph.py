@@ -8,8 +8,6 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 
-from social_distancing_sim.environment.history import History
-
 
 @dataclass
 class Graph:
@@ -207,18 +205,18 @@ class Graph:
 
     def plot(self,
              ax: Union[None, plt.Axes] = None,
-             history: History = None) -> None:
+             colours: Dict[str, str] = None) -> None:
         """
         Plot the full network graph.
 
+        TODO: Duplicates functionality with ObservationSpace.plot...
+
         :param ax: Matplotlib to draw on.
-        :param history: If provided, gets colours from defaults set in history, if available.
+        :param colours: Colours to use for plots, for example, from defaults set in history, if available.
         """
         sns.set()
 
-        if history is not None:
-            colours = history.colours
-        else:
+        if colours is None:
             colours = {}
 
         if self.g_pos_ is None:

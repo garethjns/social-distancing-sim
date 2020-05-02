@@ -1,17 +1,21 @@
 from typing import Dict, Callable, List, Any, Tuple, SupportsFloat
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.ticker import MaxNLocator
+
+from social_distancing_sim.environment.healthcare import Healthcare
+from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 class History(dict):
-    def __init__(self, *args, colours: Dict[str, str] = None):
+    def __init__(self, *args, colours: Dict[str, str] = None) -> None:
         super().__init__(*args)
         if colours is None:
             colours = {}
         self.colours = colours
 
-    def __missing__(self, k):
+    def __missing__(self, k) -> List[Any]:
         self[k] = []
         return self[k]
 
@@ -94,6 +98,60 @@ class History(dict):
 
         return ax
 
-    def log(self, metrics: Dict[str, Any]):
+    def log(self, metrics: Dict[str, Any]) -> None:
         for k, v in metrics.items():
             self[k].append(v)
+
+    def log_defaults(self, obs: ObservationSpace, healthcare: Healthcare,
+                     new_infections: int, known_new_infections: int, deaths: int,
+                     recoveries: int, actions_attempted: Dict[int, int], actions_taken: Dict[int, int],
+                     total_population: int, turn_score: float = 0.0, obs_turn_score: float = 0.0) -> None:
+
+        # Log counts/score for this turn
+        self.log({"Turn score": turn_score, "Observed turn score": obs_turn_score,
+                  "New infections": new_infections, "Known new infections": known_new_infections,
+                  "New deaths": deaths, "Current recovered": recoveries})
+
+        # Log actions
+        for suffix, actions_dict in zip(('attempted', 'completed'), (actions_attempted, actions_taken)):
+            self.log({f"Actions {suffix}": len(actions_dict.values()),
+                      f"Vaccinate actions {suffix}": len([a for a in actions_dict.values() if a == 1]),
+                      f"Isolate actions {suffix}": len([a for a in actions_dict.values() if a == 2]),
+                      f"Reconnect actions {suffix}": len([a for a in actions_dict.values() if a == 3]),
+                      f"Treat actions {suffix}": len([a for a in actions_dict.values() if a == 4])})
+
+        # Log full space and observed space
+        self.log({"Current infections": obs.graph.n_current_infected,
+                  "Known current infections": obs.known_n_current_infected,
+                  "Current clear": total_population - obs.graph.n_current_infected,
+                  "Known current clear": (total_population - obs.known_n_current_infected),
+                  "Current recovery rate penalty": healthcare.recovery_rate_penalty(obs.graph.n_current_infected),
+                  "Number alive": len(obs.graph.current_alive_nodes),
+                  "Total deaths": len(obs.graph.current_dead_nodes),
+                  "Total immune": len(obs.graph.current_immune_nodes),
+                  "Mean immunity (of immune nodes)": np.mean([obs.graph.g_.nodes[n]["immune"]
+                                                              for n in obs.graph.current_immune_nodes]),
+                  "Mean immunity (of all alive nodes)": np.mean([obs.graph.g_.nodes[n].get("immune", 0)
+                                                                 for n in obs.graph.current_alive_nodes]),
+                  "Known total immune": len(
+                      obs.current_immune_nodes),
+                  "Known mean immunity (of immune nodes)": np.mean([obs.graph.g_.nodes[n]["immune"]
+                                                                    for n in obs.current_immune_nodes]),
+                  "Known mean immunity (of all alive nodes)": np.mean(
+                      [obs.graph.g_.nodes[n].get("immune", 0)
+                       for n in obs.current_alive_nodes]),
+                  "Total recovered": np.sum(self["Current recoveries"]),
+                  "Total infections": np.sum(self["New infections"]),
+                  "Known total infections": np.sum(self["Known new infections"]),
+                  "Overall score": np.sum(self["Turn score"]),
+                  "Observed overall score": np.sum(self["Observed turn score"])})
+
+        # Dependent
+        self.log({"Current infection prop": self["Current infections"][-1] / total_population,
+                  "Known current infection prop": (self["Known current infections"][-1] / total_population),
+                  "Overall infection prop": self["Total infections"][-1] / total_population,
+                  "Known overall infection prop": (self["Known total infections"][-1] / total_population),
+                  "Current death prop": self["New deaths"][-1] / total_population,
+                  "Overall death prop": self["Total deaths"][-1] / total_population,
+                  "Overall Infected death rate": (self["Total deaths"][-1] / self["Total infections"][-1]),
+                  "Known overall Infected death rate": (self["Total deaths"][-1] / self["Total infections"][-1])})
