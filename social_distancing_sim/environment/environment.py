@@ -45,10 +45,11 @@ class Environment:
         self._random_state = np.random.RandomState(seed=self.seed)
 
     def _infect_random(self) -> None:
-        """Infect a random node."""
-        node_id = self.observation_space.graph.current_clear_nodes[
-            self._random_state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
-        self.disease.force_infect(self.observation_space.graph.g_.nodes[node_id])
+        """Infect a random node, if possible."""
+        if len(self.observation_space.graph.current_clear_nodes) > 0:
+            node_id = self.observation_space.graph.current_clear_nodes[
+                self._random_state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
+            self.disease.force_infect(self.observation_space.graph.g_.nodes[node_id])
 
     def _infect_neighbours(self) -> int:
         """
@@ -84,7 +85,7 @@ class Environment:
             node = self.disease.conclude(self.observation_space.graph.g_.nodes[n],
                                          recovery_rate_modifier=recovery_rate_modifier)
 
-            # Outcome is either recovery, death, or continuationddd
+            # Outcome is either recovery, death, or continuation
             if node["alive"]:
                 if node["infected"] == 0:
                     recoveries += 1
@@ -93,73 +94,6 @@ class Environment:
 
         return deaths, recoveries
 
-    def _log(self, new_infections: int, known_new_infections: int, deaths: int, recoveries: int,
-             turn_score: float = 0.0,
-             obs_turn_score: float = 0.0,
-             actions_taken: Dict[int, str] = 0) -> None:
-
-        # Log counts/score for this turn
-        self.history.log({"Turn score": turn_score,
-                          "Observed turn score": obs_turn_score,
-                          "New infections": new_infections,
-                          "Known new infections": known_new_infections,
-                          "New deaths": deaths,
-                          "Current recovered": recoveries})
-        # Log actions
-        # TODO: Might be worth making this less manual and/or handling it somewhere else?
-        self.history.log({"Actions taken": len(actions_taken.values()),
-                          "Vaccinate actions": len([a for a in actions_taken.values() if a == 'vaccinate']),
-                          "Isolate actions": len([a for a in actions_taken.values() if a == 'isolate']),
-                          "Reconnect actions": len([a for a in actions_taken.values() if a == 'reconnect']),
-                          "Treat actions": len([a for a in actions_taken.values() if a == 'treat'])})
-
-        # Log full space and observed space
-        self.history.log({"Current infections": self.observation_space.graph.n_current_infected,
-                          "Known current infections": self.observation_space.known_n_current_infected,
-                          "Current clear": self.total_population - self.observation_space.graph.n_current_infected,
-                          "Known current clear": (self.total_population
-                                                  - self.observation_space.known_n_current_infected),
-                          "Current recovery rate penalty": self.healthcare.recovery_rate_penalty(
-                              self.observation_space.graph.n_current_infected),
-                          "Number alive": len(self.observation_space.graph.current_alive_nodes),
-                          "Total deaths": len(self.observation_space.graph.current_dead_nodes),
-                          "Total immune": len(self.observation_space.graph.current_immune_nodes),
-                          "Mean immunity (of immune nodes)": np.mean(
-                              [self.observation_space.graph.g_.nodes[n]["immune"]
-                               for n in self.observation_space.graph.current_immune_nodes]),
-                          "Mean immunity (of all alive nodes)": np.mean(
-                              [self.observation_space.graph.g_.nodes[n].get("immune", 0)
-                               for n in
-                               self.observation_space.graph.current_alive_nodes]),
-                          "Known total immune": len(
-                              self.observation_space.current_immune_nodes),
-                          "Known mean immunity (of immune nodes)": np.mean(
-                              [self.observation_space.graph.g_.nodes[n]["immune"]
-                               for n in self.observation_space.current_immune_nodes]),
-                          "Known mean immunity (of all alive nodes)": np.mean(
-                              [self.observation_space.graph.g_.nodes[n].get("immune", 0)
-                               for n in
-                               self.observation_space.current_alive_nodes]),
-                          "Total recovered": np.sum(self.history["Current recoveries"]),
-                          "Total infections": np.sum(self.history["New infections"]),
-                          "Known total infections": np.sum(self.history["Known new infections"]),
-                          "Overall score": np.sum(self.history["Turn score"]),
-                          "Observed overall score": np.sum(self.history["Observed turn score"])})
-
-        # Dependent
-        self.history.log({"Current infection prop": self.history["Current infections"][-1] / self.total_population,
-                          "Known current infection prop": (self.history["Known current infections"][-1]
-                                                           / self.total_population),
-                          "Overall infection prop": self.history["Total infections"][-1] / self.total_population,
-                          "Known overall infection prop": (self.history["Known total infections"][-1]
-                                                           / self.total_population),
-                          "Current death prop": self.history["New deaths"][-1] / self.total_population,
-                          "Overall death prop": self.history["Total deaths"][-1] / self.total_population,
-                          "Overall Infected death rate": (self.history["Total deaths"][-1]
-                                                          / self.history["Total infections"][-1]),
-                          "Known overall Infected death rate": (self.history["Total deaths"][-1]
-                                                                / self.history["Total infections"][-1])})
-
     def _update_immunities(self):
         for node in self.observation_space.graph.current_immune_nodes:
             self.disease.decay_immunity(self.observation_space.graph.g_.nodes[node])
@@ -167,21 +101,54 @@ class Environment:
     def _select_random_nodes(self, n: int) -> int:
         return self._random_state.choice(self.observation_space.graph.g_.nodes, size=n, replace=True)
 
-    def _act(self, actions: Dict[int, str]) -> Tuple[Dict[int, str], float]:
+    def select_reasonable_targets(self, actions: List[int]) -> Dict[int, int]:
+        """Select random, but appropriate target node for a list of actions."""
 
+        suggested_targets = {
+            0: [],  # Nothing
+            1: self.observation_space.current_immune_nodes,  # Vaccinate
+            2: list(  # Isolate
+                set(self.observation_space.current_infected_nodes).difference(
+                    self.observation_space.isolated_nodes)),
+            3: list(  # Reconnect
+                set(self.observation_space.current_clear_nodes).intersection(
+                    self.observation_space.isolated_nodes)),
+            4: self.observation_space.current_infected_nodes}  # Treat
+
+        targets = []
+        acts, counts = np.unique(actions,
+                                 return_counts=True)
+        for act, count in zip(acts, counts):
+            targets.extend(self.action_space.select_random_target(n=count, available_targets=suggested_targets[act]))
+
+        if len(targets) != len(actions):
+            raise ValueError
+
+        actions_dict = {t: a for t, a in zip(targets, actions)}
+        # Remove actions with invalid targets
+        return {t: a for t, a in actions_dict.items() if t != -1}
+
+    def _act(self, actions: List[int], targets: List[int] = None) -> Tuple[Dict[int, int], float]:
+        # If no targets supplied, select automatically
+        if targets is None:
+            actions_dict = self.select_reasonable_targets(actions)
+        else:
+            actions_dict = {t: a for t, a in zip(targets, actions)}
+
+        # Perform actions
         completed_actions = {}
         total_action_cost = 0
-        for target_node_id, ac in actions.items():
-            total_action_cost = getattr(self.action_space, ac)(target_node_id=target_node_id,
-                                                               env=self, step=self._step)
+        for target_node_id, ac in actions_dict.items():
+            ac_name = self.action_space.get_action_name(ac)
+            total_action_cost = getattr(self.action_space, ac_name)(target_node_id=target_node_id,
+                                                                    env=self, step=self._step)
             completed_actions.update({target_node_id: ac})
 
         return completed_actions, total_action_cost
 
-    def step(self, actions: Dict[int, str]) -> Tuple[Dict[str, Any], float, bool, Dict[str, Any]]:
+    def step(self, actions: List[int], targets: [List[Union[None, int]]] = None) -> Tuple[Dict[str, Any], float, bool]:
         self.observation_space.reset_cached_values()
         self.observation_space.graph.reset_cached_values()
-
         done = False
 
         # Run some env
@@ -194,7 +161,7 @@ class Environment:
             self._infect_random()
 
         # Act
-        completed_actions, action_costs = self._act(actions)
+        completed_actions, action_costs = self._act(actions, targets)
 
         # Run remaining env
         new_infections = self._infect_neighbours()
@@ -213,54 +180,52 @@ class Environment:
                                                  new_infections=known_new_infections,
                                                  new_deaths=deaths)
 
-        self._log(new_infections=new_infections,
-                  known_new_infections=known_new_infections,
-                  deaths=deaths,
-                  recoveries=recoveries,
-                  turn_score=turn_score,
-                  obs_turn_score=obs_turn_score,
-                  actions_taken=actions)
+        self.history.log_defaults(obs=self.observation_space, healthcare=self.healthcare,
+                                  total_population=self.total_population, new_infections=new_infections,
+                                  known_new_infections=known_new_infections, deaths=deaths,
+                                  recoveries=recoveries, turn_score=turn_score,
+                                  obs_turn_score=obs_turn_score, actions_taken=completed_actions,
+                                  actions_attempted={a: None for a in actions})
 
         self._step += 1
 
-        # Gym api
         observation = {'obs': self.observation_space,
                        'turn_score': turn_score,
                        'obs_score': obs_turn_score,
                        'action_costs': action_costs,
                        'completed_actions': completed_actions}
-        reward = obs_turn_score
         if self._step == self._total_steps:
             done = True
-        info = {}
 
-        return observation, reward, done, info
+        return observation, obs_turn_score, done
 
-    def run(self, steps: 10,
+    def plot(self, plot: bool = True, save: bool = False):
+        if plot or save:
+            self.environment_plotting.plot(obs=self.observation_space,
+                                           history=self.history,
+                                           healthcare=self.healthcare,
+                                           step=self._step,
+                                           total_steps=self._total_steps,
+                                           show=plot, save=save)
+
+    def run(self, steps: int,
             plot: bool = True,
             save: bool = True) -> None:
         """
-        Run a passive simulation for a number of iterations
+        Run a passive simulation for a number of iterations.
 
         :param steps: Number of steps to run.
         :param plot: Display plots while running.
         :param save: Save plot of each step while running.
         """
+        self.plot(plot=plot, save=save)
         self._total_steps += steps
         t0 = time.time()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
             for _ in tqdm(range(steps), desc=self.name):
-                self.step(actions={})
-
-                if plot or save:
-                    self.environment_plotting.plot(obs=self.observation_space,
-                                                   history=self.history,
-                                                   healthcare=self.healthcare,
-                                                   step=self._step,
-                                                   total_steps=self._total_steps,
-                                                   show=plot,
-                                                   save=save)
+                self.step(actions=[])
+                self.plot(plot=plot, save=save)
 
         print(f"Ran {steps} steps in {np.round(time.time() - t0, 2)}s")
 
@@ -270,6 +235,7 @@ class Environment:
     def clone(self) -> "Environment":
         """Clone a fresh object with same seed (could be None)."""
         return Environment(disease=self.disease.clone(),
+                           action_space=self.action_space.clone(),
                            observation_space=self.observation_space.clone(),
                            healthcare=self.healthcare.clone(),
                            scoring=self.scoring.clone(),

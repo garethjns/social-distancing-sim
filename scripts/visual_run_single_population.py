@@ -14,7 +14,7 @@ if __name__ == "__main__":
     observation_space = env.ObservationSpace(graph=graph,  # Create environment graph and window into it
                                              test_rate=1)
 
-    # Define a Disease with default paramters
+    # Define a Disease with default parameters
     disease = env.Disease(name='COVID-19')
 
     # Define Healthcare availability with default settings

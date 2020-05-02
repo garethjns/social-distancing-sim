@@ -1,3 +1,4 @@
+import shutil
 import unittest
 
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
@@ -8,9 +9,6 @@ from social_distancing_sim.environment.graph import Graph
 from social_distancing_sim.environment.healthcare import Healthcare
 from social_distancing_sim.environment.observation_space import ObservationSpace
 from social_distancing_sim.sim.sim import Sim
-
-import os
-import shutil
 
 
 class TestSim(unittest.TestCase):
@@ -28,7 +26,7 @@ class TestSim(unittest.TestCase):
                           observation_space=ObservationSpace(graph=Graph()))
 
         sim = Sim(env=pop,
-                  agent=VaccinationAgent(),
+                  agent=VaccinationAgent(env=pop),
                   plot=False,
                   save=False)
 
@@ -56,7 +54,8 @@ class TestSim(unittest.TestCase):
                                                                                      "Observed overall score"]))
 
         sim = Sim(env=pop,
-                  agent=VaccinationAgent(actions_per_turn=25,
+                  agent=VaccinationAgent(env=pop,
+                                         actions_per_turn=25,
                                          seed=seed),
                   plot=False,
                   save=False)
@@ -66,7 +65,6 @@ class TestSim(unittest.TestCase):
         self._to_delete = pop.name
 
     def test_example_sim_run_with_plotting(self):
-
         seed = 123
 
         pop = Environment(name="agent example environment 2",
@@ -90,7 +88,8 @@ class TestSim(unittest.TestCase):
 
         sim = Sim(env=pop,
                   n_steps=3,
-                  agent=VaccinationAgent(actions_per_turn=25,
+                  agent=VaccinationAgent(env=pop,
+                                         actions_per_turn=25,
                                          seed=seed),
                   plot=False,
                   save=True)
@@ -123,7 +122,8 @@ class TestSim(unittest.TestCase):
 
         sim = Sim(env=pop,
                   n_steps=3,
-                  agent=VaccinationAgent(actions_per_turn=25,
+                  agent=VaccinationAgent(env=pop,
+                                         actions_per_turn=25,
                                          seed=seed),
                   plot=False,
                   save=True)
@@ -156,7 +156,8 @@ class TestSim(unittest.TestCase):
 
         sim = Sim(env=pop,
                   n_steps=3,
-                  agent=VaccinationAgent(actions_per_turn=25,
+                  agent=VaccinationAgent(env=pop,
+                                         actions_per_turn=25,
                                          seed=seed),
                   plot=False,
                   save=True)
@@ -164,4 +165,3 @@ class TestSim(unittest.TestCase):
         sim.run()
         sim.env.replay()
         self._to_delete = pop.name
-

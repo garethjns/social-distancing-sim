@@ -25,7 +25,7 @@ class TestActionSpace(unittest.TestCase):
         available_actions = action_space.available_actions
 
         # Assert
-        self.assertListEqual(['vaccinate', 'isolate', 'reconnect', 'treat'], available_actions)
+        self.assertListEqual([0, 1, 2, 3, 4], available_actions)
 
     def test_vaccinate_action_adds_default_immunity(self):
         # Arrange
@@ -142,7 +142,7 @@ class TestActionSpace(unittest.TestCase):
 
     def test_treatment_removes_infection_when_forced(self):
         # Arrange
-        action_space = self._sut(treatment_conclusion_chance= 1,
+        action_space = self._sut(treatment_conclusion_chance=1,
                                  treatment_recovery_rate_modifier=10)
         self.env.observation_space.graph.g_.nodes[1]["infected"] = 3
         self.env.observation_space.graph.g_.nodes[1]["status"].infected = True

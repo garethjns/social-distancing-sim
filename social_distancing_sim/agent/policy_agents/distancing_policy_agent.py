@@ -1,7 +1,6 @@
 from typing import List, Dict
 
 from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 class DistancingPolicyAgent(AgentBase):
@@ -17,16 +16,17 @@ class DistancingPolicyAgent(AgentBase):
     """
 
     @property
-    def available_actions(self) -> List[str]:
-        return ['isolate', 'reconnect']
+    def available_actions(self) -> List[int]:
+        return [2, 3]
 
-    @staticmethod
-    def available_targets(obs: ObservationSpace) -> Dict[str, List[int]]:
+    @property
+    def available_targets(self) -> Dict[int, List[int]]:
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
-        return {'isolate': list(set(obs.current_clear_nodes).difference(obs.isolated_nodes)),
-                'reconnect': obs.isolated_nodes}
+        return {2: list(set(self.env.observation_space.current_clear_nodes).difference(
+            self.env.observation_space.isolated_nodes)),
+            3: self.env.observation_space.isolated_nodes}
 
-    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+    def select_actions(self) -> Dict[int, str]:
         """Selects from actions that are currently available. If both are active, selects randomly between them."""
 
         available_actions = {}
@@ -34,7 +34,7 @@ class DistancingPolicyAgent(AgentBase):
             actions = self._random_state.choice(self.currently_active_actions,
                                                 replace=True,
                                                 size=self.actions_per_turn)
-            available_targets = self.available_targets(obs)
+            available_targets = self.available_targets
 
             # This effectively discards duplicate actions/target if same target is randomly selected twice
             # Not sure if this is a good approach. When pool of targets is small, more likely to not take all available

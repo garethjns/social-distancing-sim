@@ -1,7 +1,6 @@
 from typing import List, Dict
 
 from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 class VaccinationPolicyAgent(AgentBase):
@@ -17,19 +16,18 @@ class VaccinationPolicyAgent(AgentBase):
     """
 
     @property
-    def available_actions(self) -> List[str]:
+    def available_actions(self) -> List[int]:
         """Isolation agent can only isolate. It can't even un-isolate (yet?)"""
-        return ['vaccinate']
+        return [1]
 
-    @staticmethod
-    def available_targets(obs: ObservationSpace) -> List[int]:
+    @property
+    def available_targets(self) -> List[int]:
         """Same as VaccinationAgent."""
-        return list(set(obs.current_clear_nodes))
+        return list(set(self.env.observation_space.current_clear_nodes))
 
-    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+    def select_actions(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:
             # Don't track sample call here as self.get_actions() will handle that.
-            return self.sample(obs,
-                               track=False)
+            return self.sample(track=False)
         else:
             return {}

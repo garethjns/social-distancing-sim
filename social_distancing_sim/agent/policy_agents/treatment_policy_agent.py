@@ -1,8 +1,6 @@
-from social_distancing_sim.agent.agent_base import AgentBase
 from typing import List, Dict
 
 from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
 class TreatmentPolicyAgent(AgentBase):
@@ -16,19 +14,19 @@ class TreatmentPolicyAgent(AgentBase):
     |  Does nothing  |   Isolates ANY node    |   Does nothing ...
 
     """
+
     @property
-    def available_actions(self) -> List[str]:
-        return ['treat']
+    def available_actions(self) -> List[int]:
+        return [4]
 
-    @staticmethod
-    def available_targets(obs: ObservationSpace) -> List[int]:
+    @property
+    def available_targets(self) -> List[int]:
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
-        return obs.current_infected_nodes
+        return self.env.observation_space.current_infected_nodes
 
-    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+    def select_actions(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:
             # Don't track sample call here as self.get_actions() will handle that.
-            return self.sample(obs,
-                               track=False)
+            return self.sample(track=False)
         else:
             return {}

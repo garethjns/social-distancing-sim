@@ -3,7 +3,7 @@ import glob
 import os
 import shutil
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Dict
 
 import imageio
 import numpy as np
@@ -34,6 +34,7 @@ class EnvironmentPlotting:
         sns.set()
 
     def prepare_output_path(self, name: str) -> None:
+        # TODO: Change to only clear/make dirs when actually plotting.
         if self.output_path is None:
             self.name = name
             self.output_path = f"{name}"
@@ -52,6 +53,8 @@ class EnvironmentPlotting:
         - 2x row for network plot                   |  2x row for network plot (if testing rate < 1)
         - 1x row for ts plot                        | 1x row for ts plot (if testing rate < 1)
         - 1x row for additional ts plot (optional)  | 1x row for additional ts plot (optional, if testing rate < 1)
+
+        TODO: Add new specs with .plot_matrix and .plot_summary available in Graph and ObservationSpace.
         """
         plt.close()
 
@@ -103,7 +106,8 @@ class EnvironmentPlotting:
              total_steps: int,
              save: bool = True, show: bool = True) -> None:
         self._prepare_figure(test_rate=obs.test_rate)
-        self.plot_graphs(obs=obs, title=f"{self.name}, day {step} (deaths = {len(obs.graph.current_dead_nodes)})")
+        self.plot_graphs(obs=obs, title=f"{self.name}, day {step} (deaths = {len(obs.graph.current_dead_nodes)})",
+                         colours=history.colours)
         self.plot_ts(history=history, healthcare=healthcare, step=step,
                      total_steps=total_steps, total_population=obs.graph.total_population)
 
@@ -138,13 +142,21 @@ class EnvironmentPlotting:
                              ax=ax,
                              show=False)
 
-    def plot_graphs(self, obs: ObservationSpace, title: str):
-        obs.graph.plot(ax=self._graph_ax[0])
+    def plot_graphs(self, obs: ObservationSpace, title: str, colours: Dict[str, str] = None):
+        obs.graph.plot(ax=self._graph_ax[0], colours=colours)
         self._graph_ax[0].set_title(f"Full sim: {title}", fontsize=14)
 
         if (obs.test_rate < 1) & self.both:
-            obs.plot(ax=self._graph_ax[1])
+            obs.plot(ax=self._graph_ax[1], colours=colours)
             self._graph_ax[1].set_title(f"Observed: {title}")
+
+    def plot_matrices(self):
+        # TODO
+        pass
+
+    def plot_summaries(self):
+        # TODO
+        pass
 
     def replay(self, duration: float = 0.2) -> str:
         """
