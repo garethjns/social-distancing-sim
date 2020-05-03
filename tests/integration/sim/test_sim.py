@@ -90,7 +90,6 @@ class TestSim(unittest.TestCase):
         seed = 123
 
         pop = Environment(name="agent example environment 3",
-
                           environment_plotting=EnvironmentPlotting(ts_fields_g2=self._ts_fields_g2,
                                                                    ts_obs_fields_g2=self._ts_obs_fields_g2),
                           **self._common_setup)

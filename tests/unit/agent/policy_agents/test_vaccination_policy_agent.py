@@ -95,13 +95,13 @@ class TestVaccinationPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for _ in range(15):
+        for _ in range(14):
             act, _ = agent.get_actions()
             actions.append(act)
 
         # Assert
-        self.assertEqual(15, len(actions))
-        self.assertEqual(15, agent._step)
+        self.assertEqual(14, len(actions))
+        self.assertEqual(14, agent._step)
         self.assertListEqual([0, 0, 0, 0, 0,
                               3, 3, 3, 3, 3, 3,
-                              0, 0, 0, 0], [len(d) for d in actions])
+                              0, 0, 0], [len(d) for d in actions])
