@@ -1,5 +1,5 @@
 # Social distancing simulator
-![Testing is key](https://github.com/garethjns/social-distancing-sim/workflows/Testing%20is%20key/badge.svg)
+![Testing is key](https://github.com/garethjns/social-distancing-sim/workflows/Testing%20is%20key/badge.svg) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=garethjns_social-distancing-sim&metric=alert_status)](https://sonarcloud.io/dashboard?id=garethjns_social-distancing-sim)
 
 Social distancing is an unfortunately unclear term; it means stay from other people to avoid killing yourself and them.
 
