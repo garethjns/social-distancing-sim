@@ -74,7 +74,7 @@ class TestVaccinationPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(15):
+        for _ in range(15):
             act, _ = agent.get_actions()
             actions.append(act)
 
@@ -95,7 +95,7 @@ class TestVaccinationPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(15):
+        for _ in range(15):
             act, _ = agent.get_actions()
             actions.append(act)
 

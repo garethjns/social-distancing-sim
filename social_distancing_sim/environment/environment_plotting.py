@@ -138,7 +138,6 @@ class EnvironmentPlotting:
                 history.plot(ks=fields,
                              y_label='',
                              x_lim=(-1, total_steps) if self.auto_lim_x else None,
-                             # y_lim=(-0.1, 1.1),
                              ax=ax,
                              show=False)
 

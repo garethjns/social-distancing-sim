@@ -132,7 +132,7 @@ class TestDistancingPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(20):
+        for _ in range(20):
             act, _ = agent.get_actions()
             actions.append(act)
 
@@ -157,7 +157,7 @@ class TestDistancingPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(20):
+        for _ in range(20):
             act, _ = agent.get_actions()
             actions.append(act)
 

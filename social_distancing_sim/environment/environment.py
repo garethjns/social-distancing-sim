@@ -222,7 +222,8 @@ class Environment:
         self._total_steps += steps
         t0 = time.time()
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
+            warnings.simplefilter("ignore", category=UserWarning)
+            warnings.simplefilter("ignore", category=RuntimeWarning)
             for _ in tqdm(range(steps), desc=self.name):
                 self.step(actions=[])
                 self.plot(plot=plot, save=save)

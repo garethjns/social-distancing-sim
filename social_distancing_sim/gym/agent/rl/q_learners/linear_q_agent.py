@@ -43,6 +43,8 @@ class LinearQAgent:
         self._prep_mods()
 
     def set_env(self, *args, **kwargs):
+        """Pass for compatibility with set env used in AgentBase. Not necessary here as this agent only uses the env
+        to sample examples."""
         pass
 
     def _prep_pp(self) -> None:

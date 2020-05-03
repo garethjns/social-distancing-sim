@@ -66,7 +66,8 @@ class Sim:
 
         # TODO: Might want to add own history and plotting rather than using populations
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=(UserWarning, RuntimeWarning))
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            warnings.simplefilter("ignore", category=UserWarning)
 
             for _ in self._tqdm(range(self.n_steps),
                                 desc=self.env.name):
