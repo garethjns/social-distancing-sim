@@ -26,7 +26,6 @@ class LinearQAgent:
                  gamma: float = 0.98,
                  initial_eps: float = 0.05,
                  eps_decay: float = 0.0001,
-                 use_rbf: bool = False,
                  rb_components: List[Tuple[float, int]] = None) -> None:
 
         self.env = env
@@ -34,11 +33,13 @@ class LinearQAgent:
         self.gamma = gamma
         self.eps = initial_eps  # Chance to explore
         self.eps_decay = eps_decay
-        self.use_rbf = use_rbf
         self.actions_per_turn = actions_per_turn
         if rb_components is None:
-            rb_components = [(100, 6), (1, 6), (0.02, 6)]
-        self.rb_components = rb_components
+            self.use_rbf = True
+            self.rb_components = [(100, 6), (1, 6), (0.02, 6)]
+        else:
+            self.use_rbf = False
+            self.rb_components = None
         self._prep_pp()
         self._prep_mods()
 
