@@ -74,16 +74,16 @@ class TestTreatmentPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(15):
+        for _ in range(13):
             act, _ = agent.get_actions()
             actions.append(act)
 
         # Assert
-        self.assertEqual(15, len(actions))
-        self.assertEqual(15, agent._step)
+        self.assertEqual(13, len(actions))
+        self.assertEqual(13, agent._step)
         self.assertListEqual([0, 0, 0, 0, 0,
                               1, 1, 1, 1, 1, 1,
-                              0, 0, 0, 0], [len(d) for d in actions])
+                              0, 0], [len(d) for d in actions])
 
     def test_whole_active_period_returns_actions_with_multiple_actions(self):
         # Arrange
@@ -95,13 +95,13 @@ class TestTreatmentPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(15):
+        for _ in range(12):
             act, _ = agent.get_actions()
             actions.append(act)
 
         # Assert
-        self.assertEqual(15, len(actions))
-        self.assertEqual(15, agent._step)
+        self.assertEqual(12, len(actions))
+        self.assertEqual(12, agent._step)
         self.assertListEqual([0, 0, 0, 0, 0,
                               3, 3, 3, 3, 3, 3,
-                              0, 0, 0, 0], [len(d) for d in actions])
+                              0], [len(d) for d in actions])

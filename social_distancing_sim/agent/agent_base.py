@@ -159,4 +159,5 @@ class AgentBase(metaclass=abc.ABCMeta):
         self._prepare_random_state()
 
     def update(self, *args, **kwargs):
+        """To match RL agent interface, skip any update call."""
         pass

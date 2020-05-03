@@ -132,18 +132,18 @@ class TestDistancingPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(20):
+        for _ in range(19):
             act, _ = agent.get_actions()
             actions.append(act)
 
         # Assert
-        self.assertEqual(20, len(actions))
-        self.assertEqual(20, agent._step)
+        self.assertEqual(19, len(actions))
+        self.assertEqual(19, agent._step)
         self.assertListEqual([0, 0, 0, 0, 0,
                               1, 1, 1, 1, 1, 1,
                               0,
                               1, 1, 1, 1, 1,
-                              0, 0, 0], [len(d) > 0 for d in actions])
+                              0, 0], [len(d) > 0 for d in actions])
 
     def test_whole_active_period_returns_actions_with_multiple_actions(self):
         # Arrange
@@ -157,7 +157,7 @@ class TestDistancingPolicyAgent(unittest.TestCase):
 
         # Act
         actions = []
-        for s in range(20):
+        for _ in range(20):
             act, _ = agent.get_actions()
             actions.append(act)
 

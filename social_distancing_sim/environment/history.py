@@ -121,13 +121,15 @@ class History(dict):
                       f"Treat actions {suffix}": len([a for a in actions_dict.values() if a == 4])})
 
         # Log full space and observed space
+        total_deaths = len(obs.graph.current_dead_nodes)
+        total_infections = np.sum(self["New infections"])
         self.log({"Current infections": obs.graph.n_current_infected,
                   "Known current infections": obs.known_n_current_infected,
                   "Current clear": total_population - obs.graph.n_current_infected,
                   "Known current clear": (total_population - obs.known_n_current_infected),
                   "Current recovery rate penalty": healthcare.recovery_rate_penalty(obs.graph.n_current_infected),
                   "Number alive": len(obs.graph.current_alive_nodes),
-                  "Total deaths": len(obs.graph.current_dead_nodes),
+                  "Total deaths": total_deaths,
                   "Total immune": len(obs.graph.current_immune_nodes),
                   "Mean immunity (of immune nodes)": np.mean([obs.graph.g_.nodes[n]["immune"]
                                                               for n in obs.graph.current_immune_nodes]),
@@ -141,7 +143,7 @@ class History(dict):
                       [obs.graph.g_.nodes[n].get("immune", 0)
                        for n in obs.current_alive_nodes]),
                   "Total recovered": np.sum(self["Current recoveries"]),
-                  "Total infections": np.sum(self["New infections"]),
+                  "Total infections": total_infections,
                   "Known total infections": np.sum(self["Known new infections"]),
                   "Overall score": np.sum(self["Turn score"]),
                   "Observed overall score": np.sum(self["Observed turn score"])})
@@ -149,9 +151,9 @@ class History(dict):
         # Dependent
         self.log({"Current infection prop": self["Current infections"][-1] / total_population,
                   "Known current infection prop": (self["Known current infections"][-1] / total_population),
-                  "Overall infection prop": self["Total infections"][-1] / total_population,
+                  "Overall infection prop": total_infections / total_population,
                   "Known overall infection prop": (self["Known total infections"][-1] / total_population),
-                  "Current death prop": self["New deaths"][-1] / total_population,
-                  "Overall death prop": self["Total deaths"][-1] / total_population,
-                  "Overall Infected death rate": (self["Total deaths"][-1] / self["Total infections"][-1]),
-                  "Known overall Infected death rate": (self["Total deaths"][-1] / self["Total infections"][-1])})
+                  "Current death prop": total_deaths / total_population,
+                  "Overall death prop": total_deaths / total_population,
+                  "Overall Infected death rate": (total_deaths / total_infections),
+                  "Known overall Infected death rate":total_deaths / total_infections})

@@ -2,12 +2,6 @@ import setuptools
 
 from social_distancing_sim import __version__
 
-
-"""
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-"""
-
 setuptools.setup(
     name="social_distancing_sim",
     version=__version__,
