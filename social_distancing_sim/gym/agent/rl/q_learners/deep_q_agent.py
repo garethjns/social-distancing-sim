@@ -18,7 +18,6 @@ class DeepQAgent(AgentBase):
                  epsilon: Epsilon = None,
                  replay_buffer: ReplayBuffer = None,
                  gamma: float = 0.98,
-                 model_unit_scale: float = 1,
                  replay_buffer_samples=75,
                  *args, **kwargs) -> None:
 
@@ -31,7 +30,6 @@ class DeepQAgent(AgentBase):
         if epsilon is None:
             epsilon = Epsilon()
         self.epsilon = epsilon
-        self.model_unit_scale = model_unit_scale
         self.replay_buffer_samples = replay_buffer_samples
         self._prep_pp()
         self._prep_models()
@@ -160,7 +158,7 @@ class DeepQAgent(AgentBase):
 
     def get_actions(self,
                     state: Union[Tuple[np.ndarray, np.ndarray],
-                                 Tuple[np.ndarray, np.ndarray, np.ndarray]],
+                                 Tuple[np.ndarray, np.ndarray, np.ndarray]] = None,
                     training: bool = False) -> Tuple[List[int], None]:
         """Get actions for current state."""
 

@@ -79,10 +79,10 @@ def train(agent: DeepQAgent, env: SummaryGraphObservationWrapper,
 
 if __name__ == "__main__":
     agent_, env_ = prepare(agent_gamma=0.98,
-                           agent_eps=0.99,
-                           agent_eps_decay=0.001)
+                           agent_eps=0.95,
+                           agent_eps_decay=0.002)
     agent_ = train(agent_, env_,
-                   n_episodes=2000,
+                   n_episodes=1000,
                    max_episode_steps=200)
 
     agent_.save('deep_q_learner.pkl')

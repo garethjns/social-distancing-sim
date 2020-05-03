@@ -21,7 +21,7 @@ def prepare(agent_gamma: float = 0.99,
     agent = LinearQAgent(env,
                          gamma=agent_gamma,
                          epsilon=Epsilon(initial=agent_eps,
-                                         decay=agent_eps_decay), )
+                                         decay=agent_eps_decay))
 
     plt.plot(agent.transform(env.observation_space.sample()[0])[0, :])
     plt.show()
@@ -63,7 +63,6 @@ def train(agent: LinearQAgent, env: SummaryObservationWrapper,
 
         for ep in tqdm(range(n_episodes)):
             total_reward = play_episode(env, agent, max_episode_steps)
-            # print(f"Episode {ep} finished, reward = {total_reward}")
             ep_rewards.append(total_reward)
             print(total_reward)
 
@@ -78,7 +77,7 @@ def train(agent: LinearQAgent, env: SummaryObservationWrapper,
 if __name__ == "__main__":
     agent_, env_ = prepare(agent_gamma=0.98,
                            agent_eps=0.99,
-                           agent_eps_decay=0.001)
+                           agent_eps_decay=0.002)
     agent_ = train(agent_, env_,
                    n_episodes=2000,
                    max_episode_steps=200)

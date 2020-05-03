@@ -1,6 +1,6 @@
 import abc
 import copy
-from typing import List, Union, Dict, Any, Tuple
+from typing import List, Union, Dict, Tuple
 
 import numpy as np
 
@@ -117,7 +117,8 @@ class AgentBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_actions(self, state: Any = None,
+    def get_actions(self, state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray],
+                                       Tuple[np.ndarray, np.ndarray, np.ndarray]] = None,
                     training: bool = False) -> Union[Tuple[List[int], List[int]],
                                                      Tuple[List[int], None]]:
         """Get next set of actions and targets and track."""

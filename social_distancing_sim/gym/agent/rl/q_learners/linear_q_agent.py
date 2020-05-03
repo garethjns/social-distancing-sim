@@ -116,8 +116,7 @@ class LinearQAgent(AgentBase):
 
         return state
 
-    def get_actions(self,
-                    state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray]],
+    def get_actions(self, state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray]] = None,
                     training: bool = False) -> Tuple[List[int], None]:
         """Get actions for current state."""
 
