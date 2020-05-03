@@ -180,12 +180,13 @@ class Environment:
                                                  new_infections=known_new_infections,
                                                  new_deaths=deaths)
 
-        self.history.log_defaults(obs=self.observation_space, healthcare=self.healthcare,
-                                  total_population=self.total_population, new_infections=new_infections,
-                                  known_new_infections=known_new_infections, deaths=deaths,
-                                  recoveries=recoveries, turn_score=turn_score,
-                                  obs_turn_score=obs_turn_score, actions_taken=completed_actions,
-                                  actions_attempted={a: None for a in actions})
+        self.history.log_score(new_infections=new_infections,
+                               known_new_infections=known_new_infections, deaths=deaths,
+                               recoveries=recoveries, turn_score=turn_score,
+                               obs_turn_score=obs_turn_score)
+        self.history.log_actions(actions_taken=completed_actions,
+                                 actions_attempted={a: None for a in actions})
+        self.history.log_observation_space(obs=self.observation_space, healthcare=self.healthcare)
 
         self._step += 1
 

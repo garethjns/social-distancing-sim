@@ -25,10 +25,9 @@ class Status:
                  last_tested: Union[int, None] = -999):
 
         if infected is not None:
-            if clear is not None:
-                if infected & clear:
-                    raise ValueError("Node cannot have status infected and clear")
-            if immune is not None:
+            if (clear is not None) and (infected & clear):
+                raise ValueError("Node cannot have status infected and clear")
+            if (immune is not None) and (infected & immune):
                 if infected & immune:
                     raise ValueError("Node cannot have status infected and immune")
 
@@ -139,9 +138,8 @@ class Status:
 
     @immune.setter
     def immune(self, flag: bool):
-        if flag is not None:
-            if flag:
-                self.clear = True
+        if (flag is not None) and flag:
+            self.clear = True
 
         self._immune = flag
 
