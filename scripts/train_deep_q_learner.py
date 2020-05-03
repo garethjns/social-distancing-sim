@@ -6,33 +6,35 @@ import numpy as np
 from tqdm import tqdm
 
 from social_distancing_sim.gym.agent.rl.epsilon import Epsilon
-from social_distancing_sim.gym.agent.rl.q_learners.linear_q_agent import LinearQAgent
+from social_distancing_sim.gym.agent.rl.q_learners.deep_q_agent import DeepQAgent
 from social_distancing_sim.gym.gym_env import GymEnv
-from social_distancing_sim.gym.wrappers.summary_observation_wrapper import SummaryObservationWrapper
+from social_distancing_sim.gym.wrappers.summary_graph_observation_wrapper import SummaryGraphObservationWrapper
 from social_distancing_sim.templates.small import Small
 
 
 def prepare(agent_gamma: float = 0.99,
             agent_eps: float = 0.99,
-            agent_eps_decay: float = 0.001) -> Tuple[LinearQAgent, SummaryObservationWrapper]:
+            agent_eps_decay: float = 0.001) -> Tuple[DeepQAgent, SummaryGraphObservationWrapper]:
     env = GymEnv(template=Small)
-    env = SummaryObservationWrapper(env)
+    env = SummaryGraphObservationWrapper(env)
 
-    agent = LinearQAgent(env,
-                         gamma=agent_gamma,
-                         epsilon=Epsilon(initial=agent_eps,
-                                         decay=agent_eps_decay))
+    agent = DeepQAgent(env,
+                       epsilon=Epsilon(initial=agent_eps,
+                                       decay=agent_eps_decay),
+                       gamma=agent_gamma)
 
-    plt.plot(agent.transform(env.observation_space.sample()[0])[0, :])
+    o1, o2 = agent.transform(env.observation_space.sample()[0:2])
+    plt.plot(o1)
+    plt.show()
+    plt.imshow(o2.squeeze())
     plt.show()
 
-    agent.predict(env.observation_space.sample()[0])
-    _, _ = agent.get_actions(env.observation_space.sample()[0])
+    _, _ = agent.get_actions(env.observation_space.sample())
 
     return agent, env
 
 
-def play_episode(env: SummaryObservationWrapper, agent: LinearQAgent, max_episode_steps: int) -> float:
+def play_episode(env: SummaryGraphObservationWrapper, agent: DeepQAgent, max_episode_steps: int) -> float:
     obs = env.reset()
     done = False
     total_reward = 0
@@ -52,9 +54,9 @@ def play_episode(env: SummaryObservationWrapper, agent: LinearQAgent, max_episod
     return total_reward
 
 
-def train(agent: LinearQAgent, env: SummaryObservationWrapper,
+def train(agent: DeepQAgent, env: SummaryGraphObservationWrapper,
           n_episodes: int = 2000,
-          max_episode_steps: int = 100) -> LinearQAgent:
+          max_episode_steps: int = 100) -> DeepQAgent:
     ep_rewards = []
 
     with warnings.catch_warnings():
@@ -63,6 +65,7 @@ def train(agent: LinearQAgent, env: SummaryObservationWrapper,
 
         for ep in tqdm(range(n_episodes)):
             total_reward = play_episode(env, agent, max_episode_steps)
+            # print(f"Episode {ep} finished, reward = {total_reward}")
             ep_rewards.append(total_reward)
             print(total_reward)
 
@@ -76,10 +79,10 @@ def train(agent: LinearQAgent, env: SummaryObservationWrapper,
 
 if __name__ == "__main__":
     agent_, env_ = prepare(agent_gamma=0.98,
-                           agent_eps=0.99,
+                           agent_eps=0.95,
                            agent_eps_decay=0.002)
     agent_ = train(agent_, env_,
-                   n_episodes=2000,
+                   n_episodes=1000,
                    max_episode_steps=200)
 
-    agent_.save('linear_q_learner.pkl')
+    agent_.save('deep_q_learner.pkl')

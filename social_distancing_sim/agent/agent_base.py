@@ -1,6 +1,6 @@
 import abc
 import copy
-from typing import List, Union, Dict, Any, Tuple
+from typing import List, Union, Dict, Tuple
 
 import numpy as np
 
@@ -109,7 +109,7 @@ class AgentBase(metaclass=abc.ABCMeta):
         return min(self.actions_per_turn, len(self.available_targets))
 
     @abc.abstractmethod
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         """
         Overload this method to apply agent specific logic for setting actions and targets.
 
@@ -117,12 +117,15 @@ class AgentBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_actions(self, state: Any = None) -> Tuple[List[int], List[int]]:
+    def get_actions(self, state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray],
+                                       Tuple[np.ndarray, np.ndarray, np.ndarray]] = None,
+                    training: bool = False) -> Union[Tuple[List[int], List[int]],
+                                                     Tuple[List[int], None]]:
         """Get next set of actions and targets and track."""
         if self.env is None:
             raise AttributeError(f"Not env set, set with agent.set_env()")
 
-        actions_dict = self.select_actions()
+        actions_dict = self._select_actions_targets()
         self._step += 1
         return list(actions_dict.values()), list(actions_dict.keys())
 

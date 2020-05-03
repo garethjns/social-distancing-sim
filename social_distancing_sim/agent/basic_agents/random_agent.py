@@ -15,5 +15,5 @@ class RandomAgent(AgentBase):
     def available_actions(self) -> List[int]:
         return [1, 2]
 
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         return self.sample()

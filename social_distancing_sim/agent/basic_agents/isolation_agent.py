@@ -17,7 +17,7 @@ class IsolationAgent(AgentBase):
                 3: list(set(self.env.observation_space.current_clear_nodes).intersection(
                     self.env.observation_space.isolated_nodes))}
 
-    def select_actions(self) -> Dict[int, str]:
+    def _select_actions_targets(self) -> Dict[int, str]:
         """Selects randomly between both actions, any time frames are totally ignored."""
         actions = self._random_state.choice(self.available_actions,
                                             replace=True,

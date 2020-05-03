@@ -8,8 +8,12 @@ from sklearn.linear_model import SGDRegressor
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.gym.agent.rl.epsilon import Epsilon
+from social_distancing_sim.gym.gym_env import GymEnv
 
-class LinearQAgent:
+
+class LinearQAgent(AgentBase):
     """
     This agent assumes all actions are available at all times.
 
@@ -20,20 +24,19 @@ class LinearQAgent:
             interface.
     """
 
-    def __init__(self, env,
-                 name: str = 'linear_q_agent',
-                 actions_per_turn: int = 5,
+    def __init__(self, env: GymEnv,
                  gamma: float = 0.98,
-                 initial_eps: float = 0.05,
-                 eps_decay: float = 0.0001,
-                 rb_components: List[Tuple[float, int]] = None) -> None:
+                 rb_components: List[Tuple[float, int]] = None,
+                 epsilon: Epsilon = None,
+                 *args, **kwargs) -> None:
+
+        super().__init__(*args, **kwargs)
 
         self.env = env
-        self.name = name
         self.gamma = gamma
-        self.eps = initial_eps  # Chance to explore
-        self.eps_decay = eps_decay
-        self.actions_per_turn = actions_per_turn
+        if epsilon is None:
+            epsilon = Epsilon()
+        self.epsilon = epsilon
         if rb_components is None:
             self.use_rbf = True
             self.rb_components = [(100, 6), (1, 6), (0.02, 6)]
@@ -113,12 +116,14 @@ class LinearQAgent:
 
         return state
 
-    def get_actions(self,
-                    state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray]]) -> Tuple[List[int], None]:
+    def get_actions(self, state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray]] = None,
+                    training: bool = False) -> Tuple[List[int], None]:
         """Get actions for current state."""
 
         state = self._filter_state(state)
-        action = self._eps_greedy_sample_action(state)
+        action = self.epsilon.select(greedy_option=lambda: self.get_best_action(state),
+                                     random_option=lambda: self.env.action_space.sample(),
+                                     training=training)
 
         # This agent doesn't set targets
         return [action] * self.actions_per_turn, None
@@ -135,20 +140,9 @@ class LinearQAgent:
 
         return best_action
 
-    def _eps_greedy_sample_action(self, s: np.ndarray,
-                                  training: bool = False) -> int:
-        """
-        If training, apply epsilon greedy and decay epsilon. If not, just return best action.
-        :param s: State to use to get action.
-        :param training: Bool indicating if call is during training and to use epsilon greedy and decay.
-        :return: Selected action id.
-        """
-        if training:
-            self.eps = self.eps - self.eps * self.eps_decay
-            if np.random.random() < self.eps:
-                return self.env.action_space.sample()
-        else:
-            return self.get_best_action(s)
+    def _select_actions_targets(self) -> Dict[int, int]:
+        """This agent only selects actions, not targets."""
+        pass
 
     def save(self, fn: str):
         pickle.dump(self, open(fn, 'wb'))

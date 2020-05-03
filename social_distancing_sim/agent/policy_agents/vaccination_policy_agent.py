@@ -25,7 +25,7 @@ class VaccinationPolicyAgent(AgentBase):
         """Same as VaccinationAgent."""
         return list(set(self.env.observation_space.current_clear_nodes))
 
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:
             # Don't track sample call here as self.get_actions() will handle that.
             return self.sample(track=False)

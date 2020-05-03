@@ -35,6 +35,7 @@ class TestActionSpace(unittest.TestCase):
         cost = action_space.vaccinate(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.vaccinate_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["immune"] > 0)
         self.assertTrue(self.env.observation_space.graph.g_.nodes[1]["immune"] > 0)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["status"].immune)
@@ -48,6 +49,7 @@ class TestActionSpace(unittest.TestCase):
         cost = action_space.vaccinate(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.vaccinate_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["immune"] > 0)
         self.assertTrue(self.env.observation_space.graph.g_.nodes[1]["immune"] == 1)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["status"].immune)
@@ -61,6 +63,7 @@ class TestActionSpace(unittest.TestCase):
         cost = action_space.isolate(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.isolate_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["isolated"])
         self.assertTrue(self.env.observation_space.graph.g_.nodes[1]["isolated"])
         self.assertTrue(len(self.env.observation_space.graph.g_.edges(0)) > 0)
@@ -76,6 +79,7 @@ class TestActionSpace(unittest.TestCase):
         cost = action_space.isolate(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.isolate_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["isolated"])
         self.assertTrue(self.env.observation_space.graph.g_.nodes[1]["isolated"])
         self.assertTrue(len(self.env.observation_space.graph.g_.edges(0)) > 0)
@@ -87,12 +91,13 @@ class TestActionSpace(unittest.TestCase):
         # Arrange
         action_space = self._sut(isolate_efficiency=1,
                                  reconnect_efficiency=1)
-        cost = action_space.isolate(env=self.env, target_node_id=1, step=1)
+        _ = action_space.isolate(env=self.env, target_node_id=1, step=1)
 
         # Act
         cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.reconnect_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["isolated"])
         self.assertFalse(self.env.observation_space.graph.g_.nodes[1]["isolated"])
         self.assertTrue(len(self.env.observation_space.graph.g_.edges(0)) > 0)
@@ -104,12 +109,13 @@ class TestActionSpace(unittest.TestCase):
         # Arrange
         action_space = self._sut(isolate_efficiency=1,
                                  reconnect_efficiency=0.2)
-        cost = action_space.isolate(env=self.env, target_node_id=1, step=1)
+        _ = action_space.isolate(env=self.env, target_node_id=1, step=1)
 
         # Act
         cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.reconnect_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["isolated"])
         self.assertTrue(self.env.observation_space.graph.g_.nodes[1]["isolated"])
         self.assertTrue(len(self.env.observation_space.graph.g_.edges(0)) > 0)
@@ -122,17 +128,14 @@ class TestActionSpace(unittest.TestCase):
         action_space = self._sut(isolate_efficiency=1,
                                  reconnect_efficiency=0.7)
         original_edges = copy.deepcopy(list(self.env.observation_space.graph.g_.edges(1)))
-        cost = action_space.isolate(env=self.env, target_node_id=1, step=1)
+        _ = action_space.isolate(env=self.env, target_node_id=1, step=1)
 
         # Act
-        cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
-        cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
-        cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
-        cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
-        cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
-        cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
+        for _ in range(10):
+            cost = action_space.reconnect(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.reconnect_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["isolated"])
         self.assertFalse(self.env.observation_space.graph.g_.nodes[1]["isolated"])
         self.assertTrue(len(self.env.observation_space.graph.g_.edges(0)) > 0)
@@ -151,6 +154,7 @@ class TestActionSpace(unittest.TestCase):
         cost = action_space.treat(env=self.env, target_node_id=1, step=1)
 
         # Assert
+        self.assertEqual(action_space.treat_cost, cost)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[0]["infected"] > 0)
         self.assertFalse(self.env.observation_space.graph.g_.nodes[1]["infected"] > 0)
         self.assertIsNone(self.env.observation_space.graph.g_.nodes[0]["status"].infected)

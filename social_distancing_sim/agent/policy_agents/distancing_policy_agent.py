@@ -26,7 +26,7 @@ class DistancingPolicyAgent(AgentBase):
             self.env.observation_space.isolated_nodes)),
             3: self.env.observation_space.isolated_nodes}
 
-    def select_actions(self) -> Dict[int, str]:
+    def _select_actions_targets(self) -> Dict[int, str]:
         """Selects from actions that are currently available. If both are active, selects randomly between them."""
 
         available_actions = {}
