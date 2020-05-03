@@ -7,24 +7,25 @@ from social_distancing_sim.environment.observation_space import ObservationSpace
 class IsolationAgent(AgentBase):
     """Isolation agent will either isolate known infected, connected nodes, or reconnect known clear, isolated nodes."""
     @property
-    def available_actions(self) -> List[str]:
-        return ['isolate', 'reconnect']
+    def available_actions(self) -> List[int]:
+        return [2, 3]
 
-    @staticmethod
-    def available_targets(obs: ObservationSpace) -> Dict[str, List[int]]:
-        return {'isolate': list(set(obs.current_infected_nodes).difference(obs.isolated_nodes)),
-                'reconnect': list(set(obs.current_clear_nodes).intersection(obs.isolated_nodes))}
+    @property
+    def available_targets(self) -> Dict[int, List[int]]:
+        return {2: list(set(self.env.observation_space.current_infected_nodes).difference
+                        (self.env.observation_space.isolated_nodes)),
+                3: list(set(self.env.observation_space.current_clear_nodes).intersection(
+                    self.env.observation_space.isolated_nodes))}
 
-    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+    def select_actions(self) -> Dict[int, str]:
         """Selects randomly between both actions, any time frames are totally ignored."""
         actions = self._random_state.choice(self.available_actions,
                                             replace=True,
                                             size=self.actions_per_turn)
-        available_targets = self.available_targets(obs)
 
         available_actions = {}
         for ac in actions:
-            available_targets_for_this_action = available_targets[ac]
+            available_targets_for_this_action = self.available_targets[ac]
             if len(available_targets_for_this_action) > 0:
                 available_actions.update({self._random_state.choice(available_targets_for_this_action): ac})
 

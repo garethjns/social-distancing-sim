@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from social_distancing_sim.environment.observation_space import ObservationSpace
 from social_distancing_sim.environment.status import Status
-import copy
+
 
 class TestObservationSpace(unittest.TestCase):
     _sut: ObservationSpace = ObservationSpace

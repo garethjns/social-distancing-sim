@@ -8,7 +8,6 @@ import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
 from social_distancing_sim.environment.history import History
 from social_distancing_sim.sim.sim import Sim
 
@@ -25,8 +24,12 @@ class MultiSim:
         self.results = pd.DataFrame()
 
     def _run(self):
+        # Clone to make sure the sims are actually run on different environments
         sim = self.sim.clone()
+        # Reattach env to agent
+        sim.agent.set_env(sim.env)
         results = sim.run()
+
         return results
 
     def run(self):
@@ -39,6 +42,7 @@ class MultiSim:
         for h in results:
             results_hist.log({k: v[0] for k, v in h.items()})
 
+        # TODO: Agent is detached from environment here, why?
         self.results = pd.DataFrame(results_hist)
         self.log()
 
@@ -83,8 +87,8 @@ class MultiSim:
                            'agent_type': self.sim.agent.__class__.__name__,
                            'agent_delay': NotImplemented,  # TODO: Add back later if used
                            'agent_actions_per_turn': self.sim.agent.actions_per_turn,
-                           'agent_action_space_vaccinate_cost': self.sim.agent.action_space.vaccinate_cost,
-                           'agent_action_space_isolate_cost': self.sim.agent.action_space.isolate_cost})
+                           'agent_action_space_vaccinate_cost': self.sim.env.action_space.vaccinate_cost,
+                           'agent_action_space_isolate_cost': self.sim.env.action_space.isolate_cost})
 
         metrics_to_log = {}
         for c in ["Observed overall score", "Observed turn score", "Overall score", "Turn score"]:

@@ -16,9 +16,9 @@ class Scoring:
 
     Death has an additional cost defined in death penalty
     """
-    clear_yield_per_edge: int = 0.01
-    infection_penalty: int = -1
-    death_penalty: int = -100
+    clear_yield_per_edge: float = 0.01
+    infection_penalty: float = -1
+    death_penalty: float = -100
 
     def score_turn(self, graph: [Graph, ObservationSpace],
                    action_cost: float = 0,

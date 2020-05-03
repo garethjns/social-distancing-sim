@@ -1,5 +1,6 @@
 import social_distancing_sim.environment as env
 import social_distancing_sim.sim as sim
+from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
 
 if __name__ == "__main__":
     seed = 123
@@ -24,8 +25,8 @@ if __name__ == "__main__":
                                                                                          "Observed overall score"]))
 
     sim = sim.Sim(env=pop,
-                  agent=env.VaccinationAgent(actions_per_turn=25,
-                                             seed=seed),
+                  agent=VaccinationAgent(actions_per_turn=25,
+                                         seed=seed),
                   plot=True,
                   save=True)
 

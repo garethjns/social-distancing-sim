@@ -1,7 +1,7 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 
 from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.environment.observation_space import ObservationSpace
+from social_distancing_sim.environment.environment import Environment
 
 
 class MultiAgent(AgentBase):
@@ -11,18 +11,26 @@ class MultiAgent(AgentBase):
     Actions per turn is dynamic and determined by individual agents
     """
 
-    def __init__(self, agents: List[AgentBase], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+    def __init__(self, agents: List[AgentBase], env: Union[Environment, None] = None, *args, **kwargs):
         self.agents = agents
         self.actions_per_turn = sum([a.actions_per_turn for a in agents])
+        self.set_env(env)
 
-    def select_actions(self, obs: ObservationSpace) -> Dict[int, str]:
+        super().__init__(env, *args, **kwargs)
+
+    def set_env(self, env: Union[None, Environment]) -> None:
+        self.env = env
+        for agt in self.agents:
+            agt.set_env(self.env)
+
+    def select_actions(self) -> Dict[int, int]:
         """Ask each agent for their actions. They handle n and availability"""
 
-        actions = {}
+        actions = []
+        targets = []
         for agent in self.agents:
-            actions.update(agent.get_actions(obs))
+            acts, tars = agent.get_actions()
+            actions.extend(acts)
+            targets.extend(tars)
 
-        return actions
-    
+        return {t: a for t, a in zip(targets, actions)}

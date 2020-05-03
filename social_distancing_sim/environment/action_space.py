@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Dict
 
 import numpy as np
 
@@ -14,6 +14,7 @@ class ActionSpace:
     vaccinate_cost: float = -2
     isolate_cost: float = 0
     treat_cost: float = -3
+    reconnect_cost: float = 0
     vaccinate_efficiency: float = 0.95
     isolate_efficiency: float = 0.95
     reconnect_efficiency: float = 0.95
@@ -32,8 +33,27 @@ class ActionSpace:
         return len(self.available_actions)
 
     @property
-    def available_actions(self) -> List[str]:
-        return ['vaccinate', 'isolate', 'reconnect', 'treat']
+    def supported_actions(self) -> Dict[str, int]:
+        return {'nothing': 0,
+                'vaccinate': 1,
+                'isolate': 2,
+                'reconnect': 3,
+                'treat': 4}
+
+    @property
+    def available_actions(self) -> List[int]:
+        return list(self.supported_actions.values())
+
+    @property
+    def available_action_ids(self) -> List[int]:
+        return list(self.supported_actions.values())
+
+    def get_action_id(self, name: str) -> int:
+        return self.supported_actions[name]
+
+    def get_action_name(self, action_id: int) -> str:
+        act = {v: k for k, v in self.supported_actions.items()}
+        return act[action_id]
 
     def treat(self, **kwargs) -> float:
         kwargs["env"].disease.conclude(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
@@ -45,8 +65,12 @@ class ActionSpace:
         return self.treat_cost
 
     def vaccinate(self, **kwargs) -> float:
-        kwargs["env"].disease.give_immunity(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
-                                            immunity=self.vaccinate_efficiency)
+        try:
+            kwargs["env"].disease.give_immunity(
+                kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
+                immunity=self.vaccinate_efficiency)
+        except KeyError:
+            raise KeyError
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].immune = True
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["last_tested"] = kwargs["step"]
 
@@ -64,12 +88,24 @@ class ActionSpace:
                                                              effectiveness=self.reconnect_efficiency)
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].isolated = False
 
-        return self.isolate_cost
+        return self.reconnect_cost
 
     def sample(self):
         """Return a random available action"""
-        return self.state.choice(self.available_actions)
+        return self.state.choice(list(self.supported_actions.values()))
 
     def clone(self) -> "ActionSpace":
         """Return a random available action"""
         return ActionSpace(seed=self.seed, vaccinate_cost=self.vaccinate_cost, isolate_cost=self.isolate_cost)
+
+    @classmethod
+    def select_random_target(cls, n: int, available_targets: List[int]) -> List[int]:
+        """Given a list of available targets, select a number of targets."""
+        n_available = len(available_targets)
+        valid = list(np.random.choice(available_targets,
+                                      size=min(n, n_available),
+                                      replace=False))
+        diff = n - n_available
+        invalid = [-1] * diff
+
+        return valid + invalid
