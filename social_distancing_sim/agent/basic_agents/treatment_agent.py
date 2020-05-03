@@ -15,6 +15,6 @@ class TreatmentAgent(AgentBase):
     def available_targets(self) -> List[int]:
         return self.env.observation_space.current_infected_nodes
 
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         # Don't track sample call here as self.get_actions() will handle that.
         return self.sample(track=False)

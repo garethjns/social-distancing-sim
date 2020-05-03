@@ -23,7 +23,7 @@ class MultiAgent(AgentBase):
         for agt in self.agents:
             agt.set_env(self.env)
 
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         """Ask each agent for their actions. They handle n and availability"""
 
         actions = []

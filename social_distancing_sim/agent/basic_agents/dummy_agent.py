@@ -10,6 +10,6 @@ class DummyAgent(AgentBase):
     def available_actions(self) -> list:
         return []
 
-    def select_actions(self) -> Dict[int, str]:
+    def _select_actions_targets(self) -> Dict[int, str]:
         return {}
 

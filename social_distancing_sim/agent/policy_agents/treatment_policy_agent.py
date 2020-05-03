@@ -24,7 +24,7 @@ class TreatmentPolicyAgent(AgentBase):
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
         return self.env.observation_space.current_infected_nodes
 
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:
             # Don't track sample call here as self.get_actions() will handle that.
             return self.sample(track=False)

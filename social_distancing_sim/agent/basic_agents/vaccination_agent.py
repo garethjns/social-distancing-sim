@@ -16,6 +16,6 @@ class VaccinationAgent(AgentBase):
         return list(set(self.env.observation_space.current_clear_nodes).difference(
             self.env.observation_space.current_immune_nodes))
 
-    def select_actions(self) -> Dict[int, int]:
+    def _select_actions_targets(self) -> Dict[int, int]:
         # Don't track sample call here as self.get_actions() will handle that.
         return self.sample(track=False)
