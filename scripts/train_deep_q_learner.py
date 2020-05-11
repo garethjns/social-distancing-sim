@@ -12,6 +12,14 @@ from social_distancing_sim.gym.wrappers.summary_graph_observation_wrapper import
 from social_distancing_sim.templates.small import Small
 
 
+def prepare_tf(memory_limit: int = 1024):
+    import tensorflow as tf
+
+    tf.config.experimental.set_virtual_device_configuration(tf.config.experimental.list_physical_devices('GPU')[0],
+                                                            [tf.config.experimental.VirtualDeviceConfiguration(
+                                                                memory_limit=memory_limit)])
+
+
 def prepare(agent_gamma: float = 0.99,
             agent_eps: float = 0.99,
             agent_eps_decay: float = 0.001) -> Tuple[DeepQAgent, SummaryGraphObservationWrapper]:
@@ -69,7 +77,7 @@ def train(agent: DeepQAgent, env: SummaryGraphObservationWrapper,
             ep_rewards.append(total_reward)
             print(total_reward)
 
-            if not ep % 50:
+            if not ep % 5:
                 roll = 50
                 plt.plot(np.convolve(ep_rewards, np.ones(roll), 'valid') / roll)
                 plt.show()
@@ -78,11 +86,14 @@ def train(agent: DeepQAgent, env: SummaryGraphObservationWrapper,
 
 
 if __name__ == "__main__":
+    prepare_tf(1024)
+
     agent_, env_ = prepare(agent_gamma=0.98,
                            agent_eps=0.95,
                            agent_eps_decay=0.002)
     agent_ = train(agent_, env_,
-                   n_episodes=1000,
+                   n_episodes=300,
                    max_episode_steps=200)
 
     agent_.save('deep_q_learner.pkl')
+    DeepQAgent.load('deep_q_learner.pkl')

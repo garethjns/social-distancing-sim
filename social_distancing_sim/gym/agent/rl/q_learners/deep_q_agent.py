@@ -19,11 +19,13 @@ class DeepQAgent(AgentBase):
                  replay_buffer: ReplayBuffer = None,
                  gamma: float = 0.98,
                  replay_buffer_samples=75,
+                 dueling: bool = True,
                  *args, **kwargs) -> None:
 
         super().__init__(*args, **kwargs)
         self.env = env
         self.gamma = gamma
+        self.dueling = dueling
         if replay_buffer is None:
             replay_buffer = ReplayBuffer()
         self.replay_buffer = replay_buffer
@@ -49,24 +51,37 @@ class DeepQAgent(AgentBase):
 
     def _build_model(self, model_name: str) -> keras.Model:
 
-        conv_shape = self.env.observation_space[1].sample().shape
+        graph_shape = self.env.observation_space[1].sample().shape
+        graph_nodes = graph_shape[0] * graph_shape[1]
 
-        fc_input = keras.layers.Input(name='fc_input', shape=self.env.observation_space[0].shape)
-        fc1 = keras.layers.Dense(units=12, name='fc1', activation='relu')(fc_input)
+        summary_input = keras.layers.Input(name='summary_input', shape=self.env.observation_space[0].shape)
+        summary_fc1 = keras.layers.Dense(units=12, name='summary_fc1', activation='relu')(summary_input)
 
-        conv_input = keras.layers.Input(name='conv_input', shape=(conv_shape[0], conv_shape[1], 1))
-        conv1 = keras.layers.Conv2D(24, kernel_size=(6, 6),
-                                    name='conv1', activation='relu', dtype=np.float32)(conv_input)
-        conv2 = keras.layers.Conv2D(12, kernel_size=(3, 3), name='conv2', activation='relu')(conv1)
-        flatten = keras.layers.Flatten(name='flatten')(conv2)
-        concat = keras.layers.Concatenate(name='concat')([fc1, flatten])
+        graph_input = keras.layers.Input(name='conv_input', shape=(graph_shape[0], graph_shape[1], 1))
+        flatten = keras.layers.Flatten(name='flatten')(graph_input)
+        graph_fc1 = keras.layers.Dense(units=int(graph_nodes), name='graph_fc1', activation='relu')(flatten)
+        graph_fc2 = keras.layers.Dense(units=int(graph_nodes / 2), name='graph_fc2', activation='relu')(graph_fc1)
+        graph_fc3 = keras.layers.Dense(units=int(graph_nodes / 4), name='graph_fc3', activation='relu')(graph_fc2)
 
-        fc2 = keras.layers.Dense(units=64, name='fc2', activation='relu')(concat)
-        fc3 = keras.layers.Dense(units=16, name='fc3', activation='relu')(fc2)
-        output = keras.layers.Dense(units=self.env.action_space.n, name='output', activation=None)(fc3)
+        concat = keras.layers.Concatenate(name='concat')([summary_fc1, graph_fc3])
+        fc1 = keras.layers.Dense(units=64, name='fc2', activation='relu')(concat)
+        fc2 = keras.layers.Dense(units=16, name='fc3', activation='relu')(fc1)
+
+        if self.dueling:
+            # Using dueling architecture (split value and action advantages)
+            v_layer = keras.layers.Dense(1, activation='linear')(fc2)
+            a_layer = keras.layers.Dense(self.env.action_space.n, activation='linear')(fc2)
+
+            def merge_layer(layer_inputs):
+                return layer_inputs[0] + layer_inputs[1] - keras.backend.mean(layer_inputs[1], axis=1, keepdims=True)
+
+            output = keras.layers.Lambda(merge_layer, output_shape=(self.env.action_space.n,),
+                                         name="output")([v_layer, a_layer])
+        else:
+            output = keras.layers.Dense(units=self.env.action_space.n, name='output', activation=None)(fc2)
 
         opt = keras.optimizers.Adam(learning_rate=0.001)
-        model = keras.Model(inputs=[fc_input, conv_input], outputs=[output],
+        model = keras.Model(inputs=[summary_input, graph_input], outputs=[output],
                             name=model_name)
         model.compile(opt, loss='mse')
 
@@ -143,8 +158,7 @@ class DeepQAgent(AgentBase):
                                verbose=0)
 
     def set_env(self, *args, **kwargs):
-        """Pass for compatibility with set env used in AgentBase. Not necessary here as this agent only uses the env
-        to sample examples."""
+        """Pass for compatibility with set env used in AgentBase. Not necessary here"""
         pass
 
     def _select_actions_targets(self) -> Dict[int, int]:
@@ -174,21 +188,25 @@ class DeepQAgent(AgentBase):
         self._target_model.set_weights(self._policy_model.get_weights())
 
     def save(self, fn: str):
-        model_to_save = copy.deepcopy(self)
-        model_to_save._policy_model = None
-        model_to_save._target_model = None
+        self._policy_model.save(f"{fn}.h5")
+        self._policy_model = None
+        self._target_model = None
 
-        name = fn.split('.')[0]
-        self._policy_model.save(f"{name}.h5")
-        pickle.dump(model_to_save, open(f"{name}.pkl", "wb"))
+        agent_to_save = copy.deepcopy(self)
+        pickle.dump(agent_to_save, open(f"{fn}.pkl", "wb"))
+
+        self._policy_model = keras.models.load_model(f"{fn}.h5")
+        self._target_model = keras.models.load_model(f"{fn}.h5")
 
     @classmethod
     def load(cls, fn: str) -> "DeepQAgent":
-        name = fn.split('.')[0]
-        loaded_model = pickle.load(open(f"{name}.pkl"))
-        keras.models.load_model(f"{name}.h5")
+        agent = pickle.load(open(f"{fn}.pkl", 'rb'))
+        model = keras.models.load_model(f"{fn}.h5")
 
-        return loaded_model
+        agent._policy_model = model
+        agent._target_model = model
+
+        return agent
 
     def clone(self) -> "DeepQAgent":
         return copy.deepcopy(self)
