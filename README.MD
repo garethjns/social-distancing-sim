@@ -249,7 +249,7 @@ python3 -m social-distancing-sim.scripts.stats_compare_multi_agents
 ````  
 
 ## Reinforcement learning agents vs static policies <a name="reinforcement_agents"></a>
-![Reinforcement agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/q_agent_comparison_score.png)
+![Reinforcement agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/linear_q_learner_2_comparison.png)
 
 Compares two trained reinforcement agents (Linear and deep QAgents) against each other and static policies defined above.
 
