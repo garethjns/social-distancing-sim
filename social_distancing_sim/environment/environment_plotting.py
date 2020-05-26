@@ -142,11 +142,11 @@ class EnvironmentPlotting:
                              show=False)
 
     def plot_graphs(self, obs: ObservationSpace, title: str, colours: Dict[str, str] = None):
-        obs.graph.plot(ax=self._graph_ax[0], colours=colours)
+        obs.plot(ax=self._graph_ax[0], colours=colours, god_mode=True)
         self._graph_ax[0].set_title(f"Full sim: {title}", fontsize=14)
 
         if (obs.test_rate < 1) & self.both:
-            obs.plot(ax=self._graph_ax[1], colours=colours)
+            obs.plot(ax=self._graph_ax[1], colours=colours, god_mode=False)
             self._graph_ax[1].set_title(f"Observed: {title}")
 
     def plot_matrices(self):

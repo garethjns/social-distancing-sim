@@ -10,14 +10,19 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
 
-import social_distancing_sim.agent as agent
 import social_distancing_sim.environment as env
 import social_distancing_sim.sim as sim
+from scripts.visual_compare_multi_agents import AGENTS
+
+
+SEED = 123
+STEPS = 250
 
 
 def plot_dists(multi_sims: List[sim.MultiSim],
                result: str = "Overall score") -> plt.Figure:
     """Plot final score distributions across repetitions, for all agents."""
+    sns.set_palette(sns.cubehelix_palette(len(multi_sims)))
     fig, ax = plt.subplots(nrows=1,
                            ncols=1,
                            figsize=(8, 8))
@@ -44,43 +49,10 @@ def plot_dists(multi_sims: List[sim.MultiSim],
     return fig
 
 
-if __name__ == "__main__":
-    seed = 123
-    steps = 250
-    distancing_params = {"actions_per_turn": 15,
-                         "start_step": {'isolate': 15, 'reconnect': 60},
-                         "end_step": {'isolate': 55, 'reconnect': steps}}
-    vaccination_params = {"actions_per_turn": 5,
-                          "start_step": {'vaccinate': 60},
-                          "end_step": {'vaccinate': steps}}
-    treatment_params = {"actions_per_turn": 5,
-                        "start_step": {'treat': 50},
-                        "end_step": {'treat': steps}}
-
-    # Create a parameter set containing all combinations of the 3 policy agents, and a small set of n_actions
-    agents = [agent.MultiAgent(name="Distancing",
-                               agents=[agent.DistancingPolicyAgent(**distancing_params)]),
-              agent.MultiAgent(name="Vaccination",
-                               agents=[agent.VaccinationPolicyAgent(**vaccination_params)]),
-              agent.MultiAgent(name="Treatment",
-                               agents=[agent.TreatmentPolicyAgent(**treatment_params)]),
-              agent.MultiAgent(name="Distancing, vaccination",
-                               agents=[agent.DistancingPolicyAgent(**distancing_params),
-                                       agent.VaccinationPolicyAgent(**vaccination_params)]),
-              agent.MultiAgent(name="Distancing, treatment",
-                               agents=[agent.DistancingPolicyAgent(**distancing_params),
-                                       agent.TreatmentPolicyAgent(**treatment_params)]),
-              agent.MultiAgent(name="Vaccination, treatment",
-                               agents=[agent.VaccinationPolicyAgent(**vaccination_params),
-                                       agent.TreatmentPolicyAgent(**treatment_params)]),
-              agent.MultiAgent(name="Distancing, vaccination, treatment",
-                               agents=[agent.DistancingPolicyAgent(**distancing_params),
-                                       agent.VaccinationPolicyAgent(**vaccination_params),
-                                       agent.TreatmentPolicyAgent(**treatment_params)])]
-
+def run_multi_sims():
     # Loop over the parameter set and create the Agents, Environments, and the Sim handler
     multi_sims = []
-    for agt in agents:
+    for agt in AGENTS:
         # Name the environment according to the agent used
         env_ = env.Environment(name=f"{type(agt).__name__} - {agt.name}",
                                action_space=env.ActionSpace(vaccinate_cost=0,
@@ -122,10 +94,16 @@ if __name__ == "__main__":
     for ms in tqdm(multi_sims):
         ms.run()
 
-    fig = plot_dists(multi_sims, "Overall score")
+    return multi_sims
+
+
+if __name__ == "__main__":
+    multi_sims_ = run_multi_sims()
+
+    fig = plot_dists(multi_sims_, "Overall score")
     plt.show()
     fig.savefig('multi_agent_comparison_score.png')
 
-    fig = plot_dists(multi_sims, "Total deaths")
+    fig = plot_dists(multi_sims_, "Total deaths")
     plt.show()
     fig.savefig('multi_agent_comparison_deaths.png')

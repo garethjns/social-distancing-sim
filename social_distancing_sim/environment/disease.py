@@ -1,6 +1,6 @@
 import copy
 from dataclasses import dataclass
-from typing import Union, Dict, Hashable, Any
+from typing import Union, Dict, Hashable, Any, List
 
 import numpy as np
 
@@ -59,11 +59,23 @@ class Disease:
         decay = self.immunity_decay_mean + self.state.normal(scale=self.immunity_decay_std)
         new_immunity = max(0.0, node["immune"] - node["immune"] * decay)
         node["immune"] = new_immunity
+
         return node
 
-    def modified_virulence(self, immunity: float) -> float:
-        """Reduce virulence according to immunity"""
-        return min(max(1e-7, self.virulence * (1 - immunity)), 0.999)
+    @staticmethod
+    def _modify_virulence(original: float, modifier: float) -> float:
+        return min(max(1e-7, original * (1 - modifier)), 0.999)
+
+    def modified_virulence(self, modifiers: Union[float, List[float]]) -> float:
+        """Reduce baseline disease virulence according to modifier(s), ie. immunity and/or masks."""
+        if not isinstance(modifiers, list):
+            modifiers = [modifiers]
+
+        vir = self.virulence
+        for mod in modifiers:
+            vir = self._modify_virulence(vir, mod)
+
+        return vir
 
     def conclude(self, node: Dict[Hashable, Any],
                  chance_to_force: float = 0.0,
@@ -108,10 +120,25 @@ class Disease:
 
         return node
 
-    def try_to_infect(self, node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
-        if not node.get("infected", 0) > 0:
-            node["infected"] = self.state.binomial(1, self.modified_virulence(node.get("immune", 0)))
-        return node
+    def try_to_infect(self, source_node: Dict[Hashable, Any], target_node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+        """
+        Attempt to infect another node.
+
+        Depends on 3 factors:
+         - The immunity of the target node - uses target nodes immunity
+         - If the infected node is masked - uses own mask modifier
+         - If the uninfected node is masked - uses target nodes mask modifier
+         TODO: Considering a bonus to protection if both are masked, but not implemented for now. It's a bit
+               speculative.
+         """
+        if not target_node.get("infected", 0) > 0:
+            vir = self.modified_virulence(modifiers=[target_node.get("immune", 0),
+                                                     target_node.get("mask", 0),
+                                                     source_node.get("mask", 0)])
+
+            target_node["infected"] = self.state.binomial(1, vir)
+
+        return target_node
 
     @staticmethod
     def force_infect(node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:

@@ -13,9 +13,9 @@ class IsolationAgent(AgentBase):
     @property
     def available_targets(self) -> Dict[int, List[int]]:
         return {2: list(set(self.env.observation_space.current_infected_nodes).difference
-                        (self.env.observation_space.isolated_nodes)),
+                        (self.env.observation_space.current_isolated_nodes)),
                 3: list(set(self.env.observation_space.current_clear_nodes).intersection(
-                    self.env.observation_space.isolated_nodes))}
+                    self.env.observation_space.current_isolated_nodes))}
 
     def _select_actions_targets(self) -> Dict[int, str]:
         """Selects randomly between both actions, any time frames are totally ignored."""

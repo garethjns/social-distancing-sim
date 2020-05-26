@@ -22,7 +22,7 @@ if __name__ == "__main__":
     seed = 123
 
     # Create a parameter set containing all combinations of the 4 basic agents, and a small set of n_actions
-    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent]
+    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent, agent.MaskingAgent]
     n_actions = [3, 6, 12]
     sims = []
 
@@ -58,6 +58,6 @@ if __name__ == "__main__":
                             save=True,
                             tqdm_on=True))  # Show progress bars for running sims
 
-        # Run all the prepared Sims
-    Parallel(n_jobs=4,
+    # Run all the prepared Sims
+    Parallel(n_jobs=6,
              backend='loky')(delayed(run_and_replay)(sim) for sim in sims)

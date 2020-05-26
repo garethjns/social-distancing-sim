@@ -61,7 +61,8 @@ class Environment:
         for n in self.observation_space.graph.current_infected_nodes:
             # Get neighbours
             for nb in self.observation_space.graph.g_.neighbors(n):
-                node = self.disease.try_to_infect(self.observation_space.graph.g_.nodes[nb])
+                node = self.disease.try_to_infect(source_node=self.observation_space.graph.g_.nodes[n],
+                                                  target_node=self.observation_space.graph.g_.nodes[nb])
 
                 if node["infected"] == 1:
                     # new infection, count
@@ -109,10 +110,10 @@ class Environment:
             1: self.observation_space.current_immune_nodes,  # Vaccinate
             2: list(  # Isolate
                 set(self.observation_space.current_infected_nodes).difference(
-                    self.observation_space.isolated_nodes)),
+                    self.observation_space.current_isolated_nodes)),
             3: list(  # Reconnect
                 set(self.observation_space.current_clear_nodes).intersection(
-                    self.observation_space.isolated_nodes)),
+                    self.observation_space.current_isolated_nodes)),
             4: self.observation_space.current_infected_nodes}  # Treat
 
         targets = []

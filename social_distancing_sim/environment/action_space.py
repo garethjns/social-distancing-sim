@@ -15,11 +15,13 @@ class ActionSpace:
     isolate_cost: float = 0
     treat_cost: float = -3
     reconnect_cost: float = 0
+    mask_cost: float = -0.1
     vaccinate_efficiency: float = 0.95
     isolate_efficiency: float = 0.95
     reconnect_efficiency: float = 0.95
     treatment_conclusion_chance: float = 0.9
     treatment_recovery_rate_modifier: float = 1.5
+    mask_efficiency: float = 0.25
     seed: Union[int, None] = None
 
     def __post_init__(self) -> None:
@@ -38,7 +40,8 @@ class ActionSpace:
                 'vaccinate': 1,
                 'isolate': 2,
                 'reconnect': 3,
-                'treat': 4}
+                'treat': 4,
+                'provide_mask': 5}
 
     @property
     def available_actions(self) -> List[int]:
@@ -65,12 +68,10 @@ class ActionSpace:
         return self.treat_cost
 
     def vaccinate(self, **kwargs) -> float:
-        try:
-            kwargs["env"].disease.give_immunity(
-                kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
-                immunity=self.vaccinate_efficiency)
-        except KeyError:
-            raise KeyError
+        kwargs["env"].disease.give_immunity(
+            kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
+            immunity=self.vaccinate_efficiency)
+
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].immune = True
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["last_tested"] = kwargs["step"]
 
@@ -89,6 +90,19 @@ class ActionSpace:
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].isolated = False
 
         return self.reconnect_cost
+
+    def provide_mask(self, **kwargs) -> float:
+        kwargs["env"].observation_space.graph.mask_node(kwargs["target_node_id"],
+                                                        effectiveness=self.mask_efficiency)
+        kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].masked = True
+
+        return self.mask_cost
+
+    def remove_mask(self, **kwargs) -> float:
+        kwargs["env"].observation_space.graph.unmask_node(kwargs["target_node_id"])
+        kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].masked = False
+
+        return self.mask_cost
 
     def sample(self):
         """Return a random available action"""

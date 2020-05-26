@@ -1,12 +1,26 @@
 import unittest
+from unittest.mock import MagicMock
 
+from social_distancing_sim.environment import Status
 from social_distancing_sim.environment.action_space import ActionSpace
+from social_distancing_sim.environment.graph import Graph
 
 
 class TestActionSpace(unittest.TestCase):
     _sut = ActionSpace()
-    _implemented_actions = ['nothing', 'vaccinate', 'isolate', 'reconnect', 'treat']
-    _implemented_action_ids = [0, 1, 2, 3, 4]
+    _implemented_actions = ['nothing', 'vaccinate', 'isolate', 'reconnect', 'treat', 'provide_mask']
+    _implemented_action_ids = [0, 1, 2, 3, 4, 5]
+
+    @staticmethod
+    def _build_mock_env() -> MagicMock:
+        env = MagicMock()
+        env.disease = MagicMock()
+        env.observation_space = MagicMock()
+        env.observation_space.graph = MagicMock()
+        env.observation_space.graph.g_ = MagicMock()
+        env.observation_space.graph.g_.nodes = {0: {'status': Status()}}
+
+        return env
 
     def test_expected_default_actions_are_available(self):
         # Act
@@ -61,3 +75,38 @@ class TestActionSpace(unittest.TestCase):
         self.assertEqual(12, len(targets))
         self.assertEqual(9, len([t for t in targets if t != -1]))
         self.assertEqual(3, len([t for t in targets if t == -1]))
+
+    def test_vaccinate_node_adds_immunity_via_disease(self):
+        # Arrange
+        env = self._build_mock_env()
+
+        def _mock_give_immunity(node, immunity=0.6):
+            node["immune"] = immunity
+            return node
+
+        # Mock Disease.give_immunity, which takes and node and returns a node
+        env.disease.give_immunity = _mock_give_immunity
+
+        # Act
+        step = 0
+        cost = self._sut.vaccinate(env=env, target_node_id=0, step=step)
+
+        # Assert
+        self.assertEqual(step, env.observation_space.graph.g_.nodes[0]['last_tested'])
+        self.assertGreater(env.observation_space.graph.g_.nodes[0]['immune'], 0)
+        self.assertEqual(self._sut.vaccinate_cost, cost)
+
+    def test_provide_mask_to_node_adds_mask_via_graph(self):
+        # Arrange
+        # This is harder to mock as graph methods take the whole graph as input, not just the node (like disease)
+        # Just using a default graph for now.
+        env = self._build_mock_env()
+        env.observation_space.graph = Graph()
+        env.observation_space.graph.g_.nodes[0]["status"] = MagicMock()
+
+        # Act
+        step = 0
+        cost = self._sut.provide_mask(env=env, target_node_id=0, step=step)
+
+        self.assertEqual(self._sut.mask_cost, cost)
+        self.assertGreater(env.observation_space.graph.g_.nodes[0]['mask'], 0)

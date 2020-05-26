@@ -19,13 +19,14 @@ import social_distancing_sim.sim as sim
 def plot_dists(multi_sims: List[sim.MultiSim],
                result: str = "Overall score") -> plt.Figure:
     """Plot final score distributions across repetitions, for all agents."""
-    fig, axs = plt.subplots(nrows=4,
+    fig, axs = plt.subplots(nrows=5,
                             ncols=1,
-                            figsize=(8, 8))
+                            figsize=(8, 10))
     ax_map = {'DummyAgent': axs[0],
               'RandomAgent': axs[1],
               'VaccinationAgent': axs[2],
-              'IsolationAgent': axs[3]}
+              'IsolationAgent': axs[3],
+              'MaskingAgent': axs[4]}
 
     min_score = 0
     max_score = 0
@@ -56,7 +57,8 @@ def plot_dists(multi_sims: List[sim.MultiSim],
 if __name__ == "__main__":
 
     # For a specified parameter set....
-    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent]
+    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent,
+              agent.MaskingPolicyAgent]
     n_actions = [3, 6, 12, 24]
     multi_sims = []
 

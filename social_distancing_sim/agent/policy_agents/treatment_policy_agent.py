@@ -10,8 +10,8 @@ class TreatmentPolicyAgent(AgentBase):
     It can be used to model start and end of social distancing or quarantine periods. Note that this agent is similar to
     the isolation agent, but will isolate any node not just infected ones.
 
-    0         start['treat']            end['treat']
-    |  Does nothing  |   Isolates ANY node    |   Does nothing ...
+    0          start['treat']                    end['treat']
+    |  Does nothing  |   treats ANY infected node    |   Does nothing ...
 
     """
 

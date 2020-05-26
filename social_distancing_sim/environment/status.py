@@ -22,6 +22,7 @@ class Status:
                  clear: Union[bool, None] = None,
                  isolated: Union[bool, None] = None,
                  immune: Union[bool, None] = None,
+                 masked: Union[bool, None] = None,
                  last_tested: Union[int, None] = -999):
 
         if infected is not None:
@@ -35,6 +36,7 @@ class Status:
         self._infected = None
         self._immune = None
         self._alive = None
+        self._masked = None
 
         # Don't set Nones to avoid overwriting behaviour, eg if clear=False but infected=None
         # (Setters still set Nones)
@@ -51,7 +53,7 @@ class Status:
 
     def __repr__(self) -> str:
         return f"Status(alive={self.alive}, infected={self.infected}, clear={self.clear}, isolated={self.isolated}, " \
-               f"immune={self.immune}, last_tested={self.last_tested})"
+               f"immune={self.immune}, masked={self._masked}, last_tested={self.last_tested})"
 
     def __hash__(self) -> int:
         return hash(self.__repr__())
@@ -63,6 +65,15 @@ class Status:
         self._clear = None
         self._infected = None
         self._immune = None
+        self._masked = None
+
+    @property
+    def masked(self) -> bool:
+        return self._masked
+
+    @masked.setter
+    def masked(self, flag: bool):
+        self._masked = flag
 
     @property
     def alive(self) -> bool:
@@ -146,7 +157,7 @@ class Status:
     @property
     def state_features_names(self) -> List[str]:
         """Status fields to use to co construct state."""
-        return ['alive', 'clear', 'infected', 'immune', 'isolated']
+        return ['alive', 'clear', 'infected', 'immune', 'isolated', 'masked']
 
     @property
     def state(self) -> np.ndarray:
