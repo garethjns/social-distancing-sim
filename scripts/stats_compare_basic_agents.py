@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # For a specified parameter set....
     agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent,
-              agent.MaskingPolicyAgent]
+              agent.MaskingAgent]
     n_actions = [3, 6, 12, 24]
     multi_sims = []
 

@@ -223,7 +223,7 @@ python3 -m social-distancing-sim.scripts.compare_two_diseases_immunity
 ````  
 
 ## Basic agents: Simple action comparison <a name="basic_agents_visual"></a>
-![Test basic agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/agent_comparison_score_example.png)
+![Test basic agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/basic_agent_comparison_score.png)
 
 Runs the full set of basic agents, comparing the effects of their individual actions. Generates visualisations for each (not shown here).
 
@@ -250,7 +250,7 @@ python3 -m social-distancing-sim.scripts.stats_compare_multi_agents
 ````  
 
 ## Reinforcement learning agents vs static policies <a name="reinforcement_agents"></a>
-![Reinforcement agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/multi_agent_rl.png)
+![Reinforcement agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/q_agent_comparison_score.png)
 
 Compares two trained reinforcement agents (Linear and deep QAgents) against each other and static policies defined above.
 

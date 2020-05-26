@@ -61,7 +61,7 @@ if __name__ == "__main__":
     deep_q_agent = DeepQAgent.load('deep_q_learner.pkl')
     deep_q_agent.name = 'deep_q_agent'
 
-    agents = [agent.RandomAgent(),
+    agents = [agent.DummyAgent(name='Dummy agent'),
               agent.MultiAgent(name="Distancing, vaccination, treatment",
                                agents=[agent.DistancingPolicyAgent(**DISTANCING_PARAMS),
                                        agent.VaccinationPolicyAgent(**VACCINATION_PARAMS),
@@ -84,7 +84,7 @@ if __name__ == "__main__":
                        n_steps=steps)
 
         multi_sims.append(sim.MultiSim(sim_,
-                                       n_jobs=1,
+                                       n_jobs=1,  # Needs to be 1, DeepQAgent doesn't support pickle yet
                                        name='rl agents',
                                        n_reps=100))
 
@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
     fig = plot_dists(multi_sims, "Overall score")
     plt.show()
-    fig.savefig('linear_q_agent_comparison_score.png')
+    fig.savefig('q_agent_comparison_score.png')
 
     fig = plot_dists(multi_sims, "Total deaths")
     plt.show()
-    fig.savefig('linear_q_agent_comparison_deaths.png')
+    fig.savefig('q_agent_comparison_deaths.png')

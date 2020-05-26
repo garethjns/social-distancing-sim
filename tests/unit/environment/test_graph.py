@@ -65,14 +65,14 @@ class TestGraph(unittest.TestCase):
     def test_isolate_node_removes_and_saves_connections(self):
         # Arrange
         g = self._sut()
-        old_conenctions = copy.deepcopy(list(g.g_.edges(0)))
+        old_connections = copy.deepcopy(list(g.g_.edges(0)))
 
         # Act
         g.isolate_node(0, effectiveness=1)
 
         # Assert
         self.assertListEqual([], list(g.g_.edges(0)))
-        self.assertListEqual(old_conenctions, g.g_.nodes[0]["_edges"])
+        self.assertListEqual(old_connections, g.g_.nodes[0]["_edges"])
 
     def test_reconnect_node_restores_saved_connections(self):
         # Arrange
@@ -86,5 +86,7 @@ class TestGraph(unittest.TestCase):
 
         # Assert
         for edge in previously_removed_connections:
+            self.assertIn(edge, list(g.g_.edges(0)))
+        for edge in current_connections:
             self.assertIn(edge, list(g.g_.edges(0)))
         self.assertListEqual([], list(g.g_.nodes[0]["_edges"]))
