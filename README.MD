@@ -16,13 +16,13 @@ The code aims to be as simple and understandable as possible, but is still WIP (
 4. [Usage example](#usage_example)
 5. [Package structure and components](#package_structure)
 6. [Experiments](#experiments)
-    1. [social_distancing](#social_distancing)
+    1. [Social distancing](#social_distancing)
     2. [Using masks](#using_masks)
     3. [Importance of testing](#importance_of_testing)
     4. [Herd immunity](#herd_immunity)
     5. [Basic agents](basic_agents)
     6. [Static policies](#static_policies)
-    7. [Reinforcement learning agents](#reinforcement_learning)
+    7. [Reinforcement learning agents](#reinforcement_agents)
 
 
 # Dynamics <a name="dynamics"></a>
@@ -185,8 +185,7 @@ python3 -m social-distancing-sim.scripts.compare_two_populations
 ````
 
 ## Masks: Worth it? <a name="using_masks"></a>
-![Example DummyAgent](https://github.com/garethjns/social-distancing-sim/blob/master/images/dummy_agent_example.gif)   
-![Example MaskingAgent](https://github.com/garethjns/social-distancing-sim/blob/master/images/masking_agent_example.gif)   
+![Example MaskingAgent](https://github.com/garethjns/social-distancing-sim/blob/master/images/masking_agent_example_joined.gif)   
 Provision of masks to a population can be done by an agent. Using the default settings, individual masks reduce the chance of infection less than immunity, but both the source and target nodes can wear masks benefiting from a stacked effect (with diminishing returns). Here the DummyAgent does nothing. 
 
 This example is part of a larger example comparing agents/actions - see below for more details. 
