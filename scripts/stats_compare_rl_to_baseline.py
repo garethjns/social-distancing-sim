@@ -8,8 +8,18 @@ from tqdm import tqdm
 
 import social_distancing_sim.agent as agent
 import social_distancing_sim.sim as sim
+from scripts.visual_compare_multi_agents import DISTANCING_PARAMS, MASKING_PARAMS, TREATMENT_PARAMS, VACCINATION_PARAMS
+from social_distancing_sim.gym.agent.rl.q_learners.deep_q_agent import DeepQAgent
 from social_distancing_sim.gym.agent.rl.q_learners.linear_q_agent import LinearQAgent
 from social_distancing_sim.templates.small import Small
+
+
+def prepare_tf(memory_limit: int = 1024):
+    import tensorflow as tf
+
+    tf.config.experimental.set_virtual_device_configuration(tf.config.experimental.list_physical_devices('GPU')[0],
+                                                            [tf.config.experimental.VirtualDeviceConfiguration(
+                                                                memory_limit=memory_limit)])
 
 
 def plot_dists(multi_sims: List[sim.MultiSim],
@@ -42,26 +52,27 @@ def plot_dists(multi_sims: List[sim.MultiSim],
 
 
 if __name__ == "__main__":
+    prepare_tf()
+
     steps = 200
-    distancing_params = {"actions_per_turn": 15,
-                         "start_step": {'isolate': 15, 'reconnect': 60},
-                         "end_step": {'isolate': 55, 'reconnect': steps}}
-    vaccination_params = {"actions_per_turn": 5,
-                          "start_step": {'vaccinate': 60},
-                          "end_step": {'vaccinate': steps}}
-    treatment_params = {"actions_per_turn": 5,
-                        "start_step": {'treat': 50},
-                        "end_step": {'treat': steps}}
 
     linear_q_agent = LinearQAgent.load('linear_q_learner.pkl')
     linear_q_agent.name = 'linear_q_agent'
+    deep_q_agent = DeepQAgent.load('deep_q_learner.pkl')
+    deep_q_agent.name = 'deep_q_agent'
 
-    agents = [agent.RandomAgent(),
+    agents = [agent.DummyAgent(name='Dummy agent'),
               agent.MultiAgent(name="Distancing, vaccination, treatment",
-                               agents=[agent.DistancingPolicyAgent(**distancing_params),
-                                       agent.VaccinationPolicyAgent(**vaccination_params),
-                                       agent.TreatmentPolicyAgent(**treatment_params)]),
-              linear_q_agent, ]
+                               agents=[agent.DistancingPolicyAgent(**DISTANCING_PARAMS),
+                                       agent.VaccinationPolicyAgent(**VACCINATION_PARAMS),
+                                       agent.TreatmentPolicyAgent(**TREATMENT_PARAMS)]),
+              agent.MultiAgent(name="Distancing, vaccination, treatment, masking",
+                               agents=[agent.DistancingPolicyAgent(**DISTANCING_PARAMS),
+                                       agent.VaccinationPolicyAgent(**VACCINATION_PARAMS),
+                                       agent.TreatmentPolicyAgent(**TREATMENT_PARAMS),
+                                       agent.MaskingPolicyAgent(**MASKING_PARAMS)]),
+              linear_q_agent,
+              deep_q_agent]
 
     # Loop over the parameter set and create the Agents, Environments, and the Sim handler
     multi_sims = []
@@ -73,6 +84,7 @@ if __name__ == "__main__":
                        n_steps=steps)
 
         multi_sims.append(sim.MultiSim(sim_,
+                                       n_jobs=1,  # Needs to be 1, DeepQAgent doesn't support pickle yet
                                        name='rl agents',
                                        n_reps=100))
 
@@ -82,8 +94,8 @@ if __name__ == "__main__":
 
     fig = plot_dists(multi_sims, "Overall score")
     plt.show()
-    fig.savefig('linear_q_agent_comparison_score.png')
+    fig.savefig('q_agent_comparison_score.png')
 
     fig = plot_dists(multi_sims, "Total deaths")
     plt.show()
-    fig.savefig('linear_q_agent_comparison_deaths.png')
+    fig.savefig('q_agent_comparison_deaths.png')

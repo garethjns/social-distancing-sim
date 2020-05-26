@@ -18,7 +18,8 @@ if __name__ == "__main__":
     seed = 123
 
     # Create a parameter set containing all combinations of the 4 basic agents, and a small set of n_actions
-    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent]
+    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent, agent.MaskingAgent]
+
     n_actions = [1, 3, 6]
     sims = []
 
@@ -28,7 +29,7 @@ if __name__ == "__main__":
         agt_ = agt(actions_per_turn=n_act)
 
         # Name the environment according to the agent used
-        env_ = env.Environment(name=f"{type(agt_).__name__} - {n_act} actions",
+        env_ = env.Environment(name=f"Small {type(agt_).__name__} - {n_act} actions",
                                disease=env.Disease(name='COVID-19',
                                                    virulence=0.01,
                                                    seed=seed,
@@ -54,6 +55,6 @@ if __name__ == "__main__":
                             save=True,
                             tqdm_on=True))  # Show progress bars for running sims
 
-        # Run all the prepared Sims
-        Parallel(n_jobs=4,
-                 backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
+    # Run all the prepared Sims
+    Parallel(n_jobs=6,
+             backend='loky')(delayed(run_and_replay)(sim) for sim in sims)

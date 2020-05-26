@@ -14,7 +14,7 @@ class TestDistancingPolicyAgent(unittest.TestCase):
 
         mock_observation_space = MagicMock(spec=ObservationSpace)
         mock_observation_space.current_clear_nodes = [9, 10, 11, 12]
-        mock_observation_space.isolated_nodes = [12, 13, 14]
+        mock_observation_space.current_isolated_nodes = [12, 13, 14]
 
         mock_env = MagicMock(spec=Environment)
         mock_env.observation_space = mock_observation_space

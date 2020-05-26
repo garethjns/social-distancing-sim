@@ -43,6 +43,7 @@ class Graph:
         self._current_clear_nodes: Union[int, None] = None
         self._current_alive_nodes: Union[int, None] = None
         self._current_dead_nodes: Union[int, None] = None
+        self._current_masked_nodes: Union[int, None] = None
 
     def state_summary(self) -> np.ndarray:
         """Vector representing n of each node type."""
@@ -56,7 +57,7 @@ class Graph:
 
     def state_nodes(self) -> np.ndarray:
         """Node x node_state matrix."""
-        return np.array([[nd[c] for c in ["alive", "infected", "immune", "isolated"]]
+        return np.array([[nd[c] for c in ["alive", "infected", "immune", "isolated", "masked"]]
                          for nv, nd in self.g_.nodes.data()])
 
     def state_full(self) -> np.ndarray:
@@ -81,6 +82,7 @@ class Graph:
             nv["alive"] = True
             nv["_edges"] = []
             nv["isolated"] = False
+            nv["mask"] = 0.0
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
@@ -88,6 +90,12 @@ class Graph:
     @property
     def n_current_infected(self) -> int:
         return len(self.current_infected_nodes)
+
+    @property
+    def current_masked_nodes(self) -> List[int]:
+        if self._current_masked_nodes is None:
+            self._current_masked_nodes = [nk for nk, nv in self.g_.nodes.data() if nv.get("mask", 0) > 0]
+        return self._current_masked_nodes
 
     @property
     def current_isolated_nodes(self) -> List[int]:
@@ -183,6 +191,13 @@ class Graph:
         if len(node["_edges"]) == 0:
             node["isolated"] = False
 
+    def mask_node(self, node_id: int,
+                  effectiveness: float = 0.5) -> None:
+        self.g_.nodes[node_id]["mask"] = effectiveness
+
+    def unmask_node(self, node_id: int) -> None:
+        self.g_.nodes[node_id]["mask"] = 0
+
     def plot_matrix(self,
                     ax: Union[None, plt.Axes] = None) -> plt.Figure:
         fig = sns.heatmap(self.state_graph(),
@@ -202,50 +217,6 @@ class Graph:
         plt.legend()
 
         return ax_
-
-    def plot(self,
-             ax: Union[None, plt.Axes] = None,
-             colours: Dict[str, str] = None) -> None:
-        """
-        Plot the full network graph.
-
-        TODO: Duplicates functionality with ObservationSpace.plot...
-
-        :param ax: Matplotlib to draw on.
-        :param colours: Colours to use for plots, for example, from defaults set in history, if available.
-        """
-        sns.set()
-
-        if colours is None:
-            colours = {}
-
-        if self.g_pos_ is None:
-            self.g_pos_ = self._layout(self.g_,
-                                       seed=self.seed)
-
-        nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_clear_nodes,
-                               node_color=colours.get('Current clear', '#1f77b4'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_immune_nodes,
-                               node_color=colours.get('Total immune', '#9467bd'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_infected_nodes,
-                               node_color=colours.get('Current infections', '#d62728'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.g_, self.g_pos_,
-                               nodelist=self.current_dead_nodes,
-                               node_color=colours.get('Total deaths', 'k'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_edges(self.g_, self.g_pos_,
-                               width=1 / (self.total_population / 5),
-                               ax=ax)
 
     def clone(self) -> "Graph":
         """Clone a fresh object with same seed (could be None)."""

@@ -116,7 +116,8 @@ class History(dict):
                       f"Vaccinate actions {suffix}": len([a for a in actions_dict.values() if a == 1]),
                       f"Isolate actions {suffix}": len([a for a in actions_dict.values() if a == 2]),
                       f"Reconnect actions {suffix}": len([a for a in actions_dict.values() if a == 3]),
-                      f"Treat actions {suffix}": len([a for a in actions_dict.values() if a == 4])})
+                      f"Treat actions {suffix}": len([a for a in actions_dict.values() if a == 4]),
+                      f"Mask actions {suffix}": len([a for a in actions_dict.values() if a == 5])})
 
     def log_observation_space(self, obs: ObservationSpace, healthcare: Healthcare):
         # Log full space and observed space
@@ -135,12 +136,13 @@ class History(dict):
                                                               for n in obs.graph.current_immune_nodes]),
                   "Mean immunity (of all alive nodes)": np.mean([obs.graph.g_.nodes[n].get("immune", 0)
                                                                  for n in obs.graph.current_alive_nodes]),
-                  "Known total immune": len(
-                      obs.current_immune_nodes),
+                  "Known total immune": len(obs.current_immune_nodes),
                   "Known mean immunity (of immune nodes)": np.mean([obs.graph.g_.nodes[n]["immune"]
                                                                     for n in obs.current_immune_nodes]),
                   "Known mean immunity (of all alive nodes)": np.mean([obs.graph.g_.nodes[n].get("immune", 0)
                                                                        for n in obs.current_alive_nodes]),
+                  "Total masked": len(obs.graph.current_masked_nodes),
+                  "Known masked": len(obs.current_masked_nodes),
                   "Total recovered": np.sum(self["Current recoveries"]),
                   "Total infections": total_infections,
                   "Known total infections": np.sum(self["Known new infections"]),

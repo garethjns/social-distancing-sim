@@ -21,9 +21,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_tested_dead_nodes_always_identified(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': False, 'infected': True, "immune": 0,
+        mock_nodes = {1: {'alive': False, 'infected': True, "immune": 0, "mask": 0,
                           "status": Status(infected=True, last_tested=1)},
-                      2: {'alive': True, 'infected': True, "immune": 0,
+                      2: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           'status': Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
@@ -40,9 +40,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_untested_dead_nodes_always_identified(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': False, 'infected': True, "immune": 0,
+        mock_nodes = {1: {'alive': False, 'infected': True, "immune": 0, "mask": 0,
                           'status': Status()},
-                      2: {'alive': True, 'infected': True, "immune": 0,
+                      2: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           'status': Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
@@ -58,9 +58,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_tested_and_immune_marked_immune(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9, "mask": 0,
                           "status": Status(last_tested=1)},
-                      2: {'alive': True, 'infected': False, "immune": 0.9,
+                      2: {'alive': True, 'infected': False, "immune": 0.9, "mask": 0,
                           "status": Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         mock_graph.considered_immune_threshold = 0.3
@@ -77,11 +77,11 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_tested_now_clear_and_alive_marked_as_immune_or_clear(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9, "mask": 0,
                           "status": Status(infected=True, last_tested=5)},
-                      2: {'alive': True, 'infected': False, "immune": 0.1,
+                      2: {'alive': True, 'infected': False, "immune": 0.1, "mask": 0,
                           "status": Status(infected=True, last_tested=5)},
-                      3: {'alive': True, 'infected': False, "immune": 0,
+                      3: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           "status": Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         mock_graph.considered_immune_threshold = 0.3
@@ -103,11 +103,11 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_not_tested_infected_remain_infected(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0.9, "mask": 0,
                           "status": Status(infected=True, last_tested=5)},
-                      2: {'alive': True, 'infected': False, "immune": 0.1,
+                      2: {'alive': True, 'infected': False, "immune": 0.1, "mask": 0,
                           "status": Status(infected=True, last_tested=5)},
-                      3: {'alive': True, 'infected': False, "immune": 0,
+                      3: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           'status': Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
@@ -124,9 +124,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_infected_mark_infected_only_if_tested_this_turn(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': True, "immune": 0,
+        mock_nodes = {1: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           "status": Status(last_tested=1)},
-                      2: {'alive': True, 'infected': True, "immune": 0,
+                      2: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           "status": Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
@@ -142,9 +142,9 @@ class TestObservationSpace(unittest.TestCase):
     def test_if_infected_and_tested_test_does_not_expire(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': True, "immune": 0,
+        mock_nodes = {1: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           "status": Status(infected=True, last_tested=1)},
-                      2: {'alive': True, 'infected': True, "immune": 0,
+                      2: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           "status": Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)
@@ -161,13 +161,13 @@ class TestObservationSpace(unittest.TestCase):
         # Arrange
         mock_graph = MagicMock()
 
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           # Was tested while infected, but on an earlier turn
                           "status": Status(infected=True, last_tested=10)},
-                      2: {'alive': True, 'infected': False, "immune": 0,
+                      2: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           # Was tested while infected, but on an earlier turn
                           "status": Status(clear=False, last_tested=10)},
-                      3: {'alive': True, 'infected': False, "immune": 0,
+                      3: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           "status": Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         mock_graph.considered_immune_threshold = 0.3
@@ -187,13 +187,13 @@ class TestObservationSpace(unittest.TestCase):
     def test_clear_and_immune_tests_expire_after_validity_period(self):
         # Arrange
         mock_graph = MagicMock()
-        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0,
+        mock_nodes = {1: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           "status": Status(clear=True, last_tested=1)},
-                      2: {'alive': True, 'infected': True, "immune": 0,
+                      2: {'alive': True, 'infected': True, "immune": 0, "mask": 0,
                           "status": Status(infected=True, last_tested=1)},
-                      3: {'alive': True, 'infected': False, "immune": 0.5,
+                      3: {'alive': True, 'infected': False, "immune": 0.5, "mask": 0,
                           "status": Status(immune=True, last_tested=1)},
-                      4: {'alive': True, 'infected': False, "immune": 0,
+                      4: {'alive': True, 'infected': False, "immune": 0, "mask": 0,
                           "status": Status()}}
         mock_graph.g_.nodes.data.return_value = mock_nodes.items()
         obs = self._sut(graph=mock_graph)

@@ -23,8 +23,8 @@ class DistancingPolicyAgent(AgentBase):
     def available_targets(self) -> Dict[int, List[int]]:
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
         return {2: list(set(self.env.observation_space.current_clear_nodes).difference(
-            self.env.observation_space.isolated_nodes)),
-            3: self.env.observation_space.isolated_nodes}
+            self.env.observation_space.current_isolated_nodes)),
+            3: self.env.observation_space.current_isolated_nodes}
 
     def _select_actions_targets(self) -> Dict[int, str]:
         """Selects from actions that are currently available. If both are active, selects randomly between them."""

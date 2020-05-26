@@ -18,6 +18,7 @@ class TesReplayBuffer(unittest.TestCase):
 
         self.assertEqual(aa[0], int(ss_0[0]))
         self.assertEqual(rr[0], int(ss_0[0]))
+
         self.assertListEqual([s + 1 for s in ss_0], ss__0)
 
     def test_buffered_state_1_dim(self):

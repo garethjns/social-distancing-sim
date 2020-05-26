@@ -18,7 +18,7 @@ class TestEnvironment(unittest.TestCase):
         mock_env.observation_space.current_clear_nodes = [1, 2, 3, 10, 11]
         mock_env.observation_space.current_infected_nodes = [4, 5, 6, 12]
         mock_env.observation_space.current_immune_nodes = [7, 8, 9]
-        mock_env.observation_space.isolated_nodes = [10, 11, 12]
+        mock_env.observation_space.current_isolated_nodes = [10, 11, 12]
 
         self.mock_env = mock_env
 

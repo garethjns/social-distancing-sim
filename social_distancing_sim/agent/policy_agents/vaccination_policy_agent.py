@@ -11,19 +11,18 @@ class VaccinationPolicyAgent(AgentBase):
 
     It can be used to model availability of a vaccine, for max or staggered use.
 
-     0         start['vaccinate']         end['vaccinate']
-    |   Does nothing   |   Isolates ANY node      |      Does nothing ...
+     0         start['vaccinate']                 end['vaccinate']
+    |   Does nothing   |   vaccinates ANY clear node      |      Does nothing ...
     """
 
     @property
     def available_actions(self) -> List[int]:
-        """Isolation agent can only isolate. It can't even un-isolate (yet?)"""
         return [1]
 
     @property
     def available_targets(self) -> List[int]:
         """Same as VaccinationAgent."""
-        return list(set(self.env.observation_space.current_clear_nodes))
+        return list(self.env.observation_space.current_clear_nodes)
 
     def _select_actions_targets(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:

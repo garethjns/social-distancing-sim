@@ -37,6 +37,7 @@ class ObservationSpace:
         self._current_immune_nodes: Union[List[int], None] = None
         self._current_clear_nodes: Union[List[int], None] = None
         self._isolated_nodes: Union[List[int], None] = None
+        self._masked_nodes: Union[List[int], None] = None
 
     def _attach_status_to_graph(self):
         for _, nv in self.graph.g_.nodes.data():
@@ -48,7 +49,7 @@ class ObservationSpace:
     def state_summary(self) -> np.ndarray:
         """Vector representing n of each node type. Contains known values."""
         return np.array([len(self.current_clear_nodes), len(self.current_infected_nodes),
-                         len(self.isolated_nodes), len(self.current_immune_nodes),
+                         len(self.current_isolated_nodes), len(self.current_immune_nodes),
                          len(self.current_alive_nodes), len(self.unknown_nodes)])
 
     def state_graph(self) -> np.ndarray:
@@ -95,7 +96,13 @@ class ObservationSpace:
         return len(self.current_infected_nodes)
 
     @property
-    def isolated_nodes(self) -> List[int]:
+    def current_masked_nodes(self) -> List[int]:
+        if self._masked_nodes is None:
+            self._masked_nodes = self.graph.current_masked_nodes
+        return self._masked_nodes
+
+    @property
+    def current_isolated_nodes(self) -> List[int]:
         # TODO: Assuming these are always known for now, as only the result of agent action
         if self._isolated_nodes is None:
             self._isolated_nodes = self.graph.current_isolated_nodes
@@ -185,16 +192,24 @@ class ObservationSpace:
                 nv['status'] = Status(alive=False)
                 continue
 
-            # Is infected and tested this turn
-            if (nv['infected'] > 0) and (nv["status"].last_tested == time_step):
-                nv['status'].infected = True
-                known_new_infections += 1
+            # Update if tested this turn
+            if nv["status"].last_tested == time_step:
+                # Has mask
+                if nv['mask'] > 0:
+                    nv["status"].masked = True
+                else:
+                    nv["status"].masked = False
 
-            # Is clear or immune and was tested this turn
-            if nv['infected'] == 0 and (nv["status"].last_tested == time_step):
-                nv['status'].recovered = True
-                if nv['immune'] >= self.graph.considered_immune_threshold:
-                    nv['status'].immune = True
+                # Is infected
+                if nv['infected'] > 0:
+                    nv['status'].infected = True
+                    known_new_infections += 1
+
+                # Is clear or immune
+                if nv['infected'] == 0:
+                    nv['status'].recovered = True
+                    if nv['immune'] >= self.graph.considered_immune_threshold:
+                        nv['status'].immune = True
 
             # Test has expired (only for clear and immune nodes)
             if ((nv["status"].clear or nv["status"].immune)
@@ -205,52 +220,53 @@ class ObservationSpace:
 
     def plot(self,
              ax: Union[None, plt.Axes] = None,
-             colours: Dict[str, str] = None) -> None:
+             colours: Dict[str, str] = None,
+             god_mode: bool = True) -> None:
         """
-        Plot the observed network graph.
-
-        TODO: Duplicates functionality with Graph.plot...
+        Plot the full or observed network graph.
 
         :param ax: Matplotlib to draw on.
         :param colours: Colours to use for plots, for example, from defaults set in history, if available.
+        :param god_mode: If True, plot by-pass observation space filters and plot the whole environment state. If False,
+                         plot the observable graph only.
         """
         sns.set()
 
         if colours is None:
+            # Will use defaults defined along with data below
             colours = {}
 
+        # Position nodes, but only if they haven't been before (this is expensive and nodes changing location is
+        # confusing)
         if self.graph.g_pos_ is None:
             self.graph.g_pos_ = nx.spring_layout(self.graph.g_,
                                                  seed=self.seed)
 
-        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_,
-                               nodelist=self.unknown_nodes,
-                               node_color=colours.get('Unknown', '#bdbcbb'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_,
-                               nodelist=self.current_clear_nodes,
-                               node_color=colours.get('Known current clear', '#1f77b4'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_,
-                               nodelist=self.current_immune_nodes,
-                               node_color=colours.get('Known total immune', '#9467bd'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_,
-                               nodelist=self.current_infected_nodes,
-                               node_color=colours.get('Known current infections', '#d62728'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_,
-                               nodelist=self.graph.current_dead_nodes,
-                               node_color=colours.get('Total deaths', 'k'),
-                               node_size=10,
-                               ax=ax)
-        nx.draw_networkx_edges(self.graph.g_, self.graph.g_pos_,
-                               width=1 / (self.graph.total_population / 5),
-                               ax=ax)
+        common_plotting_args = {'G': self.graph.g_, 'pos': self.graph.g_pos_, 'ax': ax, "node_size": 10}
+
+        if god_mode:
+            info_source = self.graph
+        else:
+            info_source = self
+            nx.draw_networkx_nodes(**common_plotting_args,
+                                   nodelist=self.unknown_nodes,
+                                   node_color=colours.get('Unknown', '#bdbcbb'))
+
+        # Draw selected set of properties and include default colours in case not defined in colours
+        for pk, pv in {'Known current clear': (info_source.current_clear_nodes, '#1f77b4'),
+                       'Known total immune': (info_source.current_immune_nodes, '#9467bd'),
+                       'Known current infections': (info_source.current_infected_nodes, '#d62728'),
+                       'Total deaths': (self.graph.current_dead_nodes, 'k')}.items():
+            nx.draw_networkx_nodes(**common_plotting_args,
+                                   nodelist=pv[0],
+                                   node_color=colours.get(pk, pv[1]))
+
+        # Draw mask indicators and edges
+        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_, ax=ax,
+                               nodelist=info_source.current_masked_nodes,
+                               node_color='k', node_size=2, alpha=1, linewidths=6)
+        nx.draw_networkx_edges(self.graph.g_, self.graph.g_pos_, ax=ax,
+                               width=1 / (self.graph.total_population / 5))
 
     def clone(self) -> "ObservationSpace":
         """Clone a fresh object with same seed (could be None)."""

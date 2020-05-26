@@ -33,6 +33,7 @@ class DeepQAgent(AgentBase):
             epsilon = Epsilon()
         self.epsilon = epsilon
         self.replay_buffer_samples = replay_buffer_samples
+        self._fn_used_to_load: str = ''
         self._prep_pp()
         self._prep_models()
 
@@ -206,7 +207,11 @@ class DeepQAgent(AgentBase):
         agent._policy_model = model
         agent._target_model = model
 
+        agent._fn_used_to_load = fn
         return agent
 
     def clone(self) -> "DeepQAgent":
-        return copy.deepcopy(self)
+        # TODO: Can't copy models, bodge for now. This should work for multi sims where it's used, but obviously isn't
+        #       the best solution....
+        clone = DeepQAgent.load(fn=self._fn_used_to_load)
+        return clone
