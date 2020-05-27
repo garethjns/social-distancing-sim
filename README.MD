@@ -181,7 +181,7 @@ The rest of this readme contains a dump of example experiments with outputs, whi
 The probabilities of inter and and intra community connectivity in the population can be modified to, for example, compare the effects between a densely connected population and a socially distanced population. In this example, fewer connections in the population give the disease fewer opportunities for disease to spread, which slows the progression through the population. This leads to a flatter infection curve and a lower peak burden on the health care system, results in fewer deaths.
 
 ````bash
-python3 -m social-distancing-sim.scripts.compare_two_populations
+python3 -m scripts.compare_two_populations
 ````
 
 ## Masks: Worth it? <a name="using_masks"></a>
@@ -191,7 +191,7 @@ Provision of masks to a population can be done by an agent. Using the default se
 This example is part of a larger example comparing agents/actions - see below for more details. 
 
 ````bash
-python3 -m social-distancing-sim.scripts.visual_compare_basic_agents_small
+python3 -m scripts.visual_compare_basic_agents_small
 ````
 
 
@@ -218,7 +218,7 @@ python3 -m social-distancing-sim.scripts.compare_two_pop_testing_rate
 Version 0.2.0 adds incomplete immunity and decay of immunity. These are part of the disease definition, and allow reinfection after a node has survived infection.
 
 ````bash
-python3 -m social-distancing-sim.scripts.compare_two_diseases_immunity
+python3 -m scripts.compare_two_diseases_immunity
 ````  
 
 ## Basic agents: Simple action comparison <a name="basic_agents_visual"></a>
@@ -228,11 +228,11 @@ Runs the full set of basic agents, comparing the effects of their individual act
 
 ### Run visual examples
 ````bash
-python3 -m social-distancing-sim.scripts.visual_compare_basic_agents
+python3 -m scripts.visual_compare_basic_agents
 ````  
 ### Run MultiSim and plot histograms
 ````bash
-python3 -m social-distancing-sim.scripts.stats_compare_basic_agents
+python3 -m scripts.stats_compare_basic_agents
 ````  
 
 ## Static policies: Combining actions into strategies <a name="static_policies"></a>
@@ -255,11 +255,11 @@ Compares two trained reinforcement agents (Linear and deep QAgents) against each
 
 ### Train agents
 ````bash
-python3 -m social-distancing-sim.scripts.train_linear_q_learner
-python3 -m social-distancing-sim.scripts.train_deep_q_learner
+python3 -m scripts.train_linear_q_learner
+python3 -m scripts.train_deep_q_learner
 ````  
 
 ### Run comparison
 ````bash
-python3 -m social-distancing-sim.scripts.stats_compare_rl_to_baseline
+python3 -m scripts.stats_compare_rl_to_baseline
 ````  
