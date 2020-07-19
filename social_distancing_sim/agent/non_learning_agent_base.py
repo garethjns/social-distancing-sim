@@ -3,13 +3,20 @@ import copy
 from typing import List, Union, Dict, Tuple
 
 import numpy as np
+from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
 
-from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.action_space import ActionSpace
+from social_distancing_sim.environment.gym.gym_env import GymEnv
 
 
-class AgentBase(metaclass=abc.ABCMeta):
+class NonLearningAgentBase(metaclass=abc.ABCMeta):
+    """
+    Base for non-rl agents.
 
-    def __init__(self, env: Union[Environment, None] = None,
+    NonLearningAgents always used gym interface to environment, but are free to bypass this and access env.sds_env
+    """
+
+    def __init__(self, env_spec: Union[str, None] = None,
                  name: str = 'unnamed_agent',
                  seed: Union[None, int] = None,
                  actions_per_turn: int = 5,
@@ -17,9 +24,9 @@ class AgentBase(metaclass=abc.ABCMeta):
                  end_step: Union[Dict[str, int], None] = None) -> None:
         """
 
-        :param env: Reference to environment caller/simulator will be iterating on. Doesn't need to be provided on init,
-                    but if not needs to be set with .set_env() before agent will work.
-                    Is voided if the agent is cloned, and will need to be reset.
+        :param env_spec: Name of registered env. Optional. If agent is not attached to an env, it will build one from
+                         this spec. If spec is not provided, agent should be attached to an existing env with
+                         self.attach_to_env(env).
         :param name: Agent name.
         :param seed: Seed.
         :param actions_per_turn: Number of actions to return each turn. Automatically limited by available targets each
@@ -31,6 +38,41 @@ class AgentBase(metaclass=abc.ABCMeta):
         self.name = name
         self.actions_per_turn = actions_per_turn
 
+        self._prepare_random_state()
+
+        # If env not attached with spec, should be done manually
+        self.env = env_spec
+        self._set_action_ranges(start_step, end_step)
+
+    @property
+    def env(self) -> GymEnv:
+        return self._env
+
+    @env.setter
+    def env(self, env_or_spec: Union[str, GymEnv]) -> GymEnv:
+        if isinstance(env_or_spec, str):
+            # Using own env spec to build env as needed
+            self.env_builder = EnvBuilder(env_or_spec)
+            self._env = self.env_builder.env
+        else:
+            # Either using specified env that may also contain other agents, or intending to. If latter, env_or_spec
+            # will be None at this point.
+            self._env = env_or_spec
+
+    def attach_to_env(self, env: GymEnv) -> None:
+        """
+        Attach agent to an existing env.
+
+        Used by MultiAgent to attach children agents to the same environment (rather than children building their own
+        from spec)
+        """
+        self.env = env
+
+    def _prepare_random_state(self) -> None:
+        self._random_state = np.random.RandomState(seed=self.seed)
+
+    def _set_action_ranges(self, start_step: Union[Dict[str, int], None],
+                           end_step: Union[Dict[str, int], None]) -> None:
         if start_step is None:
             start_step = {}
         self.start_step = start_step
@@ -42,35 +84,13 @@ class AgentBase(metaclass=abc.ABCMeta):
         self._end_step = None
 
         self._step = 0  # Track steps as number of .sample calls to agent
-        self._prepare_random_state()
 
-        self.set_env(env)
-
-    def _prepare_random_state(self) -> None:
-        self._random_state = np.random.RandomState(seed=self.seed)
-
-    def set_env(self, env: Union[None, Environment]):
-        """
-        Attach (or detach) the agent to an environment reference.
-
-        This environment is used to access the observations space so the agent can get things like the current infected
-        nodes while outside of the environment. It should be a reference, not a copy, or the agent will act of incorrect
-        information. Cloning the agent specifically detaches the agent from the environment to avoid mistakes.
-        Where something holding both the environment and agent is cloned (for example, Sims when running MultiSims)
-        the agent's reference is reset to None and the correct environment needs to be reattached with
-        agent.set_env(new_ref).
-        """
-
-        self.env = env
-
-        if self.env is not None:
-            if self._start_step is None:
-                self._start_step = {self.env.action_space.get_action_id(a): v for a, v in self.start_step.items()}
-            if self._end_step is None:
-                self._end_step = {self.env.action_space.get_action_id(a): v for a, v in self.end_step.items()}
-        else:
-            self._start_step = None
-            self._end_step = None
+        if self._start_step is None:
+            self._start_step = {ActionSpace().get_action_id(a): v
+                                for a, v in self.start_step.items()}
+        if self._end_step is None:
+            self._end_step = {ActionSpace().get_action_id(a): v
+                              for a, v in self.end_step.items()}
 
     @property
     def available_actions(self) -> List[int]:
@@ -79,7 +99,7 @@ class AgentBase(metaclass=abc.ABCMeta):
 
         Overload to filter for specific agents.
         """
-        return self.env.action_space.available_action_ids
+        return self.env.sds_env.action_space.available_action_ids
 
     @property
     def currently_active_actions(self) -> List[int]:
@@ -98,7 +118,7 @@ class AgentBase(metaclass=abc.ABCMeta):
 
         Overload to filter for specific agents.
         """
-        return self.env.observation_space.current_alive_nodes
+        return self.env.sds_env.observation_space.current_alive_nodes
 
     def _check_available_targets(self) -> int:
         """
@@ -123,7 +143,7 @@ class AgentBase(metaclass=abc.ABCMeta):
                                                      Tuple[List[int], None]]:
         """Get next set of actions and targets and track."""
         if self.env is None:
-            raise AttributeError(f"Not env set, set with agent.set_env()")
+            raise AttributeError(f"Not env set, set with agent.attach_to_env()")
 
         actions_dict = self._select_actions_targets()
         self._step += 1
@@ -150,9 +170,9 @@ class AgentBase(metaclass=abc.ABCMeta):
 
         return {t: a for t, a in zip(targets, actions)}
 
-    def clone(self) -> "AgentBase":
+    def clone(self) -> "NonLearningAgentBase":
         """Clone a fresh object with same seed (could be None)."""
-        self.set_env(None)
+        self.env = None
         clone = copy.deepcopy(self)
         clone._prepare_random_state()
         return clone
@@ -160,7 +180,3 @@ class AgentBase(metaclass=abc.ABCMeta):
     def reset(self):
         self._step = 0
         self._prepare_random_state()
-
-    def update(self, *args, **kwargs):
-        """To match RL agent interface, skip any update call."""
-        pass

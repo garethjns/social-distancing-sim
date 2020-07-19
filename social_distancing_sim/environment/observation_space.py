@@ -158,7 +158,7 @@ class ObservationSpace:
 
     def test_population(self, time_step: int) -> None:
         """
-        Test random members of the environment, based on testing rate.
+        Test random members of the environments, based on testing rate.
 
         Chance of testing infected is grater than testing asymptomatic.
 
@@ -227,7 +227,7 @@ class ObservationSpace:
 
         :param ax: Matplotlib to draw on.
         :param colours: Colours to use for plots, for example, from defaults set in history, if available.
-        :param god_mode: If True, plot by-pass observation space filters and plot the whole environment state. If False,
+        :param god_mode: If True, plot by-pass observation space filters and plot the whole environments state. If False,
                          plot the observable graph only.
         """
         sns.set()
@@ -242,7 +242,8 @@ class ObservationSpace:
             self.graph.g_pos_ = nx.spring_layout(self.graph.g_,
                                                  seed=self.seed)
 
-        common_plotting_args = {'G': self.graph.g_, 'pos': self.graph.g_pos_, 'ax': ax, "node_size": 10}
+        common_plotting_args = {'G': self.graph.g_, 'pos': self.graph.g_pos_, 'ax': ax, "node_size": 12,
+                                "linewidths": 2, "alpha": 0.75}
 
         if god_mode:
             info_source = self.graph

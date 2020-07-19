@@ -1,9 +1,9 @@
 from typing import List, Dict
 
-from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
 
-class DistancingPolicyAgent(AgentBase):
+class DistancingPolicyAgent(NonLearningAgentBase):
     """
     DistancingPolicyAgent applies isolation on a set turn and reconnection on a later turn.
 
@@ -22,9 +22,9 @@ class DistancingPolicyAgent(AgentBase):
     @property
     def available_targets(self) -> Dict[int, List[int]]:
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
-        return {2: list(set(self.env.observation_space.current_clear_nodes).difference(
-            self.env.observation_space.current_isolated_nodes)),
-            3: self.env.observation_space.current_isolated_nodes}
+        return {2: list(set(self.env.sds_env.observation_space.current_clear_nodes).difference(
+            self.env.sds_env.observation_space.current_isolated_nodes)),
+            3: self.env.sds_env.observation_space.current_isolated_nodes}
 
     def _select_actions_targets(self) -> Dict[int, str]:
         """Selects from actions that are currently available. If both are active, selects randomly between them."""

@@ -1,2 +1,1 @@
-sklearn
-tensorflow-gpu
+reinforcement_learning_keras

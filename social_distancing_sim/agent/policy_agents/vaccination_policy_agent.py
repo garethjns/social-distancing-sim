@@ -1,9 +1,9 @@
 from typing import List, Dict
 
-from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
 
-class VaccinationPolicyAgent(AgentBase):
+class VaccinationPolicyAgent(NonLearningAgentBase):
     """
     Vaccination applies vaccination during a set time period.
 
@@ -22,7 +22,7 @@ class VaccinationPolicyAgent(AgentBase):
     @property
     def available_targets(self) -> List[int]:
         """Same as VaccinationAgent."""
-        return list(self.env.observation_space.current_clear_nodes)
+        return list(self.env.sds_env.observation_space.current_clear_nodes)
 
     def _select_actions_targets(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:

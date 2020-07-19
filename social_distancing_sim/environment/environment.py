@@ -39,7 +39,6 @@ class Environment:
 
         if self.environment_plotting is None:
             self.environment_plotting = EnvironmentPlotting()
-        self.environment_plotting.prepare_output_path(name=self.name)
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
@@ -114,7 +113,9 @@ class Environment:
             3: list(  # Reconnect
                 set(self.observation_space.current_clear_nodes).intersection(
                     self.observation_space.current_isolated_nodes)),
-            4: self.observation_space.current_infected_nodes}  # Treat
+            4: self.observation_space.current_infected_nodes,  # Treat
+            5: self.observation_space.current_alive_nodes,  # Provide mask
+            6: self.observation_space.current_masked_nodes}  # Remove mask
 
         targets = []
         acts, counts = np.unique(actions,
@@ -192,6 +193,8 @@ class Environment:
         self._step += 1
 
         observation = {'obs': self.observation_space,
+                       'history': self.history,
+                       'healthcare': self.healthcare,
                        'turn_score': turn_score,
                        'obs_score': obs_turn_score,
                        'action_costs': action_costs,

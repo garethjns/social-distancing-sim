@@ -23,7 +23,7 @@ class TestEnvironment(unittest.TestCase):
         self.mock_env = mock_env
 
     def test_select_random_targets_for_a_selection_of_valid_actions(self):
-        # NB: Action 4 can replace action 2 with default environment selections
+        # NB: Action 4 can replace action 2 with default environments selections
         actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 3, 4, 4, 4])
 
         self.assertEqual(5, len(actions_dict.keys()))

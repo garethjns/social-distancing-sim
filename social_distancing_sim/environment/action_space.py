@@ -11,11 +11,13 @@ class ActionSpace:
 
     TODO: Standardise api and remove **kwargs
     """
+    nothing_cost: float = 0
     vaccinate_cost: float = -2
     isolate_cost: float = 0
     treat_cost: float = -3
     reconnect_cost: float = 0
     mask_cost: float = -0.1
+    remove_mask_cost: float = 0
     vaccinate_efficiency: float = 0.95
     isolate_efficiency: float = 0.95
     reconnect_efficiency: float = 0.95
@@ -41,7 +43,8 @@ class ActionSpace:
                 'isolate': 2,
                 'reconnect': 3,
                 'treat': 4,
-                'provide_mask': 5}
+                'provide_mask': 5,
+                'remove_mask': 6}
 
     @property
     def available_actions(self) -> List[int]:
@@ -57,6 +60,10 @@ class ActionSpace:
     def get_action_name(self, action_id: int) -> str:
         act = {v: k for k, v in self.supported_actions.items()}
         return act[action_id]
+
+    def nothing(self, **kwargs) -> float:
+        """Do nothing."""
+        return self.nothing_cost
 
     def treat(self, **kwargs) -> float:
         kwargs["env"].disease.conclude(kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]],
@@ -102,7 +109,7 @@ class ActionSpace:
         kwargs["env"].observation_space.graph.unmask_node(kwargs["target_node_id"])
         kwargs["env"].observation_space.graph.g_.nodes[kwargs["target_node_id"]]["status"].masked = False
 
-        return self.mask_cost
+        return self.remove_mask_cost
 
     def sample(self):
         """Return a random available action"""

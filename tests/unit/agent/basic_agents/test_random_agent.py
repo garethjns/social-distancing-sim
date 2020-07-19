@@ -20,4 +20,4 @@ class TestRandomAgent(unittest.TestCase):
         agent = self._sut(self._mock_env)
 
         # Assert
-        self.assertListEqual([1, 2], agent.available_actions)
+        self.assertListEqual([0, 1, 2, 4, 5, 6], agent.available_actions)

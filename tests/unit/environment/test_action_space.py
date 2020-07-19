@@ -8,8 +8,8 @@ from social_distancing_sim.environment.graph import Graph
 
 class TestActionSpace(unittest.TestCase):
     _sut = ActionSpace()
-    _implemented_actions = ['nothing', 'vaccinate', 'isolate', 'reconnect', 'treat', 'provide_mask']
-    _implemented_action_ids = [0, 1, 2, 3, 4, 5]
+    _implemented_actions = ['nothing', 'vaccinate', 'isolate', 'reconnect', 'treat', 'provide_mask', 'remove_mask']
+    _implemented_action_ids = [0, 1, 2, 3, 4, 5, 6]
 
     @staticmethod
     def _build_mock_env() -> MagicMock:

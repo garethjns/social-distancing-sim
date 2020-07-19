@@ -1,19 +1,24 @@
+import os
 import warnings
 from dataclasses import dataclass
 from typing import Iterable, Union
 
+import gym
+from reinforcement_learning_keras.agents.agent_base import AgentBase
 from tqdm import tqdm
 
-from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.agent.basic_agents.dummy_agent import DummyAgent
-from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 from social_distancing_sim.environment.history import History
 
 
 @dataclass
 class Sim:
-    env: Environment
-    agent: Union[AgentBase, None] = None
+    """
+    Agent evaluation class (no training).
+    """
+    env_spec: str
+    save_dir: str = 'sim'
+    agent: Union[NonLearningAgentBase, AgentBase, None] = None
     training: bool = False
     n_steps: int = 100
     plot: bool = False
@@ -24,58 +29,58 @@ class Sim:
         if self.tqdm_on:
             self._tqdm = tqdm
 
-        if self.agent is None:
-            self.agent = DummyAgent(env=self.env)
-
-        if self.agent.env is None:
-            self.agent.set_env(env=self.env)
+        self._prepare_env()
+        self._prepare_agent()
 
         self._step: int = 0
+
+    def _prepare_env(self):
+        """Prepare the env."""
+        self.env = gym.make(self.env_spec)
+
+        # Set the new save paths
+        self.save_path = os.path.join(self.save_dir, self.env.save_path)
+        self.env.sds_env.environment_plotting.set_output_path(self.save_path)
+
+    def _prepare_agent(self):
+        """
+        Prepare the agent; if there isn't one create a Dummy.
+
+        Set the env for the agent, which will be env that's stepped in the Sim. This. This should handle cases where
+        some agents are using wrappers and others aren't.
+        """
+        self.agent.attach_to_env(self.env)
 
     @staticmethod
     def _tqdm(x: Iterable, *args, **kwargs) -> Iterable:
         return x
 
     def step(self):
-        # Observe state from last step
-        s = self.env.observation_space.state
-
         # Pick action
-        actions, targets = self.agent.get_actions(state=s)
+        actions, targets = self.agent.get_actions(state=self._last_state)
 
         # Step the simulation and observe for this step
-        observation, reward, done = self.env.step(actions, targets)
+        observation, reward, done, info = self.agent.env.step(actions)
+        self._last_state = observation
 
-        # Update agent
-        if self.training:
-            self.agent.update(observation, reward, done)
-
-        # Plot environment after logging so sim-added logs are available to environment history
-        if self.plot or self.save:
-            self.env.environment_plotting.plot(obs=self.env.observation_space,
-                                               history=self.env.history,
-                                               healthcare=self.env.healthcare,
-                                               total_steps=self.n_steps,
-                                               step=self._step,
-                                               show=self.plot,
-                                               save=self.save)
+        self.agent.env.sds_env.plot(plot=self.plot, save=self.save)
 
     def run(self) -> History:
-        self.env._total_steps = self.n_steps
-        self.env.plot(plot=self.plot, save=self.save)
+        self.agent.env.sds_env._total_steps = self.n_steps
+        self.agent.env.sds_env.plot(plot=self.plot, save=self.save)
 
-        # TODO: Might want to add own history and plotting rather than using populations
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             warnings.simplefilter("ignore", category=UserWarning)
 
+            self._last_state = self.agent.env.reset()
             for _ in self._tqdm(range(self.n_steps),
-                                desc=self.env.name):
+                                desc=self.agent.env.sds_env.name):
                 self.step()
                 self._step += 1
 
             final_hist = History()
-            for k, v in self.env.history.items():
+            for k, v in self.agent.env.sds_env.history.items():
                 # Skip any non-sensible ones
                 if k in ["Completed actions"]:
                     continue
@@ -86,7 +91,7 @@ class Sim:
 
     def clone(self) -> "Sim":
         """Clone a fresh object with same seed (could be None)."""
-        return Sim(env=self.env.clone(),
-                   agent=self.agent.clone() if self.agent is not None else None,
+        return Sim(env_spec=self.env_spec,
+                   agent=self.agent.clone(),
                    n_steps=self.n_steps, plot=self.plot,
                    save=self.save, tqdm_on=self.tqdm_on)

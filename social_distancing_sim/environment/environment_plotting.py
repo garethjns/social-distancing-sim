@@ -33,17 +33,15 @@ class EnvironmentPlotting:
 
         sns.set()
 
-    def prepare_output_path(self, name: str) -> None:
-        # TODO: Change to only clear/make dirs when actually plotting.
-        if self.output_path is None:
-            self.name = name
-            self.output_path = f"{name}"
-            shutil.rmtree(self.output_path,
-                          ignore_errors=True)
+    def set_output_path(self, path: str) -> None:
+        path = f"{os.path.abspath(path)}".replace('\\', '/')
+        self.name = path.split('/')[-1]
+        self.output_path = path
+        self.graph_path = f"{self.output_path}/graphs/"
+        shutil.rmtree(self.graph_path, ignore_errors=True)
 
-            self.graph_path = f"{self.output_path}/graphs/"
-            os.makedirs(self.graph_path,
-                        exist_ok=True)
+    def _prepare_output_path(self):
+        os.makedirs(self.graph_path, exist_ok=True)
 
     def _prepare_figure(self, test_rate: float = 1) -> None:
         """
@@ -114,7 +112,8 @@ class EnvironmentPlotting:
         self._figure.tight_layout()
 
         if save:
-            plt.savefig(f"{self.output_path}/graphs/{step}_graph.png")
+            self._prepare_output_path()
+            plt.savefig(f"{self.graph_path}/{step}_graph.png")
 
         if show:
             plt.show()
@@ -179,4 +178,8 @@ class EnvironmentPlotting:
         return output_path
 
     def clone(self) -> "EnvironmentPlotting":
+        self._figure = None
+        self._graph_ax = None
+        self._ts_ax_g1 = None
+        self._ts_ax_g2 = None
         return copy.deepcopy(self)
