@@ -1,1 +1,1 @@
-reinforcement_learning_keras==0.0.5
+reinforcement-learning-keras==0.0.5
