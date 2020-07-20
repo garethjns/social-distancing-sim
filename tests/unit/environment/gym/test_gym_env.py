@@ -12,17 +12,6 @@ class TestGymEnv(unittest.TestCase):
     def setUpClass(cls):
         register_test_envs()
 
-    def test_works_with_standard_loop(self):
-        # Arrange
-        env = gym.make('SDSTests-GymEnvFixedSeedFixture-v0')
-
-        # Act
-        _ = env.reset()
-        for i in range(5):
-            env.step([])
-
-        # Assert
-
     def test_import_registered_env(self):
         # Act
         env = gym.make('SDSTests-GymEnvFixedSeedFixture-v0')
@@ -41,6 +30,15 @@ class TestGymEnv(unittest.TestCase):
         # Assert
         self.assertIsInstance(env.unwrapped, GymEnv)
         self.assertIsInstance(env, gym.wrappers.time_limit.TimeLimit)
+
+    def test_works_with_standard_loop(self):
+        # Arrange
+        env = gym.make('SDSTests-GymEnvFixedSeedFixture-v0')
+
+        # Act
+        _ = env.reset()
+        for _ in range(5):
+            env.step([])
 
 
 class _CustomEnv(GymEnv):

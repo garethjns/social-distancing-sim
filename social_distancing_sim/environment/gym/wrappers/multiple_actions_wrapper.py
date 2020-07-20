@@ -12,4 +12,5 @@ class MultipleActionsWrapper(gym.ActionWrapper):
         return [action] * self.n_actions
 
     def reverse_action(self, action):
+        """Nope."""
         pass

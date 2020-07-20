@@ -16,6 +16,9 @@ COMMON_SETUP = {'disease': Disease(name='COVID-19',
                                                       seed=123 + 2),
                 'seed': 123 + 3}
 
+PLOT_SET_1 = ["Score", "Action cost", "Overall score"]
+PLOT_SET_2 = ["Observed Score", "Action cost", "Observed overall score"]
+
 
 class DefaultEnvTemplate(TemplateBase):
     @classmethod
@@ -35,16 +38,12 @@ class SomePlottingEnvTemplate(TemplateBase):
     @classmethod
     def build(cls) -> env.Environment:
         return env.Environment(name='some_plotting_env', **COMMON_SETUP,
-                               environment_plotting=EnvironmentPlotting(ts_fields_g2=["Score", "Action cost",
-                                                                                      "Overall score"]))
+                               environment_plotting=EnvironmentPlotting(ts_fields_g2=PLOT_SET_1))
 
 
 class ExtraPlottingEnvTemplate(TemplateBase):
     @classmethod
     def build(cls) -> env.Environment:
         return env.Environment(name='extra_plotting_env', **COMMON_SETUP,
-                               environment_plotting=EnvironmentPlotting(ts_fields_g2=["Score", "Action cost",
-                                                                                      "Overall score"],
-                                                                        ts_obs_fields_g2=["Observed Score",
-                                                                                          "Action cost",
-                                                                                          "Observed overall score"]))
+                               environment_plotting=EnvironmentPlotting(ts_fields_g2=PLOT_SET_1,
+                                                                        ts_obs_fields_g2=PLOT_SET_2))
