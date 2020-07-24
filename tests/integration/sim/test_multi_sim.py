@@ -1,5 +1,6 @@
 import unittest
 
+import gym
 import numpy as np
 from tqdm import tqdm
 
@@ -21,10 +22,11 @@ class TestMultiSim(unittest.TestCase):
     @staticmethod
     def _run_with_agent(agent, n_jobs: int = 1):
         # Arrange
+        env_spec = gym.make('SDSTests-GymEnvRandomSeedFixture-v0').spec
         multi_sims = []
         for n_actions, agent in np.array(np.meshgrid([5, 10], [agent])).T.reshape(-1, 2):
             print(agent)
-            multi_sims.append(MultiSim(Sim(env_spec='SDSTests-GymEnvRandomSeedFixture-v0',
+            multi_sims.append(MultiSim(Sim(env_spec=env_spec,
                                            n_steps=50,
                                            agent=agent(actions_per_turn=n_actions,
                                                        seed=None)),

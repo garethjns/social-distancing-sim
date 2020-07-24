@@ -3,6 +3,8 @@ import os
 import tempfile
 import unittest
 
+import gym
+
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
 from social_distancing_sim.sim.sim import Sim
 from tests.common.env_fixtures import register_sim_test_envs
@@ -22,7 +24,7 @@ class TestSim(unittest.TestCase):
 
     def test_default_sim_run(self):
         # Arrange
-        sim = self._sut(env_spec='SDSTests-GymEnvDefaultFixture-v0',
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvDefaultFixture-v0').spec,
                         n_steps=10,
                         agent=VaccinationAgent(),
                         plot=False, save=False)
@@ -36,7 +38,7 @@ class TestSim(unittest.TestCase):
 
     def test_example_sim_run(self):
         # Arrange
-        sim = self._sut(env_spec='SDSTests-GymEnvSpecifiedFixture-v0',
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvDefaultFixture-v0').spec,
                         save_dir=f"{self._tmp_dir.name}",
                         agent=VaccinationAgent(actions_per_turn=25, seed=123),
                         plot=False, save=False)
@@ -50,7 +52,7 @@ class TestSim(unittest.TestCase):
 
     def test_example_sim_run_with_plotting(self):
         # Arrange
-        sim = self._sut(env_spec='SDSTests-GymEnvSomePlottingFixture-v0',
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvSomePlottingFixture-v0').spec,
                         save_dir=f"{self._tmp_dir.name}",
                         agent=VaccinationAgent(actions_per_turn=25, seed=123),
                         plot=False, save=True, n_steps=12)
@@ -66,7 +68,7 @@ class TestSim(unittest.TestCase):
 
     def test_example_sim_run_with_extra_plotting(self):
         # Arrange
-        sim = self._sut(env_spec='SDSTests-GymEnvExtraPlottingFixture-v0',
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvExtraPlottingFixture-v0').spec,
                         save_dir=f"{self._tmp_dir.name}",
                         agent=VaccinationAgent(actions_per_turn=25, seed=123),
                         plot=False, save=True, n_steps=16)

@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from typing import Iterable, Union
 
 import gym
-from reinforcement_learning_keras.agents.agent_base import AgentBase
 from tqdm import tqdm
 
+from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 from social_distancing_sim.environment.history import History
 
@@ -16,9 +16,9 @@ class Sim:
     """
     Agent evaluation class (no training).
     """
-    env_spec: str
+    env_spec: gym.envs.registration.EnvSpec
     save_dir: str = 'sim'
-    agent: Union[NonLearningAgentBase, AgentBase, None] = None
+    agent: Union[NonLearningAgentBase, LearningAgentBase, None] = None
     training: bool = False
     n_steps: int = 100
     plot: bool = False
@@ -36,7 +36,7 @@ class Sim:
 
     def _prepare_env(self):
         """Prepare the env."""
-        self.env = gym.make(self.env_spec)
+        self.env = self.env_spec.make()
 
         # Set the new save paths
         self.save_path = os.path.join(self.save_dir, self.env.save_path)

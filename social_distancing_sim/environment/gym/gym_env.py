@@ -12,6 +12,7 @@ from social_distancing_sim.templates.template_base import TemplateBase
 class GymEnv(gym.Env):
     """Create a OpenAI Gym environments to handle an social-distancing-sim template environments."""
     template: TemplateBase
+    sds_env: Environment
 
     def __init__(self, env: Union[Environment, None] = None, save_dir: str = ''):
         """
@@ -52,14 +53,17 @@ class GymEnv(gym.Env):
     def _set_action_space(self) -> None:
         self.action_space = gym.spaces.discrete.Discrete(n=5)
 
-    def render(self, **kwargs) -> None:
-        self.sds_env.environment_plotting.plot_graphs(obs=self.sds_env.observation_space,
-                                                      title=self.sds_env.name)
+    def render(self, mode: str = 'human', show: bool = False, save: bool = True) -> None:
+        self.sds_env.plot(plot=show, save=save)
 
-    def step(self, actions: List[int], targets=None) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray],
-                                                              float, bool, Dict[Any, Any]]:
+    def step(self, actions: Union[int, List[int]], targets: Union[None, List[int]] = None,
+             ) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray],
+                        float, bool, Dict[Any, Any]]:
         # Return the sds internal observation space in info for convenience. self.state returns a more limited set of
         # arrays for state, which are derived from the same internal state.
+
+        if not isinstance(actions, list):
+            actions = [actions]
 
         info, reward, done = self.sds_env.step(actions=actions,
                                                targets=targets)
@@ -72,6 +76,9 @@ class GymEnv(gym.Env):
     def reset(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         self.sds_env = self.sds_env.clone()
         return self.state
+
+    def replay(self):
+        self.sds_env.replay()
 
     def clone(self) -> "GymEnv":
         return copy.deepcopy(self)

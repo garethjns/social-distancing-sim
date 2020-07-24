@@ -33,19 +33,16 @@ class MultiSim:
         return results
 
     def run(self):
-        # TODO: Switched to threading here to avoid having to reregister env in new process....
-        #       This will probably be a performance disaster.
         results = Parallel(n_jobs=self.n_jobs,
-                           backend='threading')(delayed(self._run)()
-                                                for _ in tqdm(range(self.n_reps),
-                                                              desc=self.sim.agent.env.sds_env.name))
+                           backend='loky')(delayed(self._run)()
+                                           for _ in tqdm(range(self.n_reps),
+                                                         desc=self.sim.agent.name))
 
         # Place in fake history container for now
         results_hist = History()
         for h in results:
             results_hist.log({k: v[0] for k, v in h.items()})
 
-        # TODO: Agent is detached from environments here, why?
         self.results = pd.DataFrame(results_hist)
         self.log()
 

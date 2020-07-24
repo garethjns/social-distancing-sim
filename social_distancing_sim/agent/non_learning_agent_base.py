@@ -2,7 +2,9 @@ import abc
 import copy
 from typing import List, Union, Dict, Tuple
 
+import gym
 import numpy as np
+from gym.envs.registration import EnvSpec
 from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
 
 from social_distancing_sim.environment.action_space import ActionSpace
@@ -59,14 +61,20 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
             # will be None at this point.
             self._env = env_or_spec
 
-    def attach_to_env(self, env: GymEnv) -> None:
+    def attach_to_env(self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]) -> None:
         """
         Attach agent to an existing env.
 
         Used by MultiAgent to attach children agents to the same environment (rather than children building their own
         from spec)
         """
-        self.env = env
+        if isinstance(env_or_spec, str):
+            self.env = gym.make(env_or_spec)
+        elif isinstance(env_or_spec, EnvSpec):
+            self.env = env_or_spec.make()
+        else:
+            # Assuming instantiated env like GymEnv, or wrapped version, eg. TimeLimit, etc.
+            self.env = env_or_spec
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
@@ -143,7 +151,7 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
                                                      Tuple[List[int], None]]:
         """Get next set of actions and targets and track."""
         if self.env is None:
-            raise AttributeError(f"Not env set, set with agent.attach_to_env()")
+            raise AttributeError(f"No env set, set with agent.attach_to_env()")
 
         actions_dict = self._select_actions_targets()
         self._step += 1

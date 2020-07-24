@@ -54,7 +54,7 @@ class EnvironmentPlotting:
 
         TODO: Add new specs with .plot_matrix and .plot_summary available in Graph and ObservationSpace.
         """
-        plt.close()
+        plt.close('all')
 
         self._g2_on = False
         ts_ax_g2 = None
@@ -102,7 +102,7 @@ class EnvironmentPlotting:
 
     def plot(self, obs: ObservationSpace, history: History, healthcare: Healthcare, step: int,
              total_steps: int,
-             save: bool = True, show: bool = True) -> None:
+             save: bool = True, show: bool = True, **kwagrs) -> None:
         self._prepare_figure(test_rate=obs.test_rate)
         self.plot_graphs(obs=obs, title=f"{self.name}, day {step} (deaths = {len(obs.graph.current_dead_nodes)})",
                          colours=history.colours)
