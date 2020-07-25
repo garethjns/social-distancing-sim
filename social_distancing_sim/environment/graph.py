@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
-from typing import Dict
-from typing import List, Union
+from typing import Callable, Dict, List, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -11,7 +9,7 @@ import seaborn as sns
 
 @dataclass
 class Graph:
-    """Class to handle environment graph, generation, etc."""
+    """Class to handle environments graph, generation, etc."""
     seed: Union[int, None] = None
     layout: str = "spring_layout"
 

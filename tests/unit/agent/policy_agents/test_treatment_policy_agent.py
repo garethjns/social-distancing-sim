@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from social_distancing_sim.agent.policy_agents.treatment_policy_agent import TreatmentPolicyAgent
 from social_distancing_sim.environment.action_space import ActionSpace
 from social_distancing_sim.environment.environment import Environment
+from social_distancing_sim.environment.gym.gym_env import GymEnv
 from social_distancing_sim.environment.observation_space import ObservationSpace
 
 
@@ -15,9 +16,10 @@ class TestTreatmentPolicyAgent(unittest.TestCase):
         mock_observation_space.current_clear_nodes = [9, 10, 11, 12]
         mock_observation_space.current_infected_nodes = [12, 13, 14]
 
-        mock_env = MagicMock(spec=Environment)
-        mock_env.observation_space = mock_observation_space
-        mock_env.action_space = ActionSpace()
+        mock_env = MagicMock(spec=GymEnv)
+        mock_env.sds_env = MagicMock(spec=Environment)
+        mock_env.sds_env.observation_space = mock_observation_space
+        mock_env.sds_env.action_space = ActionSpace()
 
         self._mock_env = mock_env
 

@@ -1,15 +1,21 @@
 import unittest
-from social_distancing_sim.agent.multi_agent.multi_agent import MultiAgent
+
 from social_distancing_sim.agent.basic_agents.isolation_agent import IsolationAgent
 from social_distancing_sim.agent.basic_agents.treatment_agent import TreatmentAgent
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
+from social_distancing_sim.agent.multi_agent.multi_agent import MultiAgent
 from social_distancing_sim.agent.policy_agents.distancing_policy_agent import DistancingPolicyAgent
 from social_distancing_sim.agent.policy_agents.treatment_policy_agent import TreatmentPolicyAgent
 from social_distancing_sim.agent.policy_agents.vaccination_policy_agent import VaccinationPolicyAgent
+from tests.common.env_fixtures import register_test_envs
 
 
 class TestMultiAgent(unittest.TestCase):
-    """TODO: WIP"""
+    """TODO: not finished."""
+
+    @classmethod
+    def setUpClass(cls):
+        register_test_envs()
 
     def setUp(self):
         self.distancing_policy_params = {"actions_per_turn": 15,
@@ -24,12 +30,14 @@ class TestMultiAgent(unittest.TestCase):
 
     def test_create_with_3_basic_agents(self):
         MultiAgent(name="Isolation, vaccination, treatment",
+                   env_spec='SDSTests-GymEnvFixedSeedFixture-v0',
                    agents=[IsolationAgent(),
                            TreatmentAgent(),
                            VaccinationAgent()])
 
     def test_create_with_3_policy_agents(self):
         MultiAgent(name="Distancing, vaccination, treatment",
+                   env_spec='SDSTests-GymEnvFixedSeedFixture-v0',
                    agents=[DistancingPolicyAgent(**self.distancing_policy_params),
                            VaccinationPolicyAgent(**self.vaccination_policy_params),
                            TreatmentPolicyAgent(**self.treatment_policy_params)])

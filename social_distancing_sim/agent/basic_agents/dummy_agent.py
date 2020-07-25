@@ -1,10 +1,9 @@
 from typing import Dict
 
-from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.environment.observation_space import ObservationSpace
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
 
-class DummyAgent(AgentBase):
+class DummyAgent(NonLearningAgentBase):
     """Doesn't do anything."""
     @property
     def available_actions(self) -> list:

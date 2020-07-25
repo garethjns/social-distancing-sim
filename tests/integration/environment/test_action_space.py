@@ -25,7 +25,7 @@ class TestActionSpace(unittest.TestCase):
         available_actions = action_space.available_actions
 
         # Assert
-        self.assertListEqual([0, 1, 2, 3, 4, 5], available_actions)
+        self.assertListEqual([0, 1, 2, 3, 4, 5, 6], available_actions)
 
     def test_vaccinate_action_adds_default_immunity(self):
         # Arrange

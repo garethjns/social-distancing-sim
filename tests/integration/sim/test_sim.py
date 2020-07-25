@@ -1,127 +1,83 @@
-import shutil
+import glob
+import os
+import tempfile
 import unittest
 
+import gym
+
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
-from social_distancing_sim.environment.disease import Disease
-from social_distancing_sim.environment.environment import Environment
-from social_distancing_sim.environment.environment_plotting import EnvironmentPlotting
-from social_distancing_sim.environment.graph import Graph
-from social_distancing_sim.environment.healthcare import Healthcare
-from social_distancing_sim.environment.observation_space import ObservationSpace
 from social_distancing_sim.sim.sim import Sim
+from tests.common.env_fixtures import register_sim_test_envs
 
 
 class TestSim(unittest.TestCase):
+    _test_field = 'Turn score'
+    _sut: Sim = Sim
 
     def setUp(self):
-        self._to_delete = None
+        register_sim_test_envs()
 
-        seed = 123
-        self._common_setup = {'disease': Disease(name='COVID-19',
-                                                 virulence=0.01,
-                                                 seed=seed,
-                                                 immunity_mean=0.95,
-                                                 immunity_decay_mean=0.05),
-                              'healthcare': Healthcare(capacity=5),
-                              'observation_space': ObservationSpace(graph=Graph(community_n=15,
-                                                                                community_size_mean=10,
-                                                                                seed=seed + 1),
-                                                                    test_rate=1,
-                                                                    seed=seed + 2),
-                              'seed': seed + 3}
-        self._ts_fields_g2 = ["Score", "Action cost",
-                              "Overall score"]
-        self._ts_obs_fields_g2 = ["Observed Score",
-                                  "Action cost",
-                                  "Observed overall score"]
+        self._tmp_dir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
-        if self._to_delete is not None:
-            shutil.rmtree(self._to_delete, ignore_errors=True)
+        self._tmp_dir.cleanup()
 
     def test_default_sim_run(self):
-        pop = Environment(disease=Disease(),
-                          healthcare=Healthcare(),
-                          observation_space=ObservationSpace(graph=Graph()))
+        # Arrange
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvDefaultFixture-v0').spec,
+                        n_steps=10,
+                        agent=VaccinationAgent(),
+                        plot=False, save=False)
 
-        sim = Sim(env=pop,
-                  agent=VaccinationAgent(env=pop),
-                  plot=False,
-                  save=False)
-
+        # Act
         sim.run()
+
+        # Assert
+        self.assertEqual(10, sim._step)
+        self.assertEqual(10, len(sim.env.sds_env.history[self._test_field]))
 
     def test_example_sim_run(self):
-        pop = Environment(name="agent example environment 1",
-                          environment_plotting=EnvironmentPlotting(),
-                          **self._common_setup)
+        # Arrange
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvDefaultFixture-v0').spec,
+                        save_dir=f"{self._tmp_dir.name}",
+                        agent=VaccinationAgent(actions_per_turn=25, seed=123),
+                        plot=False, save=False)
 
-        sim = Sim(env=pop,
-                  agent=VaccinationAgent(env=pop,
-                                         actions_per_turn=25,
-                                         seed=self._common_setup["seed"]),
-                  plot=False,
-                  save=False)
-
+        # Act
         sim.run()
 
-        self._to_delete = pop.name
+        # Assert
+        self.assertEqual(100, sim._step)
+        self.assertEqual(100, len(sim.env.sds_env.history[self._test_field]))
 
     def test_example_sim_run_with_plotting(self):
-        seed = 123
+        # Arrange
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvSomePlottingFixture-v0').spec,
+                        save_dir=f"{self._tmp_dir.name}",
+                        agent=VaccinationAgent(actions_per_turn=25, seed=123),
+                        plot=False, save=True, n_steps=12)
 
-        pop = Environment(name="agent example environment 2",
-                          environment_plotting=EnvironmentPlotting(ts_fields_g2=self._ts_fields_g2),
-                          **self._common_setup)
-
-        sim = Sim(env=pop,
-                  n_steps=3,
-                  agent=VaccinationAgent(env=pop,
-                                         actions_per_turn=25,
-                                         seed=seed),
-                  plot=False,
-                  save=True)
-
+        # Act
         sim.run()
-        sim.env.replay()
-        self._to_delete = pop.name
+        sim.env.sds_env.replay()
+
+        # Assert
+        self.assertEqual(12, sim._step)
+        self.assertEqual(12, len(sim.env.sds_env.history[self._test_field]))
+        self.assertEqual(12 + 1, len(glob.glob(os.path.join(sim.env.sds_env.environment_plotting.graph_path, "*.png"))))
 
     def test_example_sim_run_with_extra_plotting(self):
-        seed = 123
+        # Arrange
+        sim = self._sut(env_spec=gym.make('SDSTests-GymEnvExtraPlottingFixture-v0').spec,
+                        save_dir=f"{self._tmp_dir.name}",
+                        agent=VaccinationAgent(actions_per_turn=25, seed=123),
+                        plot=False, save=True, n_steps=16)
 
-        pop = Environment(name="agent example environment 3",
-                          environment_plotting=EnvironmentPlotting(ts_fields_g2=self._ts_fields_g2,
-                                                                   ts_obs_fields_g2=self._ts_obs_fields_g2),
-                          **self._common_setup)
-
-        sim = Sim(env=pop,
-                  n_steps=3,
-                  agent=VaccinationAgent(env=pop,
-                                         actions_per_turn=25,
-                                         seed=seed),
-                  plot=False,
-                  save=True)
-
+        # Act
         sim.run()
-        sim.env.replay()
-        self._to_delete = pop.name
+        sim.env.sds_env.replay()
 
-    def test_example_sim_run_with_all_plotting(self):
-        seed = 123
-
-        pop = Environment(name="agent example environment 4",
-                          environment_plotting=EnvironmentPlotting(ts_fields_g2=self._ts_fields_g2,
-                                                                   ts_obs_fields_g2=self._ts_obs_fields_g2),
-                          **self._common_setup)
-
-        sim = Sim(env=pop,
-                  n_steps=3,
-                  agent=VaccinationAgent(env=pop,
-                                         actions_per_turn=25,
-                                         seed=seed),
-                  plot=False,
-                  save=True)
-
-        sim.run()
-        sim.env.replay()
-        self._to_delete = pop.name
+        # Assert
+        self.assertEqual(16, sim._step)
+        self.assertEqual(16, len(sim.env.sds_env.history[self._test_field]))
+        self.assertEqual(16 + 1, len(glob.glob(os.path.join(sim.env.sds_env.environment_plotting.graph_path, "*.png"))))

@@ -1,9 +1,9 @@
 from typing import List, Dict
 
-from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
 
-class TreatmentAgent(AgentBase):
+class TreatmentAgent(NonLearningAgentBase):
     """TreatmentAgent randomly vaccinates clear nodes."""
 
     @property
@@ -13,7 +13,7 @@ class TreatmentAgent(AgentBase):
 
     @property
     def available_targets(self) -> List[int]:
-        return self.env.observation_space.current_infected_nodes
+        return self.env.sds_env.observation_space.current_infected_nodes
 
     def _select_actions_targets(self) -> Dict[int, int]:
         # Don't track sample call here as self.get_actions() will handle that.

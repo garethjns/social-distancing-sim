@@ -47,10 +47,14 @@ class ObservationSpace:
         self._random_state = np.random.RandomState(seed=self.seed)
 
     def state_summary(self) -> np.ndarray:
-        """Vector representing n of each node type. Contains known values."""
-        return np.array([len(self.current_clear_nodes), len(self.current_infected_nodes),
-                         len(self.current_isolated_nodes), len(self.current_immune_nodes),
-                         len(self.current_alive_nodes), len(self.unknown_nodes)])
+        """
+        Vector representing n of each node type. Contains known values.
+
+        Note this matches order returned by Status.state + unknown nodes at end at [-1].
+        """
+        return np.array([len(self.current_alive_nodes), len(self.current_clear_nodes), len(self.current_infected_nodes),
+                         len(self.current_immune_nodes), len(self.current_isolated_nodes),
+                         len(self.current_masked_nodes), len(self.unknown_nodes)])
 
     def state_graph(self) -> np.ndarray:
         """Node x node matrix representing graph. All connections are known, so same as .graph."""
@@ -122,8 +126,7 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._known_nodes = self.graph.current_alive_nodes
             else:
-                self._known_nodes = [nk for nk, nv in self.graph.g_.nodes.data()
-                                     if nv["status"].alive]
+                self._known_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].alive]
         return self._known_nodes
 
     @property
@@ -132,8 +135,7 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._current_infected_nodes = self.graph.current_infected_nodes
             else:
-                self._current_infected_nodes = [nk for nk, nv in self.graph.g_.nodes.data()
-                                                if nv["status"].infected]
+                self._current_infected_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].infected]
         return self._current_infected_nodes
 
     @property
@@ -142,8 +144,7 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._current_immune_nodes = self.graph.current_immune_nodes
             else:
-                self._current_immune_nodes = [nk for nk, nv in self.graph.g_.nodes.data()
-                                              if nv["status"].immune]
+                self._current_immune_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].immune]
         return self._current_immune_nodes
 
     @property
@@ -152,13 +153,12 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._current_clear_nodes = self.graph.current_clear_nodes
             else:
-                self._current_clear_nodes = [nk for nk, nv in self.graph.g_.nodes.data()
-                                             if nv["status"].clear]
+                self._current_clear_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].clear]
         return self._current_clear_nodes
 
     def test_population(self, time_step: int) -> None:
         """
-        Test random members of the environment, based on testing rate.
+        Test random members of the environments, based on testing rate.
 
         Chance of testing infected is grater than testing asymptomatic.
 
@@ -227,7 +227,7 @@ class ObservationSpace:
 
         :param ax: Matplotlib to draw on.
         :param colours: Colours to use for plots, for example, from defaults set in history, if available.
-        :param god_mode: If True, plot by-pass observation space filters and plot the whole environment state. If False,
+        :param god_mode: If True, plot by-pass observation space filters and plot the whole environments state. If False,
                          plot the observable graph only.
         """
         sns.set()
@@ -242,7 +242,8 @@ class ObservationSpace:
             self.graph.g_pos_ = nx.spring_layout(self.graph.g_,
                                                  seed=self.seed)
 
-        common_plotting_args = {'G': self.graph.g_, 'pos': self.graph.g_pos_, 'ax': ax, "node_size": 10}
+        common_plotting_args = {'G': self.graph.g_, 'pos': self.graph.g_pos_, 'ax': ax, "node_size": 12,
+                                "linewidths": 2, "alpha": 0.75}
 
         if god_mode:
             info_source = self.graph

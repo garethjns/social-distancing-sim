@@ -3,14 +3,14 @@ from social_distancing_sim.templates.template_base import TemplateBase
 
 
 class Small(TemplateBase):
-    """Base environment template specifying defaults."""
+    """Base environments template specifying defaults."""
 
     @classmethod
     def build(cls, environment_seed: int = None,
               graph_seed: int = 20200429,
               disease_seed: int = None,
               observation_space_seed: int = None) -> env.Environment:
-        return env.Environment(name="example environment",
+        return env.Environment(name="exps/example environments",
                                initial_infections=4,
                                action_space=env.ActionSpace(vaccinate_cost=0.1,
                                                             isolate_cost=0.1,

@@ -12,8 +12,8 @@ def run_and_replay(pop, *args, **kwargs):
 if __name__ == "__main__":
     save = True
 
-    # Create a environment with high inter and intra connectivity
-    pop = env.Environment(name='A herd of cats',
+    # Create a environments with high inter and intra connectivity
+    pop = env.Environment(name='exps/A herd of cats',
                           disease=env.Disease(name='COVID-19'),
                           observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
                                                                                  community_size_mean=16,
@@ -21,8 +21,8 @@ if __name__ == "__main__":
                                                                  test_rate=1),
                           environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Turn score"]))
 
-    # Create a environment with reduced inter and intra connectivity
-    pop_distanced = env.Environment(name='A socially responsible environment',
+    # Create a environments with reduced inter and intra connectivity
+    pop_distanced = env.Environment(name='exps/A socially responsible environments',
                                     disease=env.Disease(name='COVID-19'),
                                     observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,
                                                                                            community_size_mean=16,

@@ -17,6 +17,7 @@ from social_distancing_sim.environment.observation_space import ObservationSpace
 
 @dataclass
 class EnvironmentPlotting:
+    name: str = 'output_dir'
     both: bool = True
     auto_lim_x: bool = True
     auto_lim_y: bool = True
@@ -26,24 +27,22 @@ class EnvironmentPlotting:
     ts_obs_fields_g2: List[str] = None
 
     def __post_init__(self):
-        self.name: Union[str, None] = None
         self.output_path: Union[str, None] = None
         self.graph_path: Union[str, None] = None
-        self.name: Union[str, None] = None
 
         sns.set()
 
-    def prepare_output_path(self, name: str) -> None:
-        # TODO: Change to only clear/make dirs when actually plotting.
-        if self.output_path is None:
-            self.name = name
-            self.output_path = f"{name}"
-            shutil.rmtree(self.output_path,
-                          ignore_errors=True)
+    def set_output_path(self, path: str) -> None:
+        path = f"{os.path.abspath(path)}".replace('\\', '/')
+        self.name = path.split('/')[-1]
+        self.output_path = path
+        self.graph_path = f"{self.output_path}/graphs/"
+        shutil.rmtree(self.graph_path, ignore_errors=True)
 
-            self.graph_path = f"{self.output_path}/graphs/"
-            os.makedirs(self.graph_path,
-                        exist_ok=True)
+    def _prepare_output_path(self):
+        if self.output_path is None:
+            self.set_output_path(self.name)
+        os.makedirs(self.graph_path, exist_ok=True)
 
     def _prepare_figure(self, test_rate: float = 1) -> None:
         """
@@ -56,7 +55,7 @@ class EnvironmentPlotting:
 
         TODO: Add new specs with .plot_matrix and .plot_summary available in Graph and ObservationSpace.
         """
-        plt.close()
+        plt.close('all')
 
         self._g2_on = False
         ts_ax_g2 = None
@@ -104,7 +103,7 @@ class EnvironmentPlotting:
 
     def plot(self, obs: ObservationSpace, history: History, healthcare: Healthcare, step: int,
              total_steps: int,
-             save: bool = True, show: bool = True) -> None:
+             save: bool = True, show: bool = True, **kwagrs) -> None:
         self._prepare_figure(test_rate=obs.test_rate)
         self.plot_graphs(obs=obs, title=f"{self.name}, day {step} (deaths = {len(obs.graph.current_dead_nodes)})",
                          colours=history.colours)
@@ -114,7 +113,8 @@ class EnvironmentPlotting:
         self._figure.tight_layout()
 
         if save:
-            plt.savefig(f"{self.output_path}/graphs/{step}_graph.png")
+            self._prepare_output_path()
+            plt.savefig(f"{self.graph_path}/{step}_graph.png")
 
         if show:
             plt.show()
@@ -179,4 +179,8 @@ class EnvironmentPlotting:
         return output_path
 
     def clone(self) -> "EnvironmentPlotting":
+        self._figure = None
+        self._graph_ax = None
+        self._ts_ax_g1 = None
+        self._ts_ax_g2 = None
         return copy.deepcopy(self)

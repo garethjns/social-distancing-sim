@@ -13,7 +13,6 @@ class Status:
     4) If immune, not infected
     5) If recovered, clear, immune, not infected
     6) If isolated
-
     """
 
     def __init__(self,

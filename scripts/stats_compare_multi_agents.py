@@ -6,14 +6,17 @@ Parameters here are similar to the visual version run in scripts/visual_compare_
 """
 from typing import List
 
+import gym
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 from tqdm import tqdm
 
 import social_distancing_sim.environment as env
 import social_distancing_sim.sim as sim
 from scripts.visual_compare_multi_agents import AGENTS
-
+from social_distancing_sim.environment.gym.gym_env import GymEnv
+from social_distancing_sim.templates.template_base import TemplateBase
 
 SEED = 123
 STEPS = 250
@@ -49,12 +52,9 @@ def plot_dists(multi_sims: List[sim.MultiSim],
     return fig
 
 
-def run_multi_sims():
-    # Loop over the parameter set and create the Agents, Environments, and the Sim handler
-    multi_sims = []
-    for agt in AGENTS:
-        # Name the environment according to the agent used
-        env_ = env.Environment(name=f"{type(agt).__name__} - {agt.name}",
+class EnvTemplate(TemplateBase):
+    def build(self):
+        env_ = env.Environment(name=f"exps/script",
                                action_space=env.ActionSpace(vaccinate_cost=0,
                                                             treat_cost=0,
                                                             isolate_cost=0,
@@ -81,12 +81,28 @@ def run_multi_sims():
                                initial_infections=5,
                                random_infection_chance=1,
                                seed=None)
+        return env_
 
-        sim_ = sim.Sim(env=env_,
-                       agent=agt,
-                       n_steps=150)
+
+class CustomEnv(GymEnv):
+    template = EnvTemplate()
+
+
+def run_multi_sims():
+    env_name = f"SDSTests-CustomEnv{np.random.randint(2e6)}-v0"
+    gym.envs.register(id=env_name,
+                      entry_point='scripts.stats_compare_multi_agents:CustomEnv',
+                      max_episode_steps=1000)
+    env_spec = gym.make(env_name).spec
+
+    # Loop over the parameter set and create the Agents, Environments, and the Sim handler
+    multi_sims = []
+    for agt in AGENTS:
+        # Name the environments according to the agent used
+        sim_ = sim.Sim(env_spec=env_spec, agent=agt, n_steps=150)
 
         multi_sims.append(sim.MultiSim(sim_,
+                                       n_jobs=50,
                                        name='policy agent comparison',
                                        n_reps=100))
 

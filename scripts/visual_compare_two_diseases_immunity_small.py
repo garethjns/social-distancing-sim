@@ -1,4 +1,4 @@
-"""Run a single environment for 2 years with imperfect immunity and limited test rate."""
+"""Run a single environments for 2 years with imperfect immunity and limited test rate."""
 
 from joblib import Parallel, delayed
 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     save = True
     duration = 0.1
 
-    pop_low_immunity = env.Environment(name="Low immunity environment (small)",
+    pop_low_immunity = env.Environment(name="exps/Low immunity environments (small)",
                                        disease=env.Disease(name='COVID-19',
                                                            virulence=0.035,
                                                            recovery_rate=0.99,
@@ -38,7 +38,7 @@ if __name__ == "__main__":
                                        healthcare=env.Healthcare(capacity=300),
                                        seed=124)
 
-    pop_high_immunity = env.Environment(name="High immunity environment (small)",
+    pop_high_immunity = env.Environment(name="exps/High immunity environments (small)",
                                         disease=env.Disease(name='COVID-19',
                                                             virulence=0.035,
                                                             recovery_rate=0.99,

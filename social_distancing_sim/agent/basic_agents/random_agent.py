@@ -1,9 +1,9 @@
 from typing import Dict, List
 
-from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
 
-class RandomAgent(AgentBase):
+class RandomAgent(NonLearningAgentBase):
     """
     RandomAgent randomly selects an action and target.
 
@@ -13,7 +13,7 @@ class RandomAgent(AgentBase):
 
     @property
     def available_actions(self) -> List[int]:
-        return [1, 2]
+        return [0, 1, 2, 4, 5, 6]
 
     def _select_actions_targets(self) -> Dict[int, int]:
         return self.sample()

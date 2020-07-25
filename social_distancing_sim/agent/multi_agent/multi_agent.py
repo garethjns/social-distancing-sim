@@ -1,27 +1,33 @@
 from typing import List, Dict, Union
 
-from social_distancing_sim.agent.agent_base import AgentBase
-from social_distancing_sim.environment.environment import Environment
+import gym
+
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
+from social_distancing_sim.environment.gym.gym_env import GymEnv
 
 
-class MultiAgent(AgentBase):
+class MultiAgent(NonLearningAgentBase):
     """
     Combine other agents/policy agents
 
     Actions per turn is dynamic and determined by individual agents
     """
 
-    def __init__(self, agents: List[AgentBase], env: Union[Environment, None] = None, *args, **kwargs):
+    def __init__(self, agents: List[NonLearningAgentBase], env_spec: str = None,
+                 *args, **kwargs):
         self.agents = agents
         self.actions_per_turn = sum([a.actions_per_turn for a in agents])
-        self.set_env(env)
+        super().__init__(env_spec, *args, **kwargs)
 
-        super().__init__(env, *args, **kwargs)
+        if env_spec is not None:
+            self.attach_to_env(env_spec)
 
-    def set_env(self, env: Union[None, Environment]) -> None:
-        self.env = env
+    def attach_to_env(self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]) -> None:
+
+        super().attach_to_env(env_or_spec)
+
         for agt in self.agents:
-            agt.set_env(self.env)
+            agt.attach_to_env(self.env)
 
     def _select_actions_targets(self) -> Dict[int, int]:
         """Ask each agent for their actions. They handle n and availability"""

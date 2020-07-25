@@ -1,4 +1,6 @@
+import tempfile
 import unittest
+from tempfile import tempdir
 
 from joblib import Parallel, delayed
 
@@ -15,11 +17,14 @@ def run_and_replay(pop, *args, **kwargs):
 
 
 class TestPopulation(unittest.TestCase):
+    def setUp(self):
+        self._temp_dir = tempfile.TemporaryDirectory()
+
     def test_population_run(self):
         graph = Graph(community_n=15,
                       community_size_mean=5)
 
-        pop = Environment(name="example environment",
+        pop = Environment(name=f"{self._temp_dir.name}/example environment",
                           disease=Disease(name='COVID-19'),
                           healthcare=Healthcare(),
                           observation_space=ObservationSpace(graph=graph,
@@ -36,7 +41,7 @@ class TestPopulation(unittest.TestCase):
         graph = Graph(community_n=15,
                       community_size_mean=5)
 
-        pop = Environment(name="example environment",
+        pop = Environment(name=f"{self._temp_dir.name}example environment",
                           disease=Disease(name='COVID-19'),
                           healthcare=Healthcare(),
                           observation_space=ObservationSpace(graph=graph,
@@ -53,7 +58,7 @@ class TestPopulation(unittest.TestCase):
         disease = Disease(name='COVID-19')
         healthcare = Healthcare()
 
-        pop_close = Environment(name='A herd of cats, observed',
+        pop_close = Environment(name=f"{self._temp_dir.name}A herd of cats, observed",
                                 disease=disease,
                                 healthcare=healthcare,
                                 observation_space=ObservationSpace(graph=Graph(community_n=15,
@@ -61,7 +66,7 @@ class TestPopulation(unittest.TestCase):
                                                                                seed=123),
                                                                    test_rate=0.1))
 
-        pop_distanced = Environment(name='A socially responsible environment, observed',
+        pop_distanced = Environment(name=f"{self._temp_dir.name}/A socially responsible environment, observed",
                                     disease=disease,
                                     healthcare=healthcare,
                                     observation_space=ObservationSpace(graph=Graph(community_n=15,

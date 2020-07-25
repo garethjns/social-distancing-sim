@@ -1,9 +1,9 @@
 from typing import List, Dict
 
-from social_distancing_sim.agent.agent_base import AgentBase
+from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
 
-class TreatmentPolicyAgent(AgentBase):
+class TreatmentPolicyAgent(NonLearningAgentBase):
     """
     TreatmentPolicyAgent applies treatment to random infected nodes in active time frame.
 
@@ -22,7 +22,7 @@ class TreatmentPolicyAgent(AgentBase):
     @property
     def available_targets(self) -> List[int]:
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
-        return self.env.observation_space.current_infected_nodes
+        return self.env.sds_env.observation_space.current_infected_nodes
 
     def _select_actions_targets(self) -> Dict[int, int]:
         if len(self.currently_active_actions) > 0:
