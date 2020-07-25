@@ -19,6 +19,7 @@ from tests.common.env_fixtures import register_test_envs
 class TestDQNUntargeted(unittest.TestCase):
     _sut = DQNUntargeted
     _env = 'SDSTests-GymEnvFixedSeedFixture-v0'
+    _png_path: str = "graphs/*.png"
 
     @classmethod
     def setUpClass(cls):
@@ -54,7 +55,7 @@ class TestDQNUntargeted(unittest.TestCase):
         sim.run()
 
         # Assert
-        self.assertEqual(0, len(glob.glob(os.path.join(self._tmp_dir.name, "graphs", "*.png"))))
+        self.assertEqual(0, len(glob.glob(os.path.join(self._tmp_dir.name, self._png_path))))
 
     def test_run_agent_in_sim_render_off(self):
         # Arrange
@@ -66,7 +67,7 @@ class TestDQNUntargeted(unittest.TestCase):
         sim.run()
 
         # Assert
-        self.assertEqual(0, len(glob.glob(os.path.join(self._tmp_dir.name, "graphs", "*.png"))))
+        self.assertEqual(0, len(glob.glob(os.path.join(self._tmp_dir.name, self._png_path))))
 
     @patch("social_distancing_sim.environment.environment_plotting.plt.show")
     def test_run_agent_without_sim_render_on(self, *args):
@@ -80,7 +81,7 @@ class TestDQNUntargeted(unittest.TestCase):
         self._agent.env.replay()
 
         # Assert
-        self.assertEqual(3, len(glob.glob(os.path.join(self._tmp_dir.name, "graphs", "*.png"))))
+        self.assertEqual(3, len(glob.glob(os.path.join(self._tmp_dir.name, self._png_path))))
 
     def test_run_agent_without_sim_render_off(self):
         # Arrange
@@ -92,7 +93,7 @@ class TestDQNUntargeted(unittest.TestCase):
         self._agent.play_episode(render=False, max_episode_steps=3)
 
         # Assert
-        self.assertEqual(0, len(glob.glob(os.path.join(self._tmp_dir.name, "graphs", "*.png"))))
+        self.assertEqual(0, len(glob.glob(os.path.join(self._tmp_dir.name, self._png_path))))
 
     def test_in_multisim_single_job(self):
         # Arrange

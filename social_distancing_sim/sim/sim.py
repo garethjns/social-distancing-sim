@@ -39,7 +39,7 @@ class Sim:
         self.env = self.env_spec.make()
 
         # Set the new save paths
-        self.save_path = os.path.join(self.save_dir, self.env.save_path)
+        self.save_path = os.path.join(self.save_dir, self.env.save_path, self.agent.name)
         self.env.sds_env.environment_plotting.set_output_path(self.save_path)
 
     def _prepare_agent(self):
@@ -75,7 +75,7 @@ class Sim:
 
             self._last_state = self.agent.env.reset()
             for _ in self._tqdm(range(self.n_steps),
-                                desc=self.agent.env.sds_env.name):
+                                desc=f"{self.agent.env.sds_env.name}: {self.agent.name}"):
                 self.step()
                 self._step += 1
 

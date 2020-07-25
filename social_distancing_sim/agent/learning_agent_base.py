@@ -26,7 +26,8 @@ class LearningAgentBase(metaclass=abc.ABCMeta):
 
     def __init__(self, *args, actions_per_turn: int = 5, **kwargs):
         self.actions_per_turn = actions_per_turn
-        self.rlk_agent = self.rlk_agent_class(*args, **kwargs)
+        if len(kwargs.keys()) > 0:
+            self.rlk_agent = self.rlk_agent_class(*args, **kwargs)
 
     @abc.abstractmethod
     def get_actions(self,
@@ -103,8 +104,15 @@ class LearningAgentBase(metaclass=abc.ABCMeta):
     def play_episode(self, *args, **kwargs):
         self.rlk_agent.play_episode(*args, **kwargs)
 
-    def load(self, fn: str) -> None:
-        self.rlk_agent = self.rlk_agent_class.load(fn)
+    @classmethod
+    def load(cls, fn: str, actions_per_turn: int = 5) -> "LearningAgentBase":
+        agent = cls(actions_per_turn=actions_per_turn)
+        agent.rlk_agent = cls.rlk_agent_class.load(fn)
+
+        return agent
+
+    def check_ready(self):
+        self.rlk_agent.check_ready()
 
     def save(self) -> None:
         self.rlk_agent.save()

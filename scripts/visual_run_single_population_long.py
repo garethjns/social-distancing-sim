@@ -1,4 +1,4 @@
-"""Run a single environment for 2 years with imperfect immunity and limited test rate."""
+"""Run a single environments for 2 years with imperfect immunity and limited test rate."""
 
 import social_distancing_sim.environment as env
 
@@ -10,7 +10,7 @@ if __name__ == "__main__":
                       community_p_in=0.1,
                       community_p_out=0.05)
 
-    pop = env.Environment(name="example environment",
+    pop = env.Environment(name="exps/example environments",
                           disease=env.Disease(name='COVID-19',
                                               virulence=0.006,
                                               immunity_mean=0.6,
@@ -23,6 +23,6 @@ if __name__ == "__main__":
             plot=True,
             save=True)
 
-    # Save .gif to './example environment/replay.gif'
+    # Save .gif to './example environments/replay.gif'
     if save:
         pop.replay()

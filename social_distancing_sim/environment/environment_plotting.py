@@ -17,6 +17,7 @@ from social_distancing_sim.environment.observation_space import ObservationSpace
 
 @dataclass
 class EnvironmentPlotting:
+    name: str = 'output_dir'
     both: bool = True
     auto_lim_x: bool = True
     auto_lim_y: bool = True
@@ -26,10 +27,8 @@ class EnvironmentPlotting:
     ts_obs_fields_g2: List[str] = None
 
     def __post_init__(self):
-        self.name: Union[str, None] = None
         self.output_path: Union[str, None] = None
         self.graph_path: Union[str, None] = None
-        self.name: Union[str, None] = None
 
         sns.set()
 
@@ -41,6 +40,8 @@ class EnvironmentPlotting:
         shutil.rmtree(self.graph_path, ignore_errors=True)
 
     def _prepare_output_path(self):
+        if self.output_path is None:
+            self.set_output_path(self.name)
         os.makedirs(self.graph_path, exist_ok=True)
 
     def _prepare_figure(self, test_rate: float = 1) -> None:

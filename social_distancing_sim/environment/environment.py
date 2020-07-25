@@ -38,7 +38,7 @@ class Environment:
         self._total_steps: int = 0
 
         if self.environment_plotting is None:
-            self.environment_plotting = EnvironmentPlotting()
+            self.environment_plotting = EnvironmentPlotting(name=self.name)
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)

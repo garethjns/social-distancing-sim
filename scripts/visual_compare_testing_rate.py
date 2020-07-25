@@ -3,7 +3,7 @@ import social_distancing_sim.environment as env
 if __name__ == "__main__":
     save = True
 
-    pop = env.Environment(name='A herd of cats, observed',
+    pop = env.Environment(name='exps/A herd of cats, observed',
                           disease=env.Disease(name='COVID-19'),
                           healthcare=env.Healthcare(),
                           observation_space=env.ObservationSpace(graph=env.Graph(community_n=40,

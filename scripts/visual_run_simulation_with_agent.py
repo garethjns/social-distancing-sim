@@ -5,7 +5,7 @@ from social_distancing_sim.agent.basic_agents.vaccination_agent import Vaccinati
 if __name__ == "__main__":
     seed = 123
 
-    pop = env.Environment(name="agent example environment",
+    pop = env.Environment(name="exps/agent example environments",
                           disease=env.Disease(name='COVID-19',
                                               virulence=0.01,
                                               seed=seed,

@@ -2,24 +2,16 @@
 
 from typing import List
 
+import gym
 import matplotlib.pyplot as plt
 import seaborn as sns
+from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from tqdm import tqdm
 
 import social_distancing_sim.agent as agent
 import social_distancing_sim.sim as sim
 from scripts.visual_compare_multi_agents import DISTANCING_PARAMS, MASKING_PARAMS, TREATMENT_PARAMS, VACCINATION_PARAMS
-from social_distancing_sim.gym.agent.rl.q_learners.deep_q_agent import DeepQAgent
-from social_distancing_sim.gym.agent.rl.q_learners.linear_q_agent import LinearQAgent
-from social_distancing_sim.templates.small import Small
-
-
-def prepare_tf(memory_limit: int = 1024):
-    import tensorflow as tf
-
-    tf.config.experimental.set_virtual_device_configuration(tf.config.experimental.list_physical_devices('GPU')[0],
-                                                            [tf.config.experimental.VirtualDeviceConfiguration(
-                                                                memory_limit=memory_limit)])
+from social_distancing_sim.agent.rl_agents.q_learning.dqn_untargeted import DQNUntargeted
 
 
 def plot_dists(multi_sims: List[sim.MultiSim],
@@ -52,14 +44,15 @@ def plot_dists(multi_sims: List[sim.MultiSim],
 
 
 if __name__ == "__main__":
-    prepare_tf()
+    gpu = VirtualGPU(gpu_memory_limit=4096,
+                     gpu_device_id=1)
+    gym.envs.register(id='SDS-746-v0',
+                      entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
+                      max_episode_steps=1000)
+    env_spec = gym.make('SDS-746-v0').spec
+    steps = 10
 
-    steps = 200
-
-    linear_q_agent = LinearQAgent.load('linear_q_learner.pkl')
-    linear_q_agent.name = 'linear_q_agent'
-    deep_q_agent = DeepQAgent.load('deep_q_learner.pkl')
-    deep_q_agent.name = 'deep_q_agent'
+    deep_q_agent = DQNUntargeted.load('scripts/flat_obs_dqn_SDS-746-v0', actions_per_turn=5)
 
     agents = [agent.DummyAgent(name='Dummy agent'),
               agent.MultiAgent(name="Distancing, vaccination, treatment",
@@ -71,22 +64,21 @@ if __name__ == "__main__":
                                        agent.VaccinationPolicyAgent(**VACCINATION_PARAMS),
                                        agent.TreatmentPolicyAgent(**TREATMENT_PARAMS),
                                        agent.MaskingPolicyAgent(**MASKING_PARAMS)]),
-              linear_q_agent,
               deep_q_agent]
+    agents = [agent.DummyAgent(name='Dummy agent'), deep_q_agent]
 
     # Loop over the parameter set and create the Agents, Environments, and the Sim handler
     multi_sims = []
     for agt in agents:
-        # Name the environment according to the agent used
-        sim_ = sim.Sim(env=Small().build(),
+        sim_ = sim.Sim(env_spec=env_spec,
                        tqdm_on=False,
                        agent=agt,
                        n_steps=steps)
 
         multi_sims.append(sim.MultiSim(sim_,
-                                       n_jobs=1,  # Needs to be 1, DeepQAgent doesn't support pickle yet
+                                       n_jobs=1,
                                        name='rl agents',
-                                       n_reps=100))
+                                       n_reps=5))
 
     # Run all the sims. No need to parallelize here as it's done across n reps in MultiSim.run()
     for ms in tqdm(multi_sims):

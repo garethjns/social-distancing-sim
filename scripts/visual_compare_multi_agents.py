@@ -1,10 +1,13 @@
 """A number of different MultiAgent setups (n reps = 1). Generate and save .gif."""
-
+import gym
+import numpy as np
 from joblib import Parallel, delayed
 
 import social_distancing_sim.agent as agent
 import social_distancing_sim.environment as env
 import social_distancing_sim.sim as sim
+from social_distancing_sim.environment.gym.gym_env import GymEnv
+from social_distancing_sim.templates.template_base import TemplateBase
 
 
 def run_and_replay(sim):
@@ -13,7 +16,6 @@ def run_and_replay(sim):
         sim.env.replay()
 
 
-SEED = 123
 STEPS = 250
 MASKING_PARAMS = {"actions_per_turn": 10,
                   "start_step": {'provide_mask': 40},
@@ -75,12 +77,10 @@ AGENTS = [
 ]
 
 
-def run_agents():
-    # Loop over the parameter set and create the Agents, Environments, and the Sim handler
-    sims = []
-    for agt in AGENTS:
-        # Name the environment according to the agent used
-        env_ = env.Environment(name=f"{type(agt).__name__} - {agt.name}",
+class EnvTemplate(TemplateBase):
+    def build(self):
+        seed = 125
+        return env.Environment(name=f"visual_compare_multi_agents_custom_env",
                                action_space=env.ActionSpace(isolate_efficiency=0.75,
                                                             reconnect_efficiency=0.2,
                                                             treatment_conclusion_chance=0.2,
@@ -88,7 +88,7 @@ def run_agents():
                                                             vaccinate_efficiency=0.95),
                                disease=env.Disease(name='COVID-19',
                                                    virulence=0.0055,
-                                                   seed=SEED,
+                                                   seed=seed,
                                                    immunity_mean=0.7,
                                                    recovery_rate=0.95,
                                                    immunity_decay_mean=0.012),
@@ -102,14 +102,23 @@ def run_agents():
                                                    community_size_mean=20,
                                                    community_p_out=0.08,
                                                    community_p_in=0.16,
-                                                   seed=SEED + 1),
+                                                   seed=seed + 1),
                                    test_rate=1,
-                                   seed=SEED + 2),
+                                   seed=seed + 2),
                                initial_infections=5,
                                random_infection_chance=1,
-                               seed=SEED + 3)
+                               seed=seed + 3)
 
-        sims.append(sim.Sim(env=env_,
+
+class CustomEnv(GymEnv):
+    template = EnvTemplate()
+
+
+def run_agents():
+    # Loop over the parameter set and create the Agents, Environments, and the Sim handler
+    sims = []
+    for agt in AGENTS:
+        sims.append(sim.Sim(env_spec=gym.make(env_name).spec,
                             agent=agt,
                             n_steps=STEPS,
                             plot=False,
@@ -117,9 +126,14 @@ def run_agents():
                             tqdm_on=True))  # Show progress bars for running sims
 
     # Run all the prepared Sims
-    Parallel(n_jobs=9,
-             backend='loky')(delayed(run_and_replay)(sim_) for sim_ in sims)
+    Parallel(n_jobs=60, backend='loky')(delayed(run_and_replay)(sim_) for sim_ in sims)
 
 
 if __name__ == "__main__":
+    # Prepare a custom environment
+    env_name = f"SDSTests-CustomEnv{np.random.randint(2e6)}-v0"
+    gym.envs.register(id=env_name,
+                      entry_point='scripts.visual_compare_multi_agents:CustomEnv',
+                      max_episode_steps=1000)
+
     run_agents()
