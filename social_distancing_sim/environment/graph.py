@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
-from typing import Dict
-from typing import List, Union
+from typing import Callable, Dict, List, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
