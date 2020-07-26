@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
+from social_distancing_sim.environment.gym.gym_env import GymEnv
 from social_distancing_sim.environment.history import History
 
 
@@ -26,6 +27,8 @@ class Sim:
     tqdm_on: bool = False
 
     def __post_init__(self):
+        self.env: GymEnv
+
         if self.tqdm_on:
             self._tqdm = tqdm
 
@@ -40,6 +43,7 @@ class Sim:
 
         # Set the new save paths
         self.save_path = os.path.join(self.save_dir, self.env.save_path, self.agent.name)
+        self.env.sds_env.set_output_path(self.save_path)
         self.env.sds_env.environment_plotting.set_output_path(self.save_path)
 
     def _prepare_agent(self):

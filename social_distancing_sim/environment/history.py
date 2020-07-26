@@ -46,6 +46,11 @@ class History(dict):
 
         return hist
 
+    @property
+    def last_turn(self) -> Dict[str, float]:
+        """Return last logged value for each key."""
+        return {k: v[-1] if len(v) > 0 else v for k, v in self.items()}
+
     def plot(self, ks: List[str],
              ax: plt.axes = None,
              x_label: str = 'Day',

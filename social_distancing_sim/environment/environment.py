@@ -1,3 +1,7 @@
+import logging
+import os
+import pprint
+import shutil
 import time
 import warnings
 from dataclasses import dataclass
@@ -30,6 +34,9 @@ class Environment:
     random_infection_chance: float = 0.01
 
     def __post_init__(self) -> None:
+        self.output_path: Union[None, str] = None
+        self.set_output_path()
+
         self._prepare_random_state()
 
         self.total_population = self.observation_space.graph.total_population
@@ -38,7 +45,37 @@ class Environment:
         self._total_steps: int = 0
 
         if self.environment_plotting is None:
-            self.environment_plotting = EnvironmentPlotting(name=self.name)
+            self.environment_plotting = EnvironmentPlotting(name=self.output_path)
+
+    def set_output_path(self, path: str = None) -> None:
+        if self.output_path is not None:
+            # Tidy old output
+            shutil.rmtree(self.output_path, ignore_errors=True)
+
+        if path is None:
+            path = self.name
+        path = f"{os.path.abspath(path)}".replace('\\', '/')
+        self.output_path = path
+
+        shutil.rmtree(self.output_path, ignore_errors=True)
+        os.makedirs(self.output_path, exist_ok=True)
+        self.log_file = os.path.join(self.output_path, 'log.txt').replace('\\', '/')
+
+        # Set plotting output if it hasn't been specifically set already
+        if self.environment_plotting.name is None:
+            self.environment_plotting.name = self.name
+
+        self._prepare_logger()
+
+    def _prepare_logger(self) -> None:
+        logger = logging.getLogger(self.name)
+        logger.setLevel(logging.INFO)
+        handler = logging.FileHandler(self.log_file, 'w+')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        logger.addHandler(handler)
+        handler.setFormatter(formatter)
+
+        self.logger = logger
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
@@ -50,24 +87,28 @@ class Environment:
                 self._random_state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
             self.disease.force_infect(self.observation_space.graph.g_.nodes[node_id])
 
+            self.logger.info(f"Randomly infected nodes {node_id}")
+
     def _infect_neighbours(self) -> int:
         """
         For all the currently infected nodes, attempt to infect neighbours.
 
         TODO: This is the biggest time sink
         """
-        new_infections = 0
+        total_new_infections = 0
         for n in self.observation_space.graph.current_infected_nodes:
-            # Get neighbours
-            for nb in self.observation_space.graph.g_.neighbors(n):
-                node = self.disease.try_to_infect(source_node=self.observation_space.graph.g_.nodes[n],
-                                                  target_node=self.observation_space.graph.g_.nodes[nb])
+            neighbours = list(self.observation_space.graph.g_.neighbors(n))
 
-                if node["infected"] == 1:
-                    # new infection, count
-                    new_infections += node["infected"]
+            new_infections = self.disease.try_to_infect_multiple(
+                source_node=self.observation_space.graph.g_.nodes.data()[n],
+                target_nodes=[self.observation_space.graph.g_.nodes.data()[neighbour]
+                              for neighbour in neighbours])
+            self.logger.info(
+                f"Node {n} infected nodes {[node for node, new in zip(neighbours, new_infections) if new]}")
 
-        return new_infections
+            total_new_infections += sum(new_infections)
+
+        return total_new_infections
 
     def _conclude_all(self) -> Tuple[int, int]:
         """
@@ -82,6 +123,7 @@ class Environment:
         recovery_rate_modifier = self.healthcare.recovery_rate_penalty(
             n_current_infected=self.observation_space.graph.n_current_infected)
         for n in self.observation_space.graph.current_infected_nodes:
+            outcome = 'continues'
             node = self.disease.conclude(self.observation_space.graph.g_.nodes[n],
                                          recovery_rate_modifier=recovery_rate_modifier)
 
@@ -89,14 +131,21 @@ class Environment:
             if node["alive"]:
                 if node["infected"] == 0:
                     recoveries += 1
+                    outcome = "recovered"
             else:
                 deaths += 1
+                outcome = "died"
+
+            self.logger.info(f"Node {n} disease outcome: {outcome.capitalize()}")
 
         return deaths, recoveries
 
     def _update_immunities(self):
         for node in self.observation_space.graph.current_immune_nodes:
+            current_immunity = self.observation_space.graph.g_.nodes[node]['immune']
             self.disease.decay_immunity(self.observation_space.graph.g_.nodes[node])
+            new_immunity = self.observation_space.graph.g_.nodes[node]["immune"]
+            self.logger.info(f"Decayed immunity for node {node}: {current_immunity} -> {new_immunity}")
 
     def _select_random_nodes(self, n: int) -> int:
         return self._random_state.choice(self.observation_space.graph.g_.nodes, size=n, replace=True)
@@ -127,6 +176,8 @@ class Environment:
             raise ValueError
 
         actions_dict = {t: a for t, a in zip(targets, actions)}
+        self.logger.info(f"Environment assigned actions to targets automatically: {actions_dict}")
+
         # Remove actions with invalid targets
         return {t: a for t, a in actions_dict.items() if t != -1}
 
@@ -137,18 +188,25 @@ class Environment:
         else:
             actions_dict = {t: a for t, a in zip(targets, actions)}
 
+        self.logger.info(f"Actions dict for turn: {actions_dict}")
+
         # Perform actions
         completed_actions = {}
         total_action_cost = 0
         for target_node_id, ac in actions_dict.items():
             ac_name = self.action_space.get_action_name(ac)
-            total_action_cost = getattr(self.action_space, ac_name)(target_node_id=target_node_id,
-                                                                    env=self, step=self._step)
-            completed_actions.update({target_node_id: ac})
+            action_cost = getattr(self.action_space, ac_name)(target_node_id=target_node_id,
+                                                              env=self, step=self._step)
+            action_taken = {target_node_id: ac}
+
+            completed_actions.update(action_taken)
+            total_action_cost += action_cost
+            self.logger.info(f"Action taken: {action_taken}, costing {action_cost}")
 
         return completed_actions, total_action_cost
 
     def step(self, actions: List[int], targets: [List[Union[None, int]]] = None) -> Tuple[Dict[str, Any], float, bool]:
+        self.logger.info(f"\n\n***Step: {self._step}***")
         self.observation_space.reset_cached_values()
         self.observation_space.graph.reset_cached_values()
         done = False
@@ -156,20 +214,26 @@ class Environment:
         # Run some env
         # Initial infections
         if self._step == 0:
+            self.logger.info(f"Applying {self.initial_infections} initial infections...")
             for _ in range(self.initial_infections):
                 self._infect_random()
         # Random infections
         if self._random_state.binomial(1, self.random_infection_chance):
+            self.logger.info(f"Applying random infections...")
             self._infect_random()
 
         # Act
         completed_actions, action_costs = self._act(actions, targets)
+        self.logger.info(f"Action summary: Completed actions: {completed_actions}, total cost: {action_costs}")
 
         # Run remaining env
         new_infections = self._infect_neighbours()
+        self.logger.info(f"Infection summary: New infections: {new_infections}")
         deaths, recoveries = self._conclude_all()
+        self.logger.info(f"Disease conclusion summary: Deaths: {deaths}, Recoveries: {recoveries}")
         self.observation_space.test_population(self._step)
         known_new_infections = self.observation_space.update_observed_statuses(self._step)
+        self.logger.info(f"Infections found in testing: {known_new_infections}")
         self._update_immunities()
 
         # Score and log complete env history
@@ -181,6 +245,8 @@ class Environment:
                                                  action_cost=action_costs,
                                                  new_infections=known_new_infections,
                                                  new_deaths=deaths)
+        self.logger.info(f"Turn score: {np.round(turn_score, 2)}")
+        self.logger.info(f"Observed turn score: {np.round(obs_turn_score, 2)}")
 
         self.history.log_score(new_infections=new_infections,
                                known_new_infections=known_new_infections, deaths=deaths,
@@ -189,6 +255,7 @@ class Environment:
         self.history.log_actions(actions_taken=completed_actions,
                                  actions_attempted={a: None for a in actions})
         self.history.log_observation_space(obs=self.observation_space, healthcare=self.healthcare)
+        self.logger.info(f"Turn summary:\n{pprint.pformat(self.history.last_turn)}")
 
         self._step += 1
 
@@ -201,6 +268,7 @@ class Environment:
                        'completed_actions': completed_actions}
         if self._step == self._total_steps:
             done = True
+            self.logger.info(f"Done = {done}")
 
         return observation, obs_turn_score, done
 
@@ -223,6 +291,7 @@ class Environment:
         :param plot: Display plots while running.
         :param save: Save plot of each step while running.
         """
+        self.logger.info(f"Running passive simulation with {steps}=steps, plot={plot}, save={save}")
         self.plot(plot=plot, save=save)
         self._total_steps += steps
         t0 = time.time()
