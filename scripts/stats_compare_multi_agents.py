@@ -54,7 +54,7 @@ def plot_dists(multi_sims: List[sim.MultiSim],
 
 class EnvTemplate(TemplateBase):
     def build(self):
-        env_ = env.Environment(name=f"exps/script",
+        env_ = env.Environment(name=f"stats_compare_multi_agents_custom_env",
                                action_space=env.ActionSpace(vaccinate_cost=0,
                                                             treat_cost=0,
                                                             isolate_cost=0,
@@ -102,7 +102,7 @@ def run_multi_sims():
         sim_ = sim.Sim(env_spec=env_spec, agent=agt, n_steps=150)
 
         multi_sims.append(sim.MultiSim(sim_,
-                                       n_jobs=50,
+                                       n_jobs=60,
                                        name='policy agent comparison',
                                        n_reps=100))
 

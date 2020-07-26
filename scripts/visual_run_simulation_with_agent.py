@@ -11,7 +11,7 @@ from social_distancing_sim.templates.template_base import TemplateBase
 class EnvTemplate(TemplateBase):
     def build(self):
         seed = 123
-        return env.Environment(name="visual_run_simulation_with_agent",
+        return env.Environment(name="visual_run_simulation_with_agent_custom_env",
                                action_space=env.ActionSpace(isolate_efficiency=0.5,
                                                             vaccinate_efficiency=0.95),
                                disease=env.Disease(name='COVID-19',
@@ -49,9 +49,10 @@ if __name__ == "__main__":
     env_spec = gym.make(env_name).spec
 
     sim = sim.Sim(env_spec=env_spec,
-                  agent=VaccinationAgent(actions_per_turn=25,
+                  agent=VaccinationAgent(actions_per_turn=15,
                                          seed=seed),
                   plot=True,
-                  save=True)
+                  save=True,
+                  tqdm_on=True)
 
     sim.run()

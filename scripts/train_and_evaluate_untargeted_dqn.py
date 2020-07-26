@@ -23,7 +23,8 @@ if __name__ == "__main__":
                                                 FlattenObsWrapper),
                                   n_actions=5).build_for_dqn_untargeted()
 
-    # Train agent
+    # Train agent using rlk agents built in train function. Note that the agent only takes a single action per turn
+    # unless the multiple actions wrapper is added. TODO: Add this wrapper for training but remove for future use.
     agent = DQNUntargeted(**config_dict)
     agent.train(render=False, n_episodes=16)
     agent.save()

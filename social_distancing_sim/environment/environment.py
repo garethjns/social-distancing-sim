@@ -62,7 +62,7 @@ class Environment:
         self.log_file = os.path.join(self.output_path, 'log.txt').replace('\\', '/')
 
         # Set plotting output if it hasn't been specifically set already
-        if self.environment_plotting.name is None:
+        if (self.environment_plotting is not None) and (self.environment_plotting.name is None):
             self.environment_plotting.name = self.name
 
         self._prepare_logger()
@@ -87,14 +87,10 @@ class Environment:
                 self._random_state.randint(0, len(self.observation_space.graph.current_clear_nodes))]
             self.disease.force_infect(self.observation_space.graph.g_.nodes[node_id])
 
-            self.logger.info(f"Randomly infected nodes {node_id}")
+            self.logger.info(f"Randomly infected node: {node_id}")
 
     def _infect_neighbours(self) -> int:
-        """
-        For all the currently infected nodes, attempt to infect neighbours.
-
-        TODO: This is the biggest time sink
-        """
+        """For all the currently infected nodes, attempt to infect neighbours."""
         total_new_infections = 0
         for n in self.observation_space.graph.current_infected_nodes:
             neighbours = list(self.observation_space.graph.g_.neighbors(n))
@@ -206,6 +202,13 @@ class Environment:
         return completed_actions, total_action_cost
 
     def step(self, actions: List[int], targets: [List[Union[None, int]]] = None) -> Tuple[Dict[str, Any], float, bool]:
+        """
+        Run step with optional actions (and targets).
+
+        :param actions:
+        :param targets:
+        """
+
         self.logger.info(f"\n\n***Step: {self._step}***")
         self.observation_space.reset_cached_values()
         self.observation_space.graph.reset_cached_values()
@@ -223,6 +226,7 @@ class Environment:
             self._infect_random()
 
         # Act
+        self.logger.info(f"Requested actions: {actions}, with targets {targets}")
         completed_actions, action_costs = self._act(actions, targets)
         self.logger.info(f"Action summary: Completed actions: {completed_actions}, total cost: {action_costs}")
 

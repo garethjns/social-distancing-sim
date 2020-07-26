@@ -27,7 +27,7 @@ class TestGymEnv(unittest.TestCase):
     def _passive_run_for(env: GymEnv, steps: int = 25) -> GymEnv:
         _ = env.reset()
         for _ in range(steps):
-            env.step([])
+            env.step(([], []))
 
         return env
 
@@ -38,7 +38,7 @@ class TestGymEnv(unittest.TestCase):
         state = agent.env.reset()
         for _ in range(steps):
             actions, targets = agent.get_actions(state)
-            state, _, _, _ = agent.env.step(actions)
+            state, _, _, _ = agent.env.step((actions, targets))
 
         return agent
 

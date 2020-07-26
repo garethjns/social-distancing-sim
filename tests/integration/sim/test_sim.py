@@ -20,7 +20,11 @@ class TestSim(unittest.TestCase):
         self._tmp_dir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
-        self._tmp_dir.cleanup()
+        try:
+            self._tmp_dir.cleanup()
+        except PermissionError:
+            # Windows.......
+            pass
 
     def test_default_sim_run(self):
         # Arrange

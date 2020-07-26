@@ -1,3 +1,4 @@
+import logging
 import os
 import warnings
 from dataclasses import dataclass
@@ -60,11 +61,16 @@ class Sim:
         return x
 
     def step(self):
+        self.agent.env.sds_env.logger.info(f"\n\n***Sim step: {self._step}***")
+
         # Pick action
         actions, targets = self.agent.get_actions(state=self._last_state)
+        self.agent.env.sds_env.logger.info(f"Agent requested actions {actions} with targets {targets}")
 
         # Step the simulation and observe for this step
-        observation, reward, done, info = self.agent.env.step(actions)
+        observation, reward, done, info = self.agent.env.step((actions, targets))
+        self.agent.env.sds_env.logger.info(f"Environment returned reward {reward}")
+        self.agent.env.sds_env.logger.info(f"Environment done={done}")
         self._last_state = observation
 
         self.agent.env.sds_env.plot(plot=self.plot, save=self.save)

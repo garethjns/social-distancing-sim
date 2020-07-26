@@ -12,6 +12,11 @@ from social_distancing_sim.environment.history import History
 from social_distancing_sim.sim.sim import Sim
 
 
+def _dummy_logger(*args, **kwargs) -> None:
+    """Turn of logging for MultiSims."""
+    print("what")
+
+
 @dataclass
 class MultiSim:
     sim: Sim
@@ -28,6 +33,8 @@ class MultiSim:
         sim = self.sim.clone()
         # Reattach env to agent
         sim.agent.attach_to_env(sim.env_spec)
+        sim.agent.env.sds_env.logger = _dummy_logger
+        sim.agent.env.sds_env.log_handler = None
         results = sim.run()
 
         return results
