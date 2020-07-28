@@ -61,7 +61,7 @@ if __name__ == "__main__":
     for n_act, agt in np.array(np.meshgrid(n_actions, agents)).T.reshape(-1, 2):
         agt_ = agt(actions_per_turn=n_act, name=f"{agt.__name__} - {n_act} actions")
         sims.append(sim.Sim(env_spec=env_spec, agent=agt_, n_steps=75,
-                            plot=False, save=True, tqdm_on=True))  # Show progress bars for running sims
+                            plot=False, save=True, tqdm_on=True, logging=True))  # Show progress bars for running sims
 
     # Run all the prepared Sims
-    Parallel(n_jobs=-2, backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
+    Parallel(n_jobs=1, backend='loky')(delayed(run_and_replay)(sim) for sim in sims)

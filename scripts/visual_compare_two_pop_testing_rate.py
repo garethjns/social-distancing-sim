@@ -30,7 +30,7 @@ if __name__ == "__main__":
                                                                                            seed=123),
                                                                            test_rate=0.04))
 
-    Parallel(n_jobs=2,
+    Parallel(n_jobs=-2,
              backend='loky')(delayed(run_and_replay)(pop,
                                                      steps=130,
                                                      plot=False,

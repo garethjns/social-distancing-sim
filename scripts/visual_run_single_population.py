@@ -29,6 +29,8 @@ if __name__ == "__main__":
                           healthcare=healthcare,
                           environment_plotting=environment_plotting,
                           observation_space=observation_space)
+    # Turn logging on
+    pop.log_to_file = True
 
     # Run the environments, plotting and saving at each step
     pop.run(steps=150,

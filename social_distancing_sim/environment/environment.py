@@ -34,8 +34,10 @@ class Environment:
     random_infection_chance: float = 0.01
 
     def __post_init__(self) -> None:
+        # Output path is only used for log file, so it's prepared along with the logger
+        # (Plot path is handled in EnvironmentPlotting)
         self.output_path: Union[None, str] = None
-        self.set_output_path()
+        self._prepare_logger(to_file=False)
 
         self._prepare_random_state()
 
@@ -44,38 +46,56 @@ class Environment:
         self.history: History[str, List[int]] = History.with_defaults()
         self._total_steps: int = 0
 
+        self.set_output_path()
         if self.environment_plotting is None:
             self.environment_plotting = EnvironmentPlotting(name=self.output_path)
 
     def set_output_path(self, path: str = None) -> None:
-        if self.output_path is not None:
-            # Tidy old output
-            shutil.rmtree(self.output_path, ignore_errors=True)
+        """
+        Set the path used for any output.
 
+        This only includes log file, so only actually created if logger is used. Or if EnvironmentPlotting decides to
+        create the graph path in the same dir.
+        """
         if path is None:
             path = self.name
         path = f"{os.path.abspath(path)}".replace('\\', '/')
         self.output_path = path
 
-        shutil.rmtree(self.output_path, ignore_errors=True)
-        os.makedirs(self.output_path, exist_ok=True)
-        self.log_file = os.path.join(self.output_path, 'log.txt').replace('\\', '/')
-
         # Set plotting output if it hasn't been specifically set already
         if (self.environment_plotting is not None) and (self.environment_plotting.name is None):
             self.environment_plotting.name = self.name
 
-        self._prepare_logger()
-
-    def _prepare_logger(self) -> None:
+    def _prepare_logger(self, to_file: bool = False) -> None:
         logger = logging.getLogger(self.name)
         logger.setLevel(logging.INFO)
-        handler = logging.FileHandler(self.log_file, 'w+')
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger.addHandler(handler)
-        handler.setFormatter(formatter)
-
         self.logger = logger
+        self.log_to_file = to_file
+
+    @property
+    def log_to_file(self) -> bool:
+        return self._log_to_file
+
+    @log_to_file.setter
+    def log_to_file(self, on: bool):
+        if on and (not self._log_to_file):
+            # Create a new handler and new log file. Create output dir if it doesn't exist.
+            # If already on, continue with previous log file (ie. doesn't enter here).
+            self.set_output_path(self.output_path)
+            os.makedirs(self.output_path, exist_ok=True)
+            self.log_file = os.path.join(self.output_path, 'log.txt').replace('\\', '/')
+
+            handler = logging.FileHandler(self.log_file, 'w')
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            handler.setLevel(logging.INFO)
+
+            self.logger.handlers = []
+            self.logger.addHandler(handler)
+            self._log_to_file = True
+        else:
+            self.logger.handlers = []
+            self._log_to_file = False
 
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)

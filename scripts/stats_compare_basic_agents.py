@@ -108,10 +108,10 @@ if __name__ == "__main__":
     # visualisations
     for n_act, agt in np.array(np.meshgrid(n_actions, agents)).T.reshape(-1, 2):
         agt_ = agt(actions_per_turn=n_act, name=f"{agt.__name__} - {n_act} actions")
-        sim_ = sim.Sim(env_spec=env_spec, agent=agt_, n_steps=125, save_dir='stats_compare_basic_agents')
+        sim_ = sim.Sim(env_spec=env_spec, agent=agt_, n_steps=125)
 
         multi_sims.append(sim.MultiSim(sim_, name='basic agent comparison',
-                                       n_reps=300, n_jobs=60))
+                                       n_reps=300, n_jobs=30))
 
     # Run all the sims. No need to parallelize here as it's done across n reps in MultiSim.run()
     for ms in tqdm(multi_sims):

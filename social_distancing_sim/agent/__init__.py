@@ -8,4 +8,4 @@ from social_distancing_sim.agent.policy_agents.distancing_policy_agent import Di
 from social_distancing_sim.agent.policy_agents.vaccination_policy_agent import VaccinationPolicyAgent
 from social_distancing_sim.agent.policy_agents.treatment_policy_agent import TreatmentPolicyAgent
 from social_distancing_sim.agent.policy_agents.masking_policy_agent import MaskingPolicyAgent
-from social_distancing_sim.agent.multi_agent.multi_agent import MultiAgent
+from social_distancing_sim.agent.multi_agents.multi_agent import MultiAgent

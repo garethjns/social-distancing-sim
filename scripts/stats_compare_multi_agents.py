@@ -102,9 +102,9 @@ def run_multi_sims():
         sim_ = sim.Sim(env_spec=env_spec, agent=agt, n_steps=150)
 
         multi_sims.append(sim.MultiSim(sim_,
-                                       n_jobs=60,
+                                       n_jobs=30,
                                        name='policy agent comparison',
-                                       n_reps=100))
+                                       n_reps=300))
 
     # Run all the sims. No need to parallelize here as it's done across n reps in MultiSim.run()
     for ms in tqdm(multi_sims):

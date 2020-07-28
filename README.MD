@@ -1,11 +1,9 @@
 # Social distancing simulator
 ![Testing is key](https://github.com/garethjns/social-distancing-sim/workflows/Testing%20is%20key/badge.svg) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=garethjns_social-distancing-sim&metric=alert_status)](https://sonarcloud.io/dashboard?id=garethjns_social-distancing-sim)
 
-Social distancing is an unfortunately unclear term; it means stay from other people to avoid killing yourself and them.
+This package models disease spread through a population, allowing modification of many dynamics affecting spread. The simulations can be viewed as animations, or run many times to collect statistics, evaluate response strategies, etc. The simulation supports agent input, which can either enact scripted policies such as mass vaccination and social distancing, or reinforcement learning agents that have learned their own strategies through experience.
 
-This package models disease spread through a population, allowing modification of many dynamics affecting spread. These simulations can be viewed as animations, or run many times to collect statistics, evaluate response strategies, etc. The simulation supports agent input, which can either enact scripted policies such as mass vaccination and social distancing, or reinforcement learning agents that have learned their own strategies through experience.
-
-The code aims to be as simple and understandable as possible, but is still WIP (along with the documentation). The documentation is mainly example driven see below and the Scripts/ folder for up to date usage examples.
+The code aims to be as simple and understandable as possible, but is still WIP (along with the documentation) so expect things to break and change. The documentation is mainly example driven see [below](#usage_example) and the Scripts/ folder for up to date usage examples. 
 
 ![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
 
@@ -63,7 +61,7 @@ A flexible scoring system allows for setting of action costs and environment rew
  - A scoring system with settable action costs and environment rewards/penalties 
   
 ### Planned
- - Actor-critic reinforcement learning agent, and agents supporting specific node targeting.
+ - Agents supporting specific node targeting.
  - Less accurate testing, adding definable false positive and false negative rates
  - Docker container and rest API
 
@@ -80,17 +78,20 @@ To get full repo and script examples to run:
 git clone https://github.com/garethjns/social-distancing-sim
 ````
 
-# Usage example <a name="usage_example"></a>
+# Usage examples <a name="usage_example"></a>
+
+## Simple simulation
 ![single simulation example](https://github.com/garethjns/social-distancing-sim/blob/master/images/single_simulation_example.gif)   
 To run a single passive, visual, simulation, the Environment object can be defined and run without using the Sim and MultiSim handlers.
 
-````bash
-python3 -m social-distancing-sim.scripts.run_single_population
-````
+```bash
+python3 -m scripts.run_single_population
+```
 
-````python
+Create environment components. See [below](#package_structure) for a more information on these. 
+```python
 import social_distancing_sim.environment as env
-# The graph is the "true" environments model, containing all the nodes and their data
+# The graph is the "true" environment model, containing all the nodes and their data
 graph = env.Graph(community_n=50,
                   community_size_mean=15,
                   community_p_in=0.06,  # The likelihood of intra-community connections
@@ -101,7 +102,7 @@ graph = env.Graph(community_n=50,
 observation_space = env.ObservationSpace(graph=graph,  # Create environments graph and window into it
                                          test_rate=1)
 
-# Define a Disease with default paramters
+# Define a Disease with default parameters
 disease = env.Disease(name='COVID-19')
 
 # Define Healthcare availability with default settings
@@ -109,26 +110,129 @@ healthcare = env.Healthcare()
 
 # Set the default plotting options, and add a second time-series plot to the figure showing turn score
 environment_plotting = env.EnvironmentPlotting(ts_fields_g2=["Turn score"])
+```
 
-# Construct the environments
+Construct the environment
+```Python
 pop = env.Environment(name="example environments",
                       disease=disease,
                       healthcare=healthcare,
                       environment_plotting=environment_plotting,
                       observation_space=observation_space)
 
-# Run the environments, plotting and saving at each step
-pop.run(steps=150,
-        plot=True,
-        save=True)
+# To log to file, turn on manually. This will be created in [env_name]/log.txt
+pop.log_to_file = True
+```
 
-# Save .gif to './example environments/replay.gif'
+Run the simulation
+```Python
+# Run the environments, plotting and saving at each step. Frames are saved to [env_name]/graphs/[step]_graph.png
+pop.run(steps=150, plot=True, save=True)
+
+# Save .gif of the frames to '[env_name]/replay.gif'
 pop.replay()
 
 # History can be accessed in the History object. These keys can also be set to plot during the simulation in the 
 # EnvironmentPlotting options 
 print(pop.history.keys())
+```
+
+## Simulation with an agent
+The Sim class handles running environments and agents together. It uses the OpenAI Gym environment interface. It'll also
+run without any agent specified (in such a case it'll use a DummyAgent that does nothing.)
+
+```bash
+python3 -m scripts.visual_run_simulation_with_agent
+```
+
+Define an environment template that will be used to construct the environment for the agent.
+````python
+from social_distancing_sim.templates.template_base import TemplateBase
+import social_distancing_sim.environment as env
+from social_distancing_sim.environment.gym.gym_env import GymEnv
+
+# Define a template for the environment. This can include set seeds.
+class EnvTemplate(TemplateBase):
+    def build(self):
+        return env.Environment(name="example_sim_env",
+                               action_space=env.ActionSpace(),
+                               disease=env.Disease(),
+                               healthcare=env.Healthcare(),
+                               environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Actions taken",
+                                                                                          "Overall score"]),
+                               observation_space=env.ObservationSpace(
+                                   graph=env.Graph(community_n=20,
+                                                   community_size_mean=15,
+                                                   considered_immune_threshold=0.7),
+                                   test_rate=1),
+                               initial_infections=15)
+
+# Define an gym compatible environment environment 
+class CustomEnv(GymEnv):
+    template = EnvTemplate()
 ````
+
+Register the environment with gym. Note that here, the entry point is really pointing to one of the predefined templates, rather than the one defined in the example above. 
+
+This should be changed to point to the correct env as appropriate. It can point to the same file the env is defined in.
+ 
+````python
+import gym
+
+env_name = f"SDSTests-CustomEnvForReadme-v0"
+gym.envs.register(id=env_name, entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
+                  max_episode_steps=1000)
+env_spec = gym.make(env_name).spec
+````
+
+Create the simulation, and specify the agent (can be None).
+```python
+import social_distancing_sim.sim as sim
+from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
+
+# Create Sim
+sim_ = sim.Sim(env_spec=env_spec,
+              agent=VaccinationAgent(actions_per_turn=15),
+              plot=True,  # Show plots during simulation 
+              save=True,  # Save plots after showing
+              logging=True,  # Log to file
+              tqdm_on=True)  # Show tqdm waitbar
+
+sim_.run()
+```
+
+## Training / simulation with an rl agent
+This is WIP, but see scripts/train_and_evaluate_untargeted_dqn.py. Aim is to work with the same Sim interface for evaluation. 
+
+## MultiSims
+Run a Sim multiple times and return stats. This will handle multiprocessing, rebuilding environments, transporting agents, etc., and logging results to MLflow.
+
+Register an Env (if required) and define Sim as above but leave logging, plotting, and saving of plots off!. It makes sense to use an environment that isn't totally deterministic. Each agent and environment component has settable seeds, although they default to None.
+
+
+```Python
+import gym
+from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
+import social_distancing_sim.sim as sim
+
+env_name = f"SDSTests-CustomEnvForReadme-v0"
+gym.envs.register(id=env_name, entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
+                  max_episode_steps=1000)
+env_spec = gym.make(env_name).spec
+
+sim_ = sim.Sim(env_spec=env_spec,
+              agent=VaccinationAgent(actions_per_turn=15))
+```
+
+Then create and run MultiSim.
+
+```Python
+multi_sim = sim.MultiSim(sim_, name='basic agent comparison',
+                         n_reps=300, n_jobs=30)
+multi_sim.run()
+```
+
+See scripts/stats_compare_basic_agents.py and stats_compare_multi_agents.py for further examples
 
 # Simulation structure and components <a name="package"></a>
 The social_distancing_sim package is split into 5 main modules; .sim, .environment, .agent, .gym, and .templates. See docstrings for object parameters and details.
@@ -146,7 +250,11 @@ Contains the code for running the simulation, including the action space availab
     - .observation_space.**ObservationSpace** - Wrapper for the Graph object that handles testing and filters available data to external observers. Handles returning observed state in various ways.
       - .graph.**Graph** - The full simulation graph and graph plotting functionality
         - .status.**Status** - Each graph node consists of dictionary defining its true state, and a Status object containing it's accessible state. The Status class also defines the logic for ObservationState test updates. For example, if the ObservationState tests a node and finds it infected, Status.infected = True also automatically updates the dependent properties (such as "clear", "immune", etc.)
-
+    - .gym - Contains environment and agent definitions designed to comply with the [OpenAI Gym API](https://gym.openai.com/). This include the trainable reinforcement learning agents.
+      - gym.**gym_env** - Wrapper to make social_distancing_sim.environment.Environments Gym compatible  
+      - gym.**gym_templates** - Gym environments specs for example environment set ups in social_distancing_sim.templates  
+      - gym.**wrappers** - Various Gym envriroment wrappers   
+     
 ## .agent
 Contains the code defining the agent interface and, currently, 4 basic agents.
   - agent_base.**AgentBase** - An abstract class agents should inherit from. Defines interface for action/target selection mechanisms. 
@@ -154,19 +262,15 @@ Contains the code defining the agent interface and, currently, 4 basic agents.
   - random_agent.**RandomAgent** - An agent that performs a number of random vaccination or isolation actions, with totally random target selection
   - isolation_agent.**IsolationAgent** - An agent that randomly isolates a number of infected + connected nodes and randomly reconnects recovered + isolated nodes.
   - vaccination_agent.**VaccinationAgent** - An agent that randomly vaccinates currently a number of non-infected nodes each turn.
-  - masking_agent.**VaccinationAgent** - An agent that randomly provides a supply of masks to alive nodes each turn. By default the masks reduce the chance of infection less than immunity, but both the source and target nodes can potentially contribute to the reduction.. 
-
+  - masking_agent.**MaskingAgent** - An agent that randomly provides a supply of masks to alive nodes each turn. By default the masks reduce the chance of infection less than immunity, but both the source and target nodes can potentially contribute to the reduction.. 
+  - .multi_agents.MultiAgent - Class handling combinations of different agents
+  - policy_agents - Combinations of basic agents that act over different time periods.
+  - rl_agents - Compatible reinforcement learning algorithms 
+  
 ## .sim
 Contains objects to handle running and logging experiments with agent input
   - .sim.**Sim** - Handles the Environment, and an Agent. Steps the simulation, gets actions from agent, passes to env, etc. 
   - .multi_sim.**MultiSim** - Handles running Sim objects multiple times with different seeds. Outputs MLflow logs and aggregated statistics.
- 
- ## .gym
-Contains environment and agent definitions designed to comply with the [OpenAI Gym API](https://gym.openai.com/). This include the trainable reinforcement learning agents.
-  - .**gym_env** - Wrapper to make social_distancing_sim.environment.Environments Gym compatible  
-  - .**gym_templates** - Gym environments specs for example environment set ups in social_distancing_sim.templates  
-  - .**agent.rl** - Reinforcement learning agent implementations  
-  - .**wrappers** - Various Gym envriroment wrappers   
  
  ## .templates
 Example environment set ups.
@@ -255,8 +359,6 @@ Compares two trained reinforcement agents (Linear and deep QAgents) against each
 
 ### Train agents
 ````bash
-python3 -m scripts.train_linear_q_learner
-python3 -m scripts.train_deep_q_learner
 ````  
 
 ### Run comparison

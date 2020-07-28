@@ -18,6 +18,8 @@ if __name__ == "__main__":
                           healthcare=env.Healthcare(),
                           observation_space=env.ObservationSpace(graph=graph,
                                                                  test_rate=0.05))
+    # Turn logging on
+    pop.log_to_file = True
 
     pop.run(steps=750,
             plot=True,

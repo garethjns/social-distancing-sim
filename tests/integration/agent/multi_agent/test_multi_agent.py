@@ -3,7 +3,7 @@ import unittest
 from social_distancing_sim.agent.basic_agents.isolation_agent import IsolationAgent
 from social_distancing_sim.agent.basic_agents.treatment_agent import TreatmentAgent
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
-from social_distancing_sim.agent.multi_agent.multi_agent import MultiAgent
+from social_distancing_sim.agent.multi_agents.multi_agent import MultiAgent
 from social_distancing_sim.agent.policy_agents.distancing_policy_agent import DistancingPolicyAgent
 from social_distancing_sim.agent.policy_agents.treatment_policy_agent import TreatmentPolicyAgent
 from social_distancing_sim.agent.policy_agents.vaccination_policy_agent import VaccinationPolicyAgent
