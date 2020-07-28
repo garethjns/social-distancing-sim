@@ -56,14 +56,28 @@ class GymEnv(gym.Env):
     def render(self, mode: str = 'human', show: bool = False, save: bool = True) -> None:
         self.sds_env.plot(plot=show, save=save)
 
-    def step(self, actions: Union[int, List[int]], targets: Union[None, List[int]] = None,
+    def step(self, actions_targets: Union[int,
+                                          Tuple[List[int], List[Union[int, None]]]],
              ) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray],
                         float, bool, Dict[Any, Any]]:
+
+        """
+        Step with actions and targets.
+
+        Needs to take a single input.
+
+        :param actions_targets: Either a tuple containing ([actions], [targets]) OR a single int. The single int comes
+                                from training an agent with agent.train (and the rlk implementations of .play_episode).
+                                In this case, the agent is learning with a single action per turn, which is
+                                probably not optimal...
+        """
+
         # Return the sds internal observation space in info for convenience. self.state returns a more limited set of
         # arrays for state, which are derived from the same internal state.
 
-        if not isinstance(actions, list):
-            actions = [actions]
+        if isinstance(actions_targets, (int, np.int64)):
+            actions_targets = ([actions_targets], [])
+        actions, targets = actions_targets
 
         info, reward, done = self.sds_env.step(actions=actions,
                                                targets=targets)

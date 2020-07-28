@@ -11,6 +11,7 @@ class TestEnvironment(unittest.TestCase):
 
     def setUp(self):
         mock_env = mock.MagicMock(spec=self._sut)
+        mock_env.logger = mock.MagicMock()
         mock_env.select_reasonable_targets = self._sut.select_reasonable_targets
         mock_env.observation_space = mock.MagicMock(sepc=ObservationSpace)
         mock_env.action_space = mock.MagicMock(sepc=ActionSpace)
@@ -46,4 +47,3 @@ class TestEnvironment(unittest.TestCase):
         self.assertEqual(4, len([v for v in actions_dict.values() if v == 4]))  # Not 5
         self.assertNotIn(0, actions_dict.keys())
         self.assertNotIn(-1, actions_dict.keys())
-

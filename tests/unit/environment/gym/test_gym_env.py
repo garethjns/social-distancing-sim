@@ -18,7 +18,7 @@ class TestGymEnv(unittest.TestCase):
         _ = env.reset()
         obs = None
         for _ in range(steps):
-            obs, _, _, _ = env.step([])
+            obs, _, _, _ = env.step(([], []))
 
         return env, obs
 

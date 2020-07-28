@@ -1,10 +1,11 @@
 import copy
 import unittest
+import warnings
 from typing import Callable
+from unittest.mock import MagicMock
 
 import numpy as np
 
-from unittest.mock import MagicMock
 from social_distancing_sim.environment.disease import Disease
 
 
@@ -174,6 +175,57 @@ class TestDisease(unittest.TestCase):
         self.assertIn(1, [n["infected"] for n in infections1])
         self.assertFalse((np.array(infections1) == np.array(infections2)).all())
 
+    def test_seed_consistency_when_same_specified_multiple(self):
+        # Arrange
+        disease1 = self._sut(seed=123, virulence=0.5)
+        disease2 = self._sut(seed=123, virulence=0.5)
+        graph1 = copy.deepcopy(self._mock_graph)
+        graph1.append({'infected': 5})
+        graph2 = copy.deepcopy(graph1)
+
+        # Act
+        infections1 = disease1.try_to_infect_multiple(source_node=graph1[-1], target_nodes=graph1[0:200])
+        infections2 = disease2.try_to_infect_multiple(source_node=graph2[-1], target_nodes=graph2[0:200])
+
+        # Assert
+        self.assertIn(0, infections1)
+        self.assertIn(1, infections1)
+        self.assertListEqual(infections1, infections2)
+
+    def test_seed_inconsistency_when_different_specified_multiple(self):
+        # Arrange
+        disease1 = self._sut(seed=124, virulence=0.5)
+        disease2 = self._sut(seed=123, virulence=0.5)
+        graph1 = copy.deepcopy(self._mock_graph)
+        graph1.append({'infected': 5})
+        graph2 = copy.deepcopy(graph1)
+
+        # Act
+        infections1 = disease1.try_to_infect_multiple(source_node=graph1[-1], target_nodes=graph1[0:200])
+        infections2 = disease2.try_to_infect_multiple(source_node=graph2[-1], target_nodes=graph2[0:200])
+
+        # Assert
+        self.assertIn(0, infections1)
+        self.assertIn(1, infections1)
+        self.assertFalse((np.array(infections1) == np.array(infections2)).all())
+
+    def test_seed_consistency_when_none_specified_multiple(self):
+        # Arrange
+        disease1 = self._sut(seed=None, virulence=0.5)
+        disease2 = self._sut(seed=None, virulence=0.5)
+        graph1 = copy.deepcopy(self._mock_graph)
+        graph1.append({'infected': 5})
+        graph2 = copy.deepcopy(graph1)
+
+        # Act
+        infections1 = disease1.try_to_infect_multiple(source_node=graph1[-1], target_nodes=graph1[0:200])
+        infections2 = disease2.try_to_infect_multiple(source_node=graph2[-1], target_nodes=graph2[0:200])
+
+        # Assert
+        self.assertIn(0, infections1)
+        self.assertIn(1, infections1)
+        self.assertFalse((np.array(infections1) == np.array(infections2)).all())
+
     def test_cannot_infect_immune_node(self):
         # Arrange
         disease = self._sut()
@@ -183,7 +235,7 @@ class TestDisease(unittest.TestCase):
 
         self.assertListEqual([n["infected"] for n in infections], [0] * len(infections))
 
-    def test_try_to_infect_with_infections_source(self):
+    def test_try_to_infect_with_infectious_source(self):
         disease = self._sut(virulence=1)
         source_node = {"infected": 1}
         target_node = {}
@@ -201,6 +253,29 @@ class TestDisease(unittest.TestCase):
 
         self.assertEqual(target_node["infected"], 0)
 
+    def test_try_to_infect_multiple_with_infectious_source(self):
+        disease = self._sut(virulence=1)
+        source_node = {"infected": 1}
+        target_nodes = [{"infected": 0}, {"infected": 0}, {"infected": 0}]
+
+        new_infections = disease.try_to_infect_multiple(source_node=source_node, target_nodes=target_nodes)
+
+        self.assertListEqual([1, 1, 1], new_infections)
+
+    def test_try_to_infect_multiple_with_non_infectious_source(self):
+        disease = self._sut(virulence=1)
+        source_node = {"infected": 0}
+        target_nodes = [{"infected": 0}, {"infected": 0}, {"infected": 0}]
+
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            new_infections = disease.try_to_infect_multiple(source_node=source_node, target_nodes=target_nodes)
+
+        self.assertListEqual([0, 0, 0], new_infections)
+        self.assertEqual('Attempted to infect with non-infectious source, returning no new infections.',
+                         str(w[0].message))
+
     def test_give_immunity_gives_immunity_to_node(self):
         # Arrange
         nodes = {0: {'status': MagicMock()}}
@@ -209,7 +284,7 @@ class TestDisease(unittest.TestCase):
         node = self._sut().give_immunity(nodes[0])
 
         # Assert
-        self.assertGreater(node['immune'],  0)
+        self.assertGreater(node['immune'], 0)
 
     def test_give_decay_immunity_lowers_nodes_immunity(self):
         # Arrange
@@ -220,4 +295,4 @@ class TestDisease(unittest.TestCase):
         node = self._sut().decay_immunity(nodes[0])
 
         # Assert
-        self.assertLess(node['immune'],  0.5)
+        self.assertLess(node['immune'], 0.5)

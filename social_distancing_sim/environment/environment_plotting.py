@@ -17,7 +17,7 @@ from social_distancing_sim.environment.observation_space import ObservationSpace
 
 @dataclass
 class EnvironmentPlotting:
-    name: str = 'output_dir'
+    name: str = None
     both: bool = True
     auto_lim_x: bool = True
     auto_lim_y: bool = True
@@ -114,7 +114,7 @@ class EnvironmentPlotting:
 
         if save:
             self._prepare_output_path()
-            plt.savefig(f"{self.graph_path}/{step}_graph.png")
+            plt.savefig(os.path.join(self.graph_path, f"{step}_graph.png"))
 
         if show:
             plt.show()
