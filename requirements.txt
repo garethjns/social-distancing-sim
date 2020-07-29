@@ -4,9 +4,11 @@ matplotlib
 imageio
 dataclasses
 seaborn
-fastapi
+tqdm
+joblib
+pandas
+mlflow
+gym
 uvicorn
 aiofiles
-joblib
-tqdm
-pandas
+fastapi

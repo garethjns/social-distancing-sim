@@ -2,12 +2,6 @@ import setuptools
 
 from social_distancing_sim import __version__
 
-
-"""
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-"""
-
 setuptools.setup(
     name="social_distancing_sim",
     version=__version__,
@@ -22,5 +16,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent"],
     python_requires='>=3.6',
-    install_requires=["networkx", "numpy", "matplotlib", "imageio", "dataclasses"]
-)
+    install_requires=["networkx", "numpy", "matplotlib", "imageio", "dataclasses", "tqdm", "joblib", "seaborn",
+                      "mlflow"])
