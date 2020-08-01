@@ -257,7 +257,7 @@ class TestDisease(unittest.TestCase):
         source_node = {"infected": 0}
         target_node = {}
 
-        for i in range(10000):
+        for _ in range(10000):
             target_node = disease.try_to_infect(source_node=source_node, target_node=target_node)
 
             self.assertEqual(0, target_node.get("infected", 0))
