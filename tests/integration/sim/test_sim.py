@@ -34,9 +34,10 @@ class TestSim(unittest.TestCase):
                         plot=False, save=False)
 
         # Act
-        sim.run()
+        history = sim.run()
 
         # Assert
+        self.assertEqual(10, len(history['Turn score']))
         self.assertEqual(10, sim._step)
         self.assertEqual(10, len(sim.env.sds_env.history[self._test_field]))
 
@@ -48,9 +49,10 @@ class TestSim(unittest.TestCase):
                         plot=False, save=False)
 
         # Act
-        sim.run()
+        history = sim.run()
 
         # Assert
+        self.assertEqual(100, len(history['Turn score']))
         self.assertEqual(100, sim._step)
         self.assertEqual(100, len(sim.env.sds_env.history[self._test_field]))
 
@@ -62,10 +64,11 @@ class TestSim(unittest.TestCase):
                         plot=False, save=True, n_steps=12)
 
         # Act
-        sim.run()
+        history = sim.run()
         sim.env.sds_env.replay()
 
         # Assert
+        self.assertEqual(12, len(history['Turn score']))
         self.assertEqual(12, sim._step)
         self.assertEqual(12, len(sim.env.sds_env.history[self._test_field]))
         self.assertEqual(12 + 1, len(glob.glob(os.path.join(sim.env.sds_env.environment_plotting.graph_path, "*.png"))))
@@ -78,10 +81,11 @@ class TestSim(unittest.TestCase):
                         plot=False, save=True, n_steps=16)
 
         # Act
-        sim.run()
+        history = sim.run()
         sim.env.sds_env.replay()
 
         # Assert
+        self.assertEqual(16, len(history['Turn score']))
         self.assertEqual(16, sim._step)
         self.assertEqual(16, len(sim.env.sds_env.history[self._test_field]))
         self.assertEqual(16 + 1, len(glob.glob(os.path.join(sim.env.sds_env.environment_plotting.graph_path, "*.png"))))

@@ -64,7 +64,7 @@ class Sim:
     def _tqdm(x: Iterable, *args, **kwargs) -> Iterable:
         return x
 
-    def step(self):
+    def step(self) -> None:
         self.agent.env.sds_env.logger.info(f"\n\n***Sim step: {self._step}***")
 
         # Pick action
@@ -93,15 +93,14 @@ class Sim:
                 self.step()
                 self._step += 1
 
-            final_hist = History()
-            for k, v in self.agent.env.sds_env.history.items():
-                # Skip any non-sensible ones
-                if k in ["Completed actions"]:
-                    continue
-                if len(v) > 1:
-                    final_hist.log({k: v[-1]})
+        if self.save:
+            self.agent.env.sds_env.replay()
 
-            return final_hist
+        return self.history
+
+    @property
+    def history(self) -> History:
+        return self.agent.env.sds_env.history
 
     def clone(self) -> "Sim":
         """Clone a fresh object with same seed (could be None)."""
@@ -109,25 +108,3 @@ class Sim:
                    agent=self.agent.clone(),
                    n_steps=self.n_steps, plot=self.plot,
                    save=self.save, tqdm_on=self.tqdm_on)
-
-if __name__ == "__main__":
-    from social_distancing_sim.population.population_templates import herd_of_cats, socially_responsible
-
-    import asyncio
-
-    async def run_sim(sim):
-        await sim.run()
-        return sim
-
-    loop = asyncio.get_event_loop()
-
-    ss = Sim(populations=[herd_of_cats, socially_responsible],
-             mode='stats',
-             reps=5)
-
-    ss = loop.run_until_complete(run_sim(ss))
-
-    vs = Sim(populations=[herd_of_cats],
-             reps=1)
-
-    loop.run_until_complete(run_sim(vs))

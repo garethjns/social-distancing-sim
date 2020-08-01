@@ -155,7 +155,7 @@ class Disease:
          TODO: Considering a bonus to protection if both are masked, but not implemented for now. It's a bit
                speculative.
          """
-        if not target_node.get("infected", 0) > 0:
+        if (not target_node.get("infected", 0) > 0) and (source_node.get("infected", 0) > 0):
             vir = self.modified_virulence(modifiers=[target_node.get("immune", 0),
                                                      target_node.get("mask", 0),
                                                      source_node.get("mask", 0)])

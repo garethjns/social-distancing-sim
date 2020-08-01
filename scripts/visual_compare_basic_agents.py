@@ -69,4 +69,4 @@ if __name__ == "__main__":
                             tqdm_on=True, logging=True))  # Show progress bars for running sims
 
     # Run all the prepared Sims
-    Parallel(n_jobs=1, backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
+    Parallel(n_jobs=-2, backend='loky')(delayed(run_and_replay)(sim) for sim in sims)

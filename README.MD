@@ -7,18 +7,6 @@ The code aims to be as simple and understandable as possible, but is still WIP (
 
 ![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
 
-# Running in Docker
-```bash
-docker pull garethjns/social-distancing-sim
-docker run -p 8000:8000 social-distancing-sim
-```
-
-For now, REST API supports get requests for running a few examples. These return either the rendered gif, or the stats for the simulation (JSON). See http://localhost:8001/docs for all implemented methods.
-
-For example (these will probably take a while to run):  
-http://localhost:8000/examples/herd_of_cats -> outputs gif  
-http://localhost:8000/examples/herd_of_cats_multiple_runs -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).  
-
 # Contents
 1. [Dynamics](#dynamics)
 2. [Features](#features)
@@ -76,6 +64,21 @@ A flexible scoring system allows for setting of action costs and environment rew
  - Agents supporting specific node targeting.
  - Less accurate testing, adding definable false positive and false negative rates
  - Docker container and rest API
+
+# Running in Docker
+```bash
+docker pull garethjns/social-distancing-sim
+docker run -p 8000:8000 social-distancing-sim
+```
+
+For now, REST API supports get requests for running a few examples. These return either the rendered gif, or the stats for the simulation (JSON). See http://localhost:8001/docs for all implemented methods.
+
+For example (these will probably take a while to run):  
+http://localhost:8000/run -> outputs gif  
+http://localhost:8000/run_visual -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).  
+
+The number of steps run and environment template to run can be specified in the url, eg.
+http://localhost:8000/run?env=SDS-746-v0&steps=300
 
 
 # Set up <a name="set_up"></a>

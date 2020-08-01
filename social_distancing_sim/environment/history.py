@@ -112,7 +112,7 @@ class History(dict):
         # Log things that affect score
         self.log({"Turn score": turn_score, "Observed turn score": obs_turn_score,
                   "New infections": new_infections, "Known new infections": known_new_infections,
-                  "New deaths": deaths, "Current recovered": recoveries})
+                  "New deaths": deaths, "Current recoveries": recoveries})
 
     def log_actions(self, actions_attempted: Dict[int, int], actions_taken: Dict[int, int], ):
         # Log actions
