@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import warnings
@@ -65,7 +64,7 @@ class Sim:
     def _tqdm(x: Iterable, *args, **kwargs) -> Iterable:
         return x
 
-    def step(self):
+    def step(self) -> None:
         self.agent.env.sds_env.logger.info(f"\n\n***Sim step: {self._step}***")
 
         # Pick action
@@ -94,15 +93,14 @@ class Sim:
                 self.step()
                 self._step += 1
 
-            final_hist = History()
-            for k, v in self.agent.env.sds_env.history.items():
-                # Skip any non-sensible ones
-                if k in ["Completed actions"]:
-                    continue
-                if len(v) > 1:
-                    final_hist.log({k: v[-1]})
+        if self.save:
+            self.agent.env.sds_env.replay()
 
-            return final_hist
+        return self.history
+
+    @property
+    def history(self) -> History:
+        return self.agent.env.sds_env.history
 
     def clone(self) -> "Sim":
         """Clone a fresh object with same seed (could be None)."""

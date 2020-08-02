@@ -9,3 +9,6 @@ joblib
 pandas
 mlflow
 gym
+uvicorn
+aiofiles
+fastapi
