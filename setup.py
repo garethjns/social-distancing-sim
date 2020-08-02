@@ -17,4 +17,4 @@ setuptools.setup(
         "Operating System :: OS Independent"],
     python_requires='>=3.6',
     install_requires=["networkx", "numpy", "matplotlib", "imageio", "dataclasses", "tqdm", "joblib", "seaborn",
-                      "mlflow", "gym", "uvicorn", "aiofiles", "fastapi", "reinforcement-learning-keras==0.5.0"])
+                      "mlflow", "gym", "uvicorn", "aiofiles", "fastapi", "reinforcement-learning-keras==0.5.1"])
