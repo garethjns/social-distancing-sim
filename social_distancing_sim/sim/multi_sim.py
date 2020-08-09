@@ -43,15 +43,15 @@ class MultiSim:
         return results
 
     def run(self):
-        results = Parallel(n_jobs=self.n_jobs,
-                           backend='loky')(delayed(self._run)()
-                                           for _ in tqdm(range(self.n_reps),
-                                                         desc=self.sim.agent.name))
+        self.full_results = Parallel(n_jobs=self.n_jobs,
+                                     backend='loky')(delayed(self._run)()
+                                                     for _ in tqdm(range(self.n_reps),
+                                                                   desc=self.sim.agent.name))
 
         # Place in fake history container for now
         results_hist = History()
-        for h in results:
-            results_hist.log({k: v[0] for k, v in h.items()})
+        for h in self.full_results:
+            results_hist.log({k: v[-1] for k, v in h.items()})
 
         self.results = pd.DataFrame(results_hist)
         self.log()
@@ -112,8 +112,11 @@ class MultiSim:
                            })  # TODO: Other action costs, etc.
 
         metrics_to_log = {}
-        for c in ["Observed overall score", "Observed turn score", "Overall score", "Turn score"]:
+
+        # These are already totals
+        for c in ["Observed overall score", "Observed turn score", "Overall score", "Turn score", "Total deaths"]:
             metrics_to_log.update(self._agg_stats(self.results[c]))
+
         mlflow.log_metrics(metrics_to_log)
 
         mlflow.end_run()

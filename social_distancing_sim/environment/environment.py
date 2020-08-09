@@ -171,7 +171,7 @@ class Environment:
 
         suggested_targets = {
             0: [],  # Nothing
-            1: self.observation_space.current_immune_nodes,  # Vaccinate
+            1: self.observation_space.current_clear_nodes,  # Vaccinate
             2: list(  # Isolate
                 set(self.observation_space.current_infected_nodes).difference(
                     self.observation_space.current_isolated_nodes)),
@@ -200,6 +200,8 @@ class Environment:
     def _act(self, actions: List[int], targets: List[int] = None) -> Tuple[Dict[int, int], float]:
         # If no targets supplied, select automatically
         if targets is None:
+            targets = []
+        if len(targets) == 0:
             actions_dict = self.select_reasonable_targets(actions)
         else:
             actions_dict = {t: a for t, a in zip(targets, actions)}
@@ -340,7 +342,9 @@ class Environment:
                            scoring=self.scoring.clone(),
                            environment_plotting=self.environment_plotting.clone(),
                            name=self.name,
-                           seed=self.seed)
+                           seed=self.seed,
+                           initial_infections=self.initial_infections,
+                           random_infection_chance=self.random_infection_chance)
 
     @property
     def state(self) -> np.ndarray:

@@ -27,23 +27,29 @@ class TestEnvironment(unittest.TestCase):
         # NB: Action 4 can replace action 2 with default environments selections
         actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 3, 4, 4, 4])
 
-        self.assertEqual(5, len(actions_dict.keys()))
-        self.assertEqual(3, len([v for v in actions_dict.values() if v == 4]))
+        # Assert
+        # Inexact - action selections are partly random so can overwrite previously selected targets
+        self.assertGreater(len(actions_dict.keys()), 3)
+        self.assertGreater(len([v for v in actions_dict.values() if v == 4]), 1)
         self.assertNotIn(0, actions_dict.keys())
         self.assertNotIn(-1, actions_dict.keys())
 
     def test_select_random_targets_for_another_selection_of_valid_actions(self):
         actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 2, 2, 3])
 
-        self.assertEqual(4, len(actions_dict.keys()))
-        self.assertEqual(2, len([v for v in actions_dict.values() if v == 2]))
+        # Assert
+        # Inexact - action selections are partly random so can overwrite previously selected targets
+        self.assertGreater(len(actions_dict.keys()), 2)
+        self.assertGreater(len([v for v in actions_dict.values() if v == 2]), 0)
         self.assertNotIn(0, actions_dict.keys())
         self.assertNotIn(-1, actions_dict.keys())
 
     def test_select_random_targets_for_more_valid_actions_than_available_targets(self):
         actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 2, 3, 4, 4, 4, 4, 4])
 
-        self.assertEqual(6, len(actions_dict.keys()))
-        self.assertEqual(4, len([v for v in actions_dict.values() if v == 4]))  # Not 5
+        # Assert
+        # Inexact - action selections are partly random so can overwrite previously selected targets
+        self.assertGreater(len(actions_dict.keys()), 4)
+        self.assertGreater(len([v for v in actions_dict.values() if v == 4]), 2)
         self.assertNotIn(0, actions_dict.keys())
         self.assertNotIn(-1, actions_dict.keys())

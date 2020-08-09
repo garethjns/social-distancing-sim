@@ -50,14 +50,15 @@ class CustomEnv(GymEnv):
 if __name__ == "__main__":
 
     # Prepare a custom environment
-    env_name = f"SDSTests-CustomEnv{np.random.randint(2e6)}-v0"
+    env_name = f"SDS-CustomEnv{np.random.randint(2e6)}-v0"
     gym.envs.register(id=env_name,
                       entry_point='scripts.visual_compare_basic_agents:CustomEnv',
                       max_episode_steps=1000)
     env_spec = gym.make(env_name).spec
 
     # Prepare agents
-    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent, agent.MaskingAgent]
+    agents = [agent.DummyAgent, agent.RandomAgent, agent.VaccinationAgent, agent.IsolationAgent, agent.TreatmentAgent,
+              agent.MaskingAgent]
     n_actions = [3, 6, 12]
 
     # Prepare Sims
@@ -69,4 +70,4 @@ if __name__ == "__main__":
                             tqdm_on=True, logging=True))  # Show progress bars for running sims
 
     # Run all the prepared Sims
-    Parallel(n_jobs=-2, backend='loky')(delayed(run_and_replay)(sim) for sim in sims)
+    Parallel(n_jobs=-1, backend='loky')(delayed(run_and_replay)(sim) for sim in sims)

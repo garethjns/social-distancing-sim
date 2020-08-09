@@ -32,8 +32,8 @@ def plot_dists(multi_sims: List[sim.MultiSim],
               'TreatmentAgent': axs[4],
               'MaskingAgent': axs[5]}
 
-    min_score = 0
-    max_score = 0
+    min_score = np.inf
+    max_score = -np.inf
     for run in multi_sims:
         min_score = min(min_score, run.results[result].min())
         max_score = max(max_score, run.results[result].max())
@@ -61,21 +61,17 @@ def plot_dists(multi_sims: List[sim.MultiSim],
 class EnvTemplate(TemplateBase):
     def build(self):
         env_ = env.Environment(name=f"stats_compare_basic_agents_custom_env",
-                               action_space=env.ActionSpace(isolate_efficiency=0.7,
-                                                            reconnect_efficiency=0.7,
-                                                            treatment_recovery_rate_modifier=4,
-                                                            nothing_cost=0,
+                               action_space=env.ActionSpace(nothing_cost=0,
                                                             vaccinate_cost=0,
                                                             isolate_cost=0,
                                                             reconnect_cost=0,
                                                             treat_cost=0,
                                                             mask_cost=0),
                                disease=env.Disease(name='COVID-19',
-                                                   virulence=0.02,
-                                                   seed=None,
-                                                   immunity_mean=0.8,
-                                                   recovery_rate=0.85,
-                                                   immunity_decay_mean=0.004),
+                                                   virulence=0.01,
+                                                   immunity_mean=0.95,
+                                                   recovery_rate=0.9,
+                                                   immunity_decay_mean=0.005),
                                healthcare=env.Healthcare(capacity=50),
                                observation_space=env.ObservationSpace(graph=env.Graph(community_n=15,
                                                                                       community_size_mean=10,
@@ -111,7 +107,7 @@ if __name__ == "__main__":
         sim_ = sim.Sim(env_spec=env_spec, agent=agt_, n_steps=125)
 
         multi_sims.append(sim.MultiSim(sim_, name='basic agent comparison',
-                                       n_reps=300, n_jobs=30))
+                                       n_reps=300, n_jobs=60))
 
     # Run all the sims. No need to parallelize here as it's done across n reps in MultiSim.run()
     for ms in tqdm(multi_sims):
