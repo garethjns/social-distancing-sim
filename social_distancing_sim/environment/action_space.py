@@ -21,8 +21,8 @@ class ActionSpace:
     vaccinate_efficiency: float = 0.95
     isolate_efficiency: float = 0.95
     reconnect_efficiency: float = 0.95
-    treatment_conclusion_chance: float = 0.9
-    treatment_recovery_rate_modifier: float = 1.5
+    treatment_conclusion_chance: float = 0.6
+    treatment_recovery_rate_modifier: float = 1.2
     mask_efficiency: float = 0.25
     seed: Union[int, None] = None
 

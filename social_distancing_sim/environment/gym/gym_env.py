@@ -75,7 +75,7 @@ class GymEnv(gym.Env):
         # Return the sds internal observation space in info for convenience. self.state returns a more limited set of
         # arrays for state, which are derived from the same internal state.
 
-        if isinstance(actions_targets, (int, np.int64)):
+        if isinstance(actions_targets, (int, np.integer)):
             actions_targets = ([actions_targets], [])
         actions, targets = actions_targets
 

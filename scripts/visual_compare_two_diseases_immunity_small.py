@@ -61,7 +61,7 @@ if __name__ == "__main__":
                                         healthcare=env.Healthcare(capacity=300),
                                         seed=124)
 
-    Parallel(n_jobs=1,
+    Parallel(n_jobs=2,
              backend='loky')(delayed(run_and_replay)(pop,
                                                      steps=365,
                                                      plot=False,

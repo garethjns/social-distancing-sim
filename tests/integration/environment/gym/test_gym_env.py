@@ -1,3 +1,5 @@
+import copy
+import sys
 import unittest
 from functools import partial
 from typing import Union
@@ -163,3 +165,23 @@ class TestGymEnv(unittest.TestCase):
         self.assertIsInstance(agent.env, FlattenObsWrapper)
         self.assertIsInstance(agent.env.unwrapped, GymEnv)
         self.assertEqual(agent.env_builder.env_spec, 'SDSTests-GymEnvFixedSeedFixture-v0')
+
+    @unittest.skipUnless(int(f"{sys.version_info.major}{sys.version_info.minor}") > 36, 'deepcopy breaks in 3.6')
+    def test_reset_matches_original_env(self):
+        """env.reset() relies on sds_env cloning. This should return the original object. Make sure it does."""
+
+        # Arrange
+        env1 = gym.make('SDSTests-GymEnvFixedSeedFixture-v0')
+        env2 = copy.deepcopy(env1)
+
+        # Act
+        _ = env1.reset()
+        _ = env1.step(([], []))
+
+        # Assert
+        # gym env equality will not eval as equal
+        self.assertNotEqual(env1, env2)
+        # Should match to initial conditions
+        self.assertEqual(env1.sds_env, env2.sds_env)
+        # But not on history or changes by stepping
+        self.assertNotEqual(env1.sds_env.history, env2.sds_env.history)
