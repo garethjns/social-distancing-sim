@@ -1,4 +1,5 @@
 import copy
+import sys
 import unittest
 from functools import partial
 from typing import Union
@@ -165,6 +166,7 @@ class TestGymEnv(unittest.TestCase):
         self.assertIsInstance(agent.env.unwrapped, GymEnv)
         self.assertEqual(agent.env_builder.env_spec, 'SDSTests-GymEnvFixedSeedFixture-v0')
 
+    @unittest.skipUnless(int(f"{sys.version_info.major}{sys.version_info.minor}") > 36, 'deepcopy breaks in 3.6')
     def test_reset_matches_original_env(self):
         """env.reset() relies on sds_env cloning. This should return the original object. Make sure it does."""
 
