@@ -4,7 +4,7 @@ import pprint
 import time
 import warnings
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from tqdm import tqdm
@@ -25,14 +25,14 @@ class Environment:
     disease: Disease = field(default_factory=lambda: Disease())
     healthcare: Healthcare = field(default_factory=lambda: Healthcare())
     scoring: Scoring = field(default_factory=lambda: Scoring())
-    environment_plotting: EnvironmentPlotting = (
+    environment_plotting: Optional[EnvironmentPlotting] = (
         None  # This is mutable, and will be changed don't init for default!!
     )
     name: str = "unnamed_population"
-    seed: Union[None, int] = None
-
+    seed: Optional[int] = None
     initial_infections: int = 2
     random_infection_chance: float = 0.01
+    output_path: str = field(init=False)
 
     def __post_init__(self) -> None:
         # Output path is only used for log file, so it's prepared along with the logger
@@ -181,8 +181,10 @@ class Environment:
             )
 
     def _select_random_nodes(self, n: int) -> int:
-        return self._random_state.choice(
-            self.observation_space.graph.g_.nodes, size=n, replace=True
+        return int(
+            self._random_state.choice(
+                self.observation_space.graph.g_.nodes, size=n, replace=True
+            )
         )
 
     def select_reasonable_targets(self, actions: List[int]) -> Dict[int, int]:

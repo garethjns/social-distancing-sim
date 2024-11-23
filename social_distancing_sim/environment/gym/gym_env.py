@@ -93,7 +93,7 @@ class GymEnv(gym.Env):
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         return self.sds_env.observation_space.state
 
-    def reset(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def reset(self, **kwargs) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         self.sds_env = self.sds_env.clone()
         return self.state
 

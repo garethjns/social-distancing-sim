@@ -2,7 +2,7 @@ import copy
 import glob
 import os
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
 import imageio
@@ -25,6 +25,9 @@ class EnvironmentPlotting:
     ts_fields_g2: List[str] = None
     ts_obs_fields_g1: List[str] = None
     ts_obs_fields_g2: List[str] = None
+
+    output_path: str = field(init=False)
+    graph_path: str = field(init=False)
 
     def __post_init__(self):
         self.output_path: Union[str, None] = None
@@ -114,7 +117,7 @@ class EnvironmentPlotting:
         total_steps: int,
         save: bool = True,
         show: bool = True,
-        **kwagrs,
+        **kwargs,
     ) -> None:
         self._prepare_figure(test_rate=obs.test_rate)
         self.plot_graphs(

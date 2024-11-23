@@ -1,7 +1,7 @@
 import os
 import shutil
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Iterable, Union
 
 import gym
@@ -35,6 +35,8 @@ class Sim:
     save: bool = False
     tqdm_on: bool = False
     logging: bool = False
+
+    _last_state: Any = field(init=False)
 
     def __post_init__(self):
         self.env: GymEnv
@@ -83,7 +85,7 @@ class Sim:
         )
 
         # Step the simulation and observe for this step
-        observation, reward, done, _, info = self.agent.env.step((actions, targets))
+        observation, reward, done, _, _ = self.agent.env.step((actions, targets))
         self.agent.env.sds_env.logger.info(f"Environment returned reward {reward}")
         self.agent.env.sds_env.logger.info(f"Environment done={done}")
         self._last_state = observation

@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+import copy
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -15,7 +16,7 @@ class ObservationSpace:
     """
     Wraps a graph to limit observable space through testing.
 
-    Access methods and properties via ObservationSpace to limit access, use .graph to access full graph. Caller has
+    Access methods and properties via ObservationSpace to limit access, use .graph to access full graph. Caller
     has responsibility!
 
     If test rate is >= 1 observation space has full access to graph.
@@ -24,7 +25,15 @@ class ObservationSpace:
     graph: Graph
     test_rate: float = 1
     test_validity_period: float = 5
-    seed: Union[None, int] = None
+    seed: Optional[int] = None
+
+    _unknown_nodes: Optional[List[int]] = field(init=False, default=None)
+    _known_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_infected_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_immune_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_clear_nodes: Optional[List[int]] = field(init=False, default=None)
+    _isolated_nodes: Optional[List[int]] = field(init=False, default=None)
+    _masked_nodes: Optional[List[int]] = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         self._prepare_random_state()
@@ -121,6 +130,7 @@ class ObservationSpace:
                 for nk, nv in self.graph.g_.nodes.data()
                 if nv["status"].clear is None
             ]
+
         return self._unknown_nodes
 
     @property
@@ -133,6 +143,7 @@ class ObservationSpace:
                 self._known_nodes = [
                     nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].alive
                 ]
+
         return self._known_nodes
 
     @property
@@ -144,6 +155,7 @@ class ObservationSpace:
                 self._current_infected_nodes = [
                     nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].infected
                 ]
+
         return self._current_infected_nodes
 
     @property
@@ -155,6 +167,7 @@ class ObservationSpace:
                 self._current_immune_nodes = [
                     nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].immune
                 ]
+
         return self._current_immune_nodes
 
     @property
@@ -166,6 +179,7 @@ class ObservationSpace:
                 self._current_clear_nodes = [
                     nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].clear
                 ]
+
         return self._current_clear_nodes
 
     def test_population(self, time_step: int) -> None:
@@ -307,17 +321,15 @@ class ObservationSpace:
         )
 
     def clone(self) -> "ObservationSpace":
-        """Clone a fresh object with same seed (could be None)."""
-        return ObservationSpace(
-            graph=self.graph.clone(),
-            test_rate=self.test_rate,
-            test_validity_period=self.test_validity_period,
-            seed=self.seed,
-        )
+        """
+        Clone the current observation space.
+
+        Don't create new as it'll use the same random state, but reset.
+        """
+        return copy.deepcopy(self)
 
 
 if __name__ == "__main__":
     obs = ObservationSpace(Graph())
-
     obs.plot_matrix()
     obs.plot_summary()

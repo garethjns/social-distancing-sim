@@ -3,7 +3,7 @@ numpy<=1.23
 matplotlib
 imageio
 dataclasses
-seaborn
+seaborn<=0.13
 tqdm
 joblib
 pandas

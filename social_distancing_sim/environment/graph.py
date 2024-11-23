@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Union
+from dataclasses import dataclass, field
+from typing import Callable, Dict, List, Optional, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -22,6 +22,14 @@ class Graph:
 
     considered_immune_threshold: float = 0.3
 
+    _current_infected_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_isolated_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_immune_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_clear_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_alive_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_dead_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_masked_nodes: Optional[List[int]] = field(init=False, default=None)
+
     def __post_init__(self):
         self._prepare_random_state()
 
@@ -32,18 +40,18 @@ class Graph:
             + self.community_size_mean
         )
         self.g_: nx.classes.graph.Graph
-        self.g_pos_: Union[None, Dict[int, np.ndarray]] = None
+        self.g_pos_: Optional[Dict[int, np.ndarray]] = None
         self._generate_graph()
         self.reset_cached_values()
 
     def reset_cached_values(self):
-        self._current_infected_nodes: Union[int, None] = None
-        self._current_isolated_nodes: Union[int, None] = None
-        self._current_immune_nodes: Union[int, None] = None
-        self._current_clear_nodes: Union[int, None] = None
-        self._current_alive_nodes: Union[int, None] = None
-        self._current_dead_nodes: Union[int, None] = None
-        self._current_masked_nodes: Union[int, None] = None
+        self._current_infected_nodes = None
+        self._current_isolated_nodes = None
+        self._current_immune_nodes = None
+        self._current_clear_nodes = None
+        self._current_alive_nodes = None
+        self._current_dead_nodes = None
+        self._current_masked_nodes = None
 
     def state_summary(self) -> np.ndarray:
         """Vector representing n of each node type."""

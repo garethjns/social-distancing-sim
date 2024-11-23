@@ -1,6 +1,6 @@
 import copy
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Hashable, List, Union
 
 import numpy as np
@@ -21,11 +21,15 @@ class Disease:
     recovery_rate: float = 0.98
     duration_mean: float = 21
     duration_std: float = 5
-
     immunity_mean: float = 0.8
     immunity_std: float = 0.02
     immunity_decay_mean: float = 0.1
     immunity_decay_std: float = 0.005
+
+    _infected_key: str = field(init=False, default="infected")
+    _mask_key: str = field(init=False, default="mask")
+    _immune_key: str = field(init=False, default="immune")
+    _alive_key: str = field(init=False, default="alive")
 
     def __post_init__(self) -> None:
         self._prepare_random_state()
@@ -48,7 +52,7 @@ class Disease:
             immunity = min(
                 self.immunity_mean + self.state.normal(scale=self.immunity_std), 1.0
             )
-        node["immune"] = immunity
+        node[self._immune_key] = immunity
 
         return node
 
@@ -64,8 +68,8 @@ class Disease:
         decay = self.immunity_decay_mean + self.state.normal(
             scale=self.immunity_decay_std
         )
-        new_immunity = max(0.0, node["immune"] - node["immune"] * decay)
-        node["immune"] = new_immunity
+        new_immunity = max(0.0, node[self._immune_key] - node[self._immune_key] * decay)
+        node[self._immune_key] = new_immunity
 
         return node
 
@@ -74,7 +78,7 @@ class Disease:
         return min(max(1e-7, original * (1 - modifier)), 0.999)
 
     def modified_virulence(self, modifiers: Union[float, List[float]]) -> float:
-        """Reduce baseline disease virulence according to modifier(s), ie. immunity and/or masks."""
+        """Reduce baseline disease virulence according to modifier(s), i.e. immunity and/or masks."""
         if not isinstance(modifiers, list):
             modifiers = [modifiers]
 
@@ -112,25 +116,25 @@ class Disease:
 
         # Decide end of disease
         if (
-            node["infected"]
+            node[self._infected_key]
             > self.state.normal(self.duration_mean, self.duration_std, size=1)
             or force
         ):
             # Concluding, decide fate
-            node["infected"] = 0
+            node[self._infected_key] = 0
             modified_recovery_rate = max(
                 0.0, min(1.0, self.recovery_rate * recovery_rate_modifier)
             )
 
             if self.state.binomial(1, modified_recovery_rate):
                 node = self.give_immunity(node)
-                node["alive"] = True
+                node[self._alive_key] = True
             else:
-                node["alive"] = False
+                node[self._alive_key] = False
 
         else:
             # Continue disease progression
-            node["infected"] += 1
+            node[self._infected_key] += 1
 
         return node
 
@@ -139,21 +143,21 @@ class Disease:
     ) -> List[int]:
 
         # Source node not infected so can't infect anyone
-        if source_node.get("infected", 0) < 1:
+        if source_node.get(self._infected_key, 0) < 1:
             warnings.warn(
                 "Attempted to infect with non-infectious source, returning no new infections."
             )
             return [0] * len(target_nodes)
 
         # Prepare virulence wrt target node. 0 if target node is already infected
-        infect_status = [t_node.get("infected", 0) for t_node in target_nodes]
+        infect_status = [t_node.get(self._infected_key, 0) for t_node in target_nodes]
         virulence_status = [
             (
                 self.modified_virulence(
                     modifiers=[
-                        t_node.get("immune", 0),
-                        t_node.get("mask", 0),
-                        source_node.get("mask", 0),
+                        t_node.get(self._immune_key, 0),
+                        t_node.get(self._mask_key, 0),
+                        source_node.get(self._mask_key, 0),
                     ]
                 )
                 if not already_infected
@@ -166,7 +170,7 @@ class Disease:
         new_infection_status = self.state.binomial(1, virulence_status)
         for tar_node, status in zip(target_nodes, new_infection_status):
             if status > 0:
-                tar_node["infected"] = int(status)
+                tar_node[self._infected_key] = int(status)
 
         return list(new_infection_status)
 
@@ -183,27 +187,28 @@ class Disease:
          TODO: Considering a bonus to protection if both are masked, but not implemented for now. It's a bit
                speculative.
         """
-        if (not target_node.get("infected", 0) > 0) and (
-            source_node.get("infected", 0) > 0
+        if (target_node.get(self._infected_key, 0) <= 0) and (
+            source_node.get(self._infected_key, 0) > 0
         ):
             vir = self.modified_virulence(
                 modifiers=[
-                    target_node.get("immune", 0),
-                    target_node.get("mask", 0),
-                    source_node.get("mask", 0),
+                    target_node.get(self._immune_key, 0),
+                    target_node.get(self._mask_key, 0),
+                    source_node.get(self._mask_key, 0),
                 ]
             )
 
-            target_node["infected"] = self.state.binomial(1, vir)
+            target_node[self._infected_key] = self.state.binomial(1, vir)
 
         return target_node
 
-    @staticmethod
-    def force_infect(node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
-        node["infected"] = 1
+    def force_infect(self, node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+        node[self._infected_key] = 1
+
         return node
 
     def clone(self):
         clone = copy.deepcopy(self)
         clone._prepare_random_state()
+
         return clone
