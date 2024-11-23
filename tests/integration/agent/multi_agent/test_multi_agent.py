@@ -10,6 +10,14 @@ from social_distancing_sim.agent.policy_agents.vaccination_policy_agent import V
 from tests.common.env_fixtures import register_test_envs
 
 
+RUN_TESTS = True
+try:
+    import reinforcement_learning_keras
+except ImportError:
+    RUN_TESTS = False
+
+
+@unittest.skipUnless(RUN_TESTS, "Requires rlk")
 class TestMultiAgent(unittest.TestCase):
     """TODO: not finished."""
 

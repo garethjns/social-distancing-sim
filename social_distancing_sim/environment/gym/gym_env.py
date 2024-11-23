@@ -59,7 +59,7 @@ class GymEnv(gym.Env):
     def step(self, actions_targets: Union[int,
                                           Tuple[List[int], List[Union[int, None]]]],
              ) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray],
-                        float, bool, Dict[Any, Any]]:
+                        float, bool, None, Dict[Any, Any]]:
 
         """
         Step with actions and targets.
@@ -81,7 +81,7 @@ class GymEnv(gym.Env):
 
         info, reward, done = self.sds_env.step(actions=actions,
                                                targets=targets)
-        return self.state, reward, done, info
+        return self.state, reward, done, None, info
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:

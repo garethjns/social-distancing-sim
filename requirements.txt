@@ -1,5 +1,5 @@
 networkx
-numpy
+numpy==1.23
 matplotlib
 imageio
 dataclasses
@@ -8,7 +8,7 @@ tqdm
 joblib
 pandas
 mlflow
-gym
+gym>=0.26
 uvicorn
 aiofiles
 fastapi

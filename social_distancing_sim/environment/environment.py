@@ -4,7 +4,7 @@ import pprint
 import shutil
 import time
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Tuple, Union, Any, Dict
 
 import numpy as np
@@ -22,10 +22,10 @@ from social_distancing_sim.environment.scoring import Scoring
 @dataclass
 class Environment:
     observation_space: ObservationSpace
-    action_space: ActionSpace = ActionSpace()
-    disease: Disease = Disease()
-    healthcare: Healthcare = Healthcare()
-    scoring: Scoring = Scoring()
+    action_space: ActionSpace = field(default_factory=lambda: ActionSpace())
+    disease: Disease = field(default_factory=lambda: Disease())
+    healthcare: Healthcare = field(default_factory=lambda: Healthcare())
+    scoring: Scoring = field(default_factory=lambda: Scoring())
     environment_plotting: EnvironmentPlotting = None  # This is mutable, and will be changed don't init for default!!
     name: str = "unnamed_population"
     seed: Union[None, int] = None

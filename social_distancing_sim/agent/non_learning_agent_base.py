@@ -5,10 +5,15 @@ from typing import List, Union, Dict, Tuple
 import gym
 import numpy as np
 from gym.envs.registration import EnvSpec
-from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
+
 
 from social_distancing_sim.environment.action_space import ActionSpace
 from social_distancing_sim.environment.gym.gym_env import GymEnv
+
+try:
+    from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
+except ImportError:
+    pass
 
 
 class NonLearningAgentBase(metaclass=abc.ABCMeta):

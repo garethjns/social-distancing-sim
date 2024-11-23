@@ -8,10 +8,15 @@ import gym
 from tqdm import tqdm
 
 from social_distancing_sim.agent import DummyAgent
-from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 from social_distancing_sim.environment.gym.gym_env import GymEnv
 from social_distancing_sim.environment.history import History
+
+try:
+    from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
+except ImportError:
+    class LearningAgentBase:
+        pass
 
 
 @dataclass
@@ -72,7 +77,7 @@ class Sim:
         self.agent.env.sds_env.logger.info(f"Agent requested actions {actions} with targets {targets}")
 
         # Step the simulation and observe for this step
-        observation, reward, done, info = self.agent.env.step((actions, targets))
+        observation, reward, done, _, info = self.agent.env.step((actions, targets))
         self.agent.env.sds_env.logger.info(f"Environment returned reward {reward}")
         self.agent.env.sds_env.logger.info(f"Environment done={done}")
         self._last_state = observation

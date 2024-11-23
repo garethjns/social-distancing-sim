@@ -6,16 +6,25 @@ from functools import partial
 from unittest.mock import patch
 
 import gym
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 
-from social_distancing_sim.agent.rl_agents.q_learning.dqn_untargeted import DQNUntargeted
-from social_distancing_sim.agent.rl_agents.rlk_agent_configs import RLKAgentConfigs
 from social_distancing_sim.environment.gym.wrappers.flatten_obs_wrapper import FlattenObsWrapper
 from social_distancing_sim.environment.gym.wrappers.limit_obs_wrapper import LimitObsWrapper
 from social_distancing_sim.sim import Sim, MultiSim
 from tests.common.env_fixtures import register_test_envs
 
+RUN_TESTS = True
+try:
+    from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
+    from social_distancing_sim.agent.rl_agents.q_learning.dqn_untargeted import DQNUntargeted
+    from social_distancing_sim.agent.rl_agents.rlk_agent_configs import RLKAgentConfigs
+except:
+    RUN_TESTS = False
 
+    class DQNUntargeted():
+        pass
+
+
+@unittest.skipUnless(RUN_TESTS, "Requires rlk")
 class TestDQNUntargeted(unittest.TestCase):
     _sut = DQNUntargeted
     _env = 'SDSTests-GymEnvFixedSeedFixture-v0'

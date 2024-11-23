@@ -10,16 +10,25 @@ import numpy as np
 from social_distancing_sim.agent import DistancingPolicyAgent, DummyAgent, MultiAgent, VaccinationPolicyAgent, \
     TreatmentPolicyAgent, MaskingPolicyAgent
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
-from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
-from social_distancing_sim.agent.rl_agents.q_learning.dqn_untargeted import DQNUntargeted
-from social_distancing_sim.agent.rl_agents.rlk_agent_configs import RLKAgentConfigs
 from social_distancing_sim.environment.gym.gym_env import GymEnv
 from social_distancing_sim.environment.gym.wrappers.flatten_obs_wrapper import FlattenObsWrapper
 from social_distancing_sim.environment.gym.wrappers.limit_obs_wrapper import LimitObsWrapper
 from tests.common.env_fixtures import register_test_envs
 
+RUN_TESTS = True
+try:
+    from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
+    from social_distancing_sim.agent.rl_agents.q_learning.dqn_untargeted import DQNUntargeted
+    from social_distancing_sim.agent.rl_agents.rlk_agent_configs import RLKAgentConfigs
+except ImportError:
+    RUN_TESTS = False
 
+    class LearningAgentBase:
+        pass
+
+
+@unittest.skipUnless(RUN_TESTS, "Requires rlk")
 class TestGymEnv(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
