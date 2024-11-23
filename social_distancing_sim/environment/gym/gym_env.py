@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import Tuple, Any, Dict, Union, List
+from typing import Any, Dict, List, Tuple, Union
 
 import gym
 import numpy as np
@@ -11,10 +11,11 @@ from social_distancing_sim.templates.template_base import TemplateBase
 
 class GymEnv(gym.Env):
     """Create a OpenAI Gym environments to handle an social-distancing-sim template environments."""
+
     template: TemplateBase
     sds_env: Environment
 
-    def __init__(self, env: Union[Environment, None] = None, save_dir: str = ''):
+    def __init__(self, env: Union[Environment, None] = None, save_dir: str = ""):
         """
         Wrap an SDS env with a Gym interface.
 
@@ -43,24 +44,30 @@ class GymEnv(gym.Env):
 
     def _set_observation_space(self) -> None:
         total_pop = self.sds_env.observation_space.graph.total_population
-        self.observation_space = gym.spaces.tuple.Tuple((gym.spaces.box.Box(low=0, high=total_pop, shape=(6,),
-                                                                            dtype=np.int16),
-                                                         gym.spaces.box.Box(low=0, high=1, shape=(total_pop, total_pop),
-                                                                            dtype=np.int8),
-                                                         gym.spaces.box.Box(low=0, high=1, shape=(total_pop, 5),
-                                                                            dtype=np.int8)))
+        self.observation_space = gym.spaces.tuple.Tuple(
+            (
+                gym.spaces.box.Box(low=0, high=total_pop, shape=(6,), dtype=np.int16),
+                gym.spaces.box.Box(
+                    low=0, high=1, shape=(total_pop, total_pop), dtype=np.int8
+                ),
+                gym.spaces.box.Box(low=0, high=1, shape=(total_pop, 5), dtype=np.int8),
+            )
+        )
 
     def _set_action_space(self) -> None:
         self.action_space = gym.spaces.discrete.Discrete(n=5)
 
-    def render(self, mode: str = 'human', show: bool = False, save: bool = True) -> None:
+    def render(
+        self, mode: str = "human", show: bool = False, save: bool = True
+    ) -> None:
         self.sds_env.plot(plot=show, save=save)
 
-    def step(self, actions_targets: Union[int,
-                                          Tuple[List[int], List[Union[int, None]]]],
-             ) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray],
-                        float, bool, None, Dict[Any, Any]]:
-
+    def step(
+        self,
+        actions_targets: Union[int, Tuple[List[int], List[Union[int, None]]]],
+    ) -> Tuple[
+        Tuple[np.ndarray, np.ndarray, np.ndarray], float, bool, None, Dict[Any, Any]
+    ]:
         """
         Step with actions and targets.
 
@@ -79,8 +86,7 @@ class GymEnv(gym.Env):
             actions_targets = ([actions_targets], [])
         actions, targets = actions_targets
 
-        info, reward, done = self.sds_env.step(actions=actions,
-                                               targets=targets)
+        info, reward, done = self.sds_env.step(actions=actions, targets=targets)
         return self.state, reward, done, None, info
 
     @property

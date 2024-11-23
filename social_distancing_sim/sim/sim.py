@@ -2,7 +2,7 @@ import os
 import shutil
 import warnings
 from dataclasses import dataclass
-from typing import Iterable, Union, Any
+from typing import Any, Iterable, Union
 
 import gym
 from tqdm import tqdm
@@ -15,6 +15,7 @@ from social_distancing_sim.environment.history import History
 try:
     from social_distancing_sim.agent.learning_agent_base import LearningAgentBase
 except ImportError:
+
     class LearningAgentBase:
         pass
 
@@ -24,8 +25,9 @@ class Sim:
     """
     Agent evaluation class (no training).
     """
+
     env_spec: gym.envs.registration.EnvSpec
-    save_dir: str = 'sim'
+    save_dir: str = "sim"
     agent: Union[NonLearningAgentBase, LearningAgentBase] = DummyAgent()
     training: bool = False
     n_steps: int = 100
@@ -57,7 +59,9 @@ class Sim:
         initial_obs = self.agent.env.reset()
 
         # Set the new save paths
-        self.save_path = os.path.join(self.save_dir, self.env.save_path, self.agent.name)
+        self.save_path = os.path.join(
+            self.save_dir, self.env.save_path, self.agent.name
+        )
         shutil.rmtree(self.save_path, ignore_errors=True)
         self.agent.env.sds_env.set_output_path(self.save_path)
         self.agent.env.sds_env.environment_plotting.set_output_path(self.save_path)
@@ -74,7 +78,9 @@ class Sim:
 
         # Pick action
         actions, targets = self.agent.get_actions(state=self._last_state)
-        self.agent.env.sds_env.logger.info(f"Agent requested actions {actions} with targets {targets}")
+        self.agent.env.sds_env.logger.info(
+            f"Agent requested actions {actions} with targets {targets}"
+        )
 
         # Step the simulation and observe for this step
         observation, reward, done, _, info = self.agent.env.step((actions, targets))
@@ -93,8 +99,10 @@ class Sim:
             warnings.simplefilter("ignore", category=RuntimeWarning)
             warnings.simplefilter("ignore", category=UserWarning)
 
-            for _ in self._tqdm(range(self.n_steps),
-                                desc=f"{self.agent.env.sds_env.name}: {self.agent.name}"):
+            for _ in self._tqdm(
+                range(self.n_steps),
+                desc=f"{self.agent.env.sds_env.name}: {self.agent.name}",
+            ):
                 self.step()
                 self._step += 1
 
@@ -109,7 +117,11 @@ class Sim:
 
     def clone(self) -> "Sim":
         """Clone a fresh object with same seed (could be None)."""
-        return Sim(env_spec=self.env_spec,
-                   agent=self.agent.clone(),
-                   n_steps=self.n_steps, plot=self.plot,
-                   save=self.save, tqdm_on=self.tqdm_on)
+        return Sim(
+            env_spec=self.env_spec,
+            agent=self.agent.clone(),
+            n_steps=self.n_steps,
+            plot=self.plot,
+            save=self.save,
+            tqdm_on=self.tqdm_on,
+        )

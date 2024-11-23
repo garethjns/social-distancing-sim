@@ -1,13 +1,15 @@
 import abc
 import copy
 from functools import reduce
-from typing import Union, Tuple, List, Type, Any
+from typing import Any, List, Tuple, Type, Union
 
 import gym
 import numpy as np
 from gym.envs.registration import EnvSpec
 from reinforcement_learning_keras.agents.agent_base import AgentBase
-from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
+from reinforcement_learning_keras.agents.components.helpers.env_builder import (
+    EnvBuilder,
+)
 
 from social_distancing_sim.environment.gym.gym_env import GymEnv
 
@@ -30,10 +32,14 @@ class LearningAgentBase(metaclass=abc.ABCMeta):
             self.rlk_agent = self.rlk_agent_class(*args, **kwargs)
 
     @abc.abstractmethod
-    def get_actions(self,
-                    state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray],
-                                 Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
-                    ) -> Union[Tuple[List[int], List[int]], Tuple[List[int], None]]:
+    def get_actions(
+        self,
+        state: Union[
+            np.ndarray,
+            Tuple[np.ndarray, np.ndarray],
+            Tuple[np.ndarray, np.ndarray, np.ndarray],
+        ] = None,
+    ) -> Union[Tuple[List[int], List[int]], Tuple[List[int], None]]:
         """
         Get the actions from the agent.
 
@@ -53,7 +59,9 @@ class LearningAgentBase(metaclass=abc.ABCMeta):
 
         return clone
 
-    def attach_to_env(self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]) -> None:
+    def attach_to_env(
+        self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]
+    ) -> None:
         """
         This might be a bit inconsistent between NonLearningAgent and LearningAgent.
 
@@ -70,7 +78,9 @@ class LearningAgentBase(metaclass=abc.ABCMeta):
         if isinstance(env_or_spec, str):
             # Supported by EnvBuilder
             # If str, build with env builder. Reuse current wrappers.
-            self.rlk_agent.env_builder = EnvBuilder(env_or_spec, self.rlk_agent.env_wrappers)
+            self.rlk_agent.env_builder = EnvBuilder(
+                env_or_spec, self.rlk_agent.env_wrappers
+            )
         else:
             # Not supported by EnvBuilder yet
             # Will need to handle wrapping
@@ -83,8 +93,11 @@ class LearningAgentBase(metaclass=abc.ABCMeta):
 
             # Replace env_builders wrapped version instantiated env. There's no setter for .env yet so just
             # using private attr directly.
-            self.env_builder._env = reduce(lambda inner_env, wrapper: wrapper(inner_env),
-                                           self.rlk_agent.env_wrappers, env)
+            self.env_builder._env = reduce(
+                lambda inner_env, wrapper: wrapper(inner_env),
+                self.rlk_agent.env_wrappers,
+                env,
+            )
 
     def train(self, *args, **kwargs) -> None:
         self.rlk_agent.train(*args, **kwargs)

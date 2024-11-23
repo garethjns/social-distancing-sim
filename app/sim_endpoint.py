@@ -17,22 +17,36 @@ register_template_envs()
 class SimEndpoint:
 
     @staticmethod
-    @app.get('/ping')
+    @app.get("/ping")
     async def ping():
-        return {'response': 'hi'}
+        return {"response": "hi"}
 
     @staticmethod
-    @app.get('/run_visual')
-    async def run_visual(env: str = 'SDS-small-v0', steps: int = 40):
-        sim = Sim(env_spec=gym.make(env).spec, n_steps=steps, plot=False, save=True, tqdm_on=True)
+    @app.get("/run_visual")
+    async def run_visual(env: str = "SDS-small-v0", steps: int = 40):
+        sim = Sim(
+            env_spec=gym.make(env).spec,
+            n_steps=steps,
+            plot=False,
+            save=True,
+            tqdm_on=True,
+        )
         sim.run()
 
-        return FileResponse(f"{sim.agent.env.sds_env.environment_plotting.output_path}/replay.gif")
+        return FileResponse(
+            f"{sim.agent.env.sds_env.environment_plotting.output_path}/replay.gif"
+        )
 
     @staticmethod
-    @app.get('/run')
-    async def run(env: str = 'SDS-small-v0', steps: int = 300):
-        sim = Sim(env_spec=gym.make(env).spec, n_steps=steps, plot=False, save=False, tqdm_on=True)
+    @app.get("/run")
+    async def run(env: str = "SDS-small-v0", steps: int = 300):
+        sim = Sim(
+            env_spec=gym.make(env).spec,
+            n_steps=steps,
+            plot=False,
+            save=False,
+            tqdm_on=True,
+        )
         hist = sim.run()
 
         return json.dumps(_json_safe(hist))

@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
@@ -12,7 +12,7 @@ class MaskingAgent(NonLearningAgentBase):
 
     @property
     def available_targets(self) -> List[int]:
-        """Masks given out to any alive nodes """
+        """Masks given out to any alive nodes"""
         return self.env.sds_env.observation_space.current_alive_nodes
 
     def _select_actions_targets(self) -> Dict[int, int]:

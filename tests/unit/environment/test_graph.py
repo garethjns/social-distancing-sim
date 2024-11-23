@@ -31,7 +31,9 @@ class TestGraph(unittest.TestCase):
         graph2 = self._sut(seed=123)
 
         # Assert
-        self.assertFalse(np.array((np.array(graph1.g_.edges) == np.array(graph2.g_.edges))).all())
+        self.assertFalse(
+            np.array((np.array(graph1.g_.edges) == np.array(graph2.g_.edges))).all()
+        )
 
     def test_seed_inconsistency_when_none_specified(self):
         # Arrange
@@ -39,7 +41,9 @@ class TestGraph(unittest.TestCase):
         graph2 = self._sut(seed=None)
 
         # Assert
-        self.assertFalse(np.array((np.array(graph1.g_.edges) == np.array(graph2.g_.edges))).all())
+        self.assertFalse(
+            np.array((np.array(graph1.g_.edges) == np.array(graph2.g_.edges))).all()
+        )
 
     def test_mask_nodes_adds_mask_to_target_node(self):
         # Arrange
@@ -49,7 +53,7 @@ class TestGraph(unittest.TestCase):
         g.mask_node(0)
 
         # Assert
-        self.assertGreater(g.g_.nodes[0]['mask'], 0)
+        self.assertGreater(g.g_.nodes[0]["mask"], 0)
 
     def test_unmask_node_removes_mask_from_target_node(self):
         # Arrange
@@ -60,7 +64,7 @@ class TestGraph(unittest.TestCase):
         g.unmask_node(0)
 
         # Assert
-        self.assertEqual(g.g_.nodes[0]['mask'], 0)
+        self.assertEqual(g.g_.nodes[0]["mask"], 0)
 
     def test_isolate_node_removes_and_saves_connections(self):
         # Arrange

@@ -1,6 +1,10 @@
 from social_distancing_sim.environment.gym.gym_env import GymEnv
-from tests.common.env_fixtures.env_templates_for_sim_tests import DefaultEnvTemplate, SpecifiedEnvTemplate, \
-    ExtraPlottingEnvTemplate, SomePlottingEnvTemplate
+from tests.common.env_fixtures.env_templates_for_sim_tests import (
+    DefaultEnvTemplate,
+    ExtraPlottingEnvTemplate,
+    SomePlottingEnvTemplate,
+    SpecifiedEnvTemplate,
+)
 
 
 class GymEnvDefaultFixture(GymEnv):

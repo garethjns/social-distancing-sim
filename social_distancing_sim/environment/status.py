@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 
@@ -15,14 +15,16 @@ class Status:
     6) If isolated
     """
 
-    def __init__(self,
-                 alive: Union[bool, None] = True,
-                 infected: Union[bool, None] = None,
-                 clear: Union[bool, None] = None,
-                 isolated: Union[bool, None] = None,
-                 immune: Union[bool, None] = None,
-                 masked: Union[bool, None] = None,
-                 last_tested: Union[int, None] = -999):
+    def __init__(
+        self,
+        alive: Union[bool, None] = True,
+        infected: Union[bool, None] = None,
+        clear: Union[bool, None] = None,
+        isolated: Union[bool, None] = None,
+        immune: Union[bool, None] = None,
+        masked: Union[bool, None] = None,
+        last_tested: Union[int, None] = -999,
+    ):
 
         if infected is not None:
             if (clear is not None) and (infected & clear):
@@ -51,8 +53,10 @@ class Status:
         self.last_tested: int = last_tested
 
     def __repr__(self) -> str:
-        return f"Status(alive={self.alive}, infected={self.infected}, clear={self.clear}, isolated={self.isolated}, " \
-               f"immune={self.immune}, masked={self._masked}, last_tested={self.last_tested})"
+        return (
+            f"Status(alive={self.alive}, infected={self.infected}, clear={self.clear}, isolated={self.isolated}, "
+            f"immune={self.immune}, masked={self._masked}, last_tested={self.last_tested})"
+        )
 
     def __hash__(self) -> int:
         return hash(self.__repr__())
@@ -156,13 +160,14 @@ class Status:
     @property
     def state_features_names(self) -> List[str]:
         """Status fields to use to co construct state."""
-        return ['alive', 'clear', 'infected', 'immune', 'isolated', 'masked']
+        return ["alive", "clear", "infected", "immune", "isolated", "masked"]
 
     @property
     def state(self) -> np.ndarray:
         """Convert node status into state array."""
-        return np.array([getattr(self, a) for a in self.state_features_names],
-                        dtype=bool)
+        return np.array(
+            [getattr(self, a) for a in self.state_features_names], dtype=bool
+        )
 
 
 if __name__ == "__main__":

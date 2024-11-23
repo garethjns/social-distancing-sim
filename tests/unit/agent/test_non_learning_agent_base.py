@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 from social_distancing_sim.environment.action_space import ActionSpace
@@ -26,8 +26,7 @@ class TestAgentBase(unittest.TestCase):
     @patch.multiple(NonLearningAgentBase, __abstractmethods__=set())
     def test_sample_action(self):
         # Arrange
-        agent = NonLearningAgentBase(self.mock_env,
-                                     actions_per_turn=1)
+        agent = NonLearningAgentBase(self.mock_env, actions_per_turn=1)
 
         # Act
         actions = agent.sample()
@@ -39,8 +38,7 @@ class TestAgentBase(unittest.TestCase):
     @patch.multiple(NonLearningAgentBase, __abstractmethods__=set())
     def test_limit_actions_by_available_targets(self):
         # Arrange
-        agent = NonLearningAgentBase(self.mock_env,
-                                     actions_per_turn=6)
+        agent = NonLearningAgentBase(self.mock_env, actions_per_turn=6)
 
         # Act
         actions = agent.sample()

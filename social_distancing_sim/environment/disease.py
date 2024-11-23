@@ -1,7 +1,7 @@
 import copy
 import warnings
 from dataclasses import dataclass
-from typing import Union, Dict, Hashable, Any, List
+from typing import Any, Dict, Hashable, List, Union
 
 import numpy as np
 
@@ -14,8 +14,9 @@ class Disease:
     :param immunity_std:
     :param immunity_decay_mean: Mean prop. immunity decay per step.
     """
+
     seed: Union[None, int] = None
-    name: str = 'COVID-19'
+    name: str = "COVID-19"
     virulence: float = 0.006
     recovery_rate: float = 0.98
     duration_mean: float = 21
@@ -32,8 +33,9 @@ class Disease:
     def _prepare_random_state(self) -> None:
         self.state = np.random.RandomState(seed=self.seed)
 
-    def give_immunity(self, node: Dict[Hashable, Any],
-                      immunity: float = None) -> Dict[Hashable, Any]:
+    def give_immunity(
+        self, node: Dict[Hashable, Any], immunity: float = None
+    ) -> Dict[Hashable, Any]:
         """
         Give immunity to a node.
 
@@ -43,7 +45,9 @@ class Disease:
         :return: Modified node data.
         """
         if immunity is None:
-            immunity = min(self.immunity_mean + self.state.normal(scale=self.immunity_std), 1.0)
+            immunity = min(
+                self.immunity_mean + self.state.normal(scale=self.immunity_std), 1.0
+            )
         node["immune"] = immunity
 
         return node
@@ -57,7 +61,9 @@ class Disease:
         :param node: Graph node data.
         :return: Modified node data.
         """
-        decay = self.immunity_decay_mean + self.state.normal(scale=self.immunity_decay_std)
+        decay = self.immunity_decay_mean + self.state.normal(
+            scale=self.immunity_decay_std
+        )
         new_immunity = max(0.0, node["immune"] - node["immune"] * decay)
         node["immune"] = new_immunity
 
@@ -78,9 +84,12 @@ class Disease:
 
         return vir
 
-    def conclude(self, node: Dict[Hashable, Any],
-                 chance_to_force: float = 0.0,
-                 recovery_rate_modifier: float = 1) -> Dict[Hashable, Any]:
+    def conclude(
+        self,
+        node: Dict[Hashable, Any],
+        chance_to_force: float = 0.0,
+        recovery_rate_modifier: float = 1,
+    ) -> Dict[Hashable, Any]:
         """
 
         :param node: Graph node to update.
@@ -102,10 +111,16 @@ class Disease:
             force = self.state.binomial(1, chance_to_force)
 
         # Decide end of disease
-        if node["infected"] > self.state.normal(self.duration_mean, self.duration_std, size=1) or force:
+        if (
+            node["infected"]
+            > self.state.normal(self.duration_mean, self.duration_std, size=1)
+            or force
+        ):
             # Concluding, decide fate
             node["infected"] = 0
-            modified_recovery_rate = max(0.0, min(1.0, self.recovery_rate * recovery_rate_modifier))
+            modified_recovery_rate = max(
+                0.0, min(1.0, self.recovery_rate * recovery_rate_modifier)
+            )
 
             if self.state.binomial(1, modified_recovery_rate):
                 node = self.give_immunity(node)
@@ -119,22 +134,33 @@ class Disease:
 
         return node
 
-    def try_to_infect_multiple(self,
-                               source_node: Dict[Hashable, Any],
-                               target_nodes: List[Dict[Hashable, Any]]) -> List[int]:
+    def try_to_infect_multiple(
+        self, source_node: Dict[Hashable, Any], target_nodes: List[Dict[Hashable, Any]]
+    ) -> List[int]:
 
         # Source node not infected so can't infect anyone
         if source_node.get("infected", 0) < 1:
-            warnings.warn("Attempted to infect with non-infectious source, returning no new infections.")
+            warnings.warn(
+                "Attempted to infect with non-infectious source, returning no new infections."
+            )
             return [0] * len(target_nodes)
 
         # Prepare virulence wrt target node. 0 if target node is already infected
         infect_status = [t_node.get("infected", 0) for t_node in target_nodes]
-        virulence_status = [self.modified_virulence(
-            modifiers=[t_node.get("immune", 0),
-                       t_node.get("mask", 0),
-                       source_node.get("mask", 0)]) if not already_infected else 0
-                            for t_node, already_infected in zip(target_nodes, infect_status)]
+        virulence_status = [
+            (
+                self.modified_virulence(
+                    modifiers=[
+                        t_node.get("immune", 0),
+                        t_node.get("mask", 0),
+                        source_node.get("mask", 0),
+                    ]
+                )
+                if not already_infected
+                else 0
+            )
+            for t_node, already_infected in zip(target_nodes, infect_status)
+        ]
 
         # Sample and apply new statuses
         new_infection_status = self.state.binomial(1, virulence_status)
@@ -144,7 +170,9 @@ class Disease:
 
         return list(new_infection_status)
 
-    def try_to_infect(self, source_node: Dict[Hashable, Any], target_node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+    def try_to_infect(
+        self, source_node: Dict[Hashable, Any], target_node: Dict[Hashable, Any]
+    ) -> Dict[Hashable, Any]:
         """
         Attempt to infect another node.
 
@@ -154,11 +182,17 @@ class Disease:
          - If the uninfected node is masked - uses target nodes mask modifier
          TODO: Considering a bonus to protection if both are masked, but not implemented for now. It's a bit
                speculative.
-         """
-        if (not target_node.get("infected", 0) > 0) and (source_node.get("infected", 0) > 0):
-            vir = self.modified_virulence(modifiers=[target_node.get("immune", 0),
-                                                     target_node.get("mask", 0),
-                                                     source_node.get("mask", 0)])
+        """
+        if (not target_node.get("infected", 0) > 0) and (
+            source_node.get("infected", 0) > 0
+        ):
+            vir = self.modified_virulence(
+                modifiers=[
+                    target_node.get("immune", 0),
+                    target_node.get("mask", 0),
+                    source_node.get("mask", 0),
+                ]
+            )
 
             target_node["infected"] = self.state.binomial(1, vir)
 
@@ -166,7 +200,7 @@ class Disease:
 
     @staticmethod
     def force_infect(node: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
-        node['infected'] = 1
+        node["infected"] = 1
         return node
 
     def clone(self):

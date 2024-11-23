@@ -3,9 +3,9 @@
 
 This package models disease spread through a population, allowing modification of many dynamics affecting spread. The simulations can be viewed as animations, or run many times to collect statistics, evaluate response strategies, etc. The simulation supports agent input, which can either enact scripted policies such as mass vaccination and social distancing, or reinforcement learning agents that have learned their own strategies through experience.
 
-The code aims to be as simple and understandable as possible, but is still WIP (along with the documentation) so expect things to break and change. The documentation is mainly example driven see [below](#usage_example) and the Scripts/ folder for up to date usage examples. 
+The code aims to be as simple and understandable as possible, but is still WIP (along with the documentation) so expect things to break and change. The documentation is mainly example driven see [below](#usage_example) and the Scripts/ folder for up to date usage examples.
 
-![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)
 
 # Contents
 1. [Dynamics](#dynamics)
@@ -32,7 +32,7 @@ Populations are randomly generated using a [networkx.random_partition_graph](htt
 
 The connections between individuals (graph nodes) define opportunities for a member to infect another. Each day (step) every infected node has one chance to infect each of its neighbours, the chance of this happening is defined by the disease virulence and modified by interacting factors such as immunity, and use of masks by the target or source.
 
-Each day, infected nodes also have the chance to end their infection. The probability of this happening grows with the length of time the individual has been infected. If the infection ends, the individual either recovers and gains immunity, or dies. The chance of recovery is defined by the recovery rate of the disease, modified by the current burden on the healthcare system. When the healthcare system is below capacity, no penalty is applied to the recovery rate. When it's above, the recovery rate is reduced proportionally to the size of the burden. If a node survives, it gains (or not) imperfect immunity that decays with time. 
+Each day, infected nodes also have the chance to end their infection. The probability of this happening grows with the length of time the individual has been infected. If the infection ends, the individual either recovers and gains immunity, or dies. The chance of recovery is defined by the recovery rate of the disease, modified by the current burden on the healthcare system. When the healthcare system is below capacity, no penalty is applied to the recovery rate. When it's above, the recovery rate is reduced proportionally to the size of the burden. If a node survives, it gains (or not) imperfect immunity that decays with time.
 
 In addition to communities, populations define a healthcare capacity. When above this capacity, the recovery rate from the disease is reduced.
 
@@ -41,8 +41,8 @@ In addition to communities, populations define a healthcare capacity. When above
 
 The simulation environment defines an action space that allows agents to perform actions each turn and influence disease spread. This interface supports basic agents social_distancing_sim.agent), "policy" agents with hardcoded logic, and reinforcement learning agents (supporting the OpenAI Gym API).
 
-Agents are able to perform treatment, isolate, reconnect and vaccinate actions. Basic agents typically perform single actions in a semi-targeted fashion, and "policy" agents support multiple basic agents operating over different time periods. This allows for definition and experimentation with different strategies for managing outbreaks. (Note here "policy" refers to scripted strategy like isolating early, vaccinating when available, reconnecting nodes later on, etc. rather than a reinforcement learning agents learned policy).  
- 
+Agents are able to perform treatment, isolate, reconnect and vaccinate actions. Basic agents typically perform single actions in a semi-targeted fashion, and "policy" agents support multiple basic agents operating over different time periods. This allows for definition and experimentation with different strategies for managing outbreaks. (Note here "policy" refers to scripted strategy like isolating early, vaccinating when available, reconnecting nodes later on, etc. rather than a reinforcement learning agents learned policy).
+
 A flexible scoring system allows for setting of action costs and environment rewards and penalties. This can be used for agent/policy evaluation, and for training of the included RL agents (social_distancing_sim.gym.agent)
 
 
@@ -55,11 +55,11 @@ A flexible scoring system allows for setting of action costs and environment rew
  - Scoring system for quantifying outcomes and defining reinforcement agent rewards, ongoing economic costs, etc.
  - Visual simulation with history logging. Examples: **scripts/visual_*.py**.
  - Statistical simulation for multiple runs of the same parameters, aggregate statistics, experiment comparison (using [MLFlow](https://mlflow.org/)). Examples **scripts/stats_*.py**.
- - Basic (non-learning) agents to enact simple polices such as social distancing, vaccination, etc. 
+ - Basic (non-learning) agents to enact simple polices such as social distancing, vaccination, etc.
  - Open AI Gym compatibility
  - Linear and deep-q reinforcement learning agents Examples: **scripts/train_deep_q_learner.py, scripts/train_linear_q_learner.py**.
- - A scoring system with settable action costs and environment rewards/penalties 
-  
+ - A scoring system with settable action costs and environment rewards/penalties
+
 ### Planned
  - Agents supporting specific node targeting.
  - Less accurate testing, adding definable false positive and false negative rates
@@ -73,9 +73,9 @@ docker run -p 8000:8000 social-distancing-sim
 
 For now, REST API supports get requests for running a few examples. These return either the rendered gif, or the stats for the simulation (JSON). See http://localhost:8001/docs for all implemented methods.
 
-For example (these will probably take a while to run):  
-http://localhost:8000/run -> outputs gif  
-http://localhost:8000/run_visual -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).  
+For example (these will probably take a while to run):
+http://localhost:8000/run -> outputs gif
+http://localhost:8000/run_visual -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).
 
 The number of steps run and environment template to run can be specified in the url, eg.
 http://localhost:8000/run?env=SDS-746-v0&steps=300
@@ -96,14 +96,14 @@ git clone https://github.com/garethjns/social-distancing-sim
 # Usage examples <a name="usage_example"></a>
 
 ## Simple simulation
-![single simulation example](https://github.com/garethjns/social-distancing-sim/blob/master/images/single_simulation_example.gif)   
+![single simulation example](https://github.com/garethjns/social-distancing-sim/blob/master/images/single_simulation_example.gif)
 To run a single passive, visual, simulation, the Environment object can be defined and run without using the Sim and MultiSim handlers.
 
 ```bash
 python3 -m scripts.run_single_population
 ```
 
-Create environment components. See [below](#package_structure) for a more information on these. 
+Create environment components. See [below](#package_structure) for a more information on these.
 ```python
 import social_distancing_sim.environment as env
 # The graph is the "true" environment model, containing all the nodes and their data
@@ -147,8 +147,8 @@ pop.run(steps=150, plot=True, save=True)
 # Save .gif of the frames to '[env_name]/replay.gif'
 pop.replay()
 
-# History can be accessed in the History object. These keys can also be set to plot during the simulation in the 
-# EnvironmentPlotting options 
+# History can be accessed in the History object. These keys can also be set to plot during the simulation in the
+# EnvironmentPlotting options
 print(pop.history.keys())
 ```
 
@@ -182,15 +182,15 @@ class EnvTemplate(TemplateBase):
                                    test_rate=1),
                                initial_infections=15)
 
-# Define an gym compatible environment environment 
+# Define an gym compatible environment environment
 class CustomEnv(GymEnv):
     template = EnvTemplate()
 ````
 
-Register the environment with gym. Note that here, the entry point is really pointing to one of the predefined templates, rather than the one defined in the example above. 
+Register the environment with gym. Note that here, the entry point is really pointing to one of the predefined templates, rather than the one defined in the example above.
 
 This should be changed to point to the correct env as appropriate. It can point to the same file the env is defined in.
- 
+
 ````python
 import gym
 
@@ -208,7 +208,7 @@ from social_distancing_sim.agent.basic_agents.vaccination_agent import Vaccinati
 # Create Sim
 sim_ = sim.Sim(env_spec=env_spec,
               agent=VaccinationAgent(actions_per_turn=15),
-              plot=True,  # Show plots during simulation 
+              plot=True,  # Show plots during simulation
               save=True,  # Save plots after showing
               logging=True,  # Log to file
               tqdm_on=True)  # Show tqdm waitbar
@@ -217,7 +217,7 @@ sim_.run()
 ```
 
 ## Training / simulation with an rl agent
-This is WIP, but see scripts/train_and_evaluate_untargeted_dqn.py. Aim is to work with the same Sim interface for evaluation. 
+This is WIP, but see scripts/train_and_evaluate_untargeted_dqn.py. Aim is to work with the same Sim interface for evaluation.
 
 ## MultiSims
 Run a Sim multiple times and return stats. This will handle multiprocessing, rebuilding environments, transporting agents, etc., and logging results to MLflow.
@@ -266,27 +266,27 @@ Contains the code for running the simulation, including the action space availab
       - .graph.**Graph** - The full simulation graph and graph plotting functionality
         - .status.**Status** - Each graph node consists of dictionary defining its true state, and a Status object containing it's accessible state. The Status class also defines the logic for ObservationState test updates. For example, if the ObservationState tests a node and finds it infected, Status.infected = True also automatically updates the dependent properties (such as "clear", "immune", etc.)
     - .gym - Contains environment and agent definitions designed to comply with the [OpenAI Gym API](https://gym.openai.com/). This include the trainable reinforcement learning agents.
-      - gym.**gym_env** - Wrapper to make social_distancing_sim.environment.Environments Gym compatible  
-      - gym.**gym_templates** - Gym environments specs for example environment set ups in social_distancing_sim.templates  
-      - gym.**wrappers** - Various Gym envriroment wrappers   
-     
+      - gym.**gym_env** - Wrapper to make social_distancing_sim.environment.Environments Gym compatible
+      - gym.**gym_templates** - Gym environments specs for example environment set ups in social_distancing_sim.templates
+      - gym.**wrappers** - Various Gym envriroment wrappers
+
 ## .agent
 Contains the code defining the agent interface and, currently, 4 basic agents.
-  - agent_base.**AgentBase** - An abstract class agents should inherit from. Defines interface for action/target selection mechanisms. 
+  - agent_base.**AgentBase** - An abstract class agents should inherit from. Defines interface for action/target selection mechanisms.
   - dummy_agent.**DummyAgent** - An agent that models the behaviour of many governments by not doing anything.
   - random_agent.**RandomAgent** - An agent that performs a number of random vaccination or isolation actions, with totally random target selection
   - isolation_agent.**IsolationAgent** - An agent that randomly isolates a number of infected + connected nodes and randomly reconnects recovered + isolated nodes.
   - vaccination_agent.**VaccinationAgent** - An agent that randomly vaccinates currently a number of non-infected nodes each turn.
-  - masking_agent.**MaskingAgent** - An agent that randomly provides a supply of masks to alive nodes each turn. By default the masks reduce the chance of infection less than immunity, but both the source and target nodes can potentially contribute to the reduction.. 
+  - masking_agent.**MaskingAgent** - An agent that randomly provides a supply of masks to alive nodes each turn. By default the masks reduce the chance of infection less than immunity, but both the source and target nodes can potentially contribute to the reduction..
   - .multi_agents.MultiAgent - Class handling combinations of different agents
   - policy_agents - Combinations of basic agents that act over different time periods.
-  - rl_agents - Compatible reinforcement learning algorithms 
-  
+  - rl_agents - Compatible reinforcement learning algorithms
+
 ## .sim
 Contains objects to handle running and logging experiments with agent input
-  - .sim.**Sim** - Handles the Environment, and an Agent. Steps the simulation, gets actions from agent, passes to env, etc. 
+  - .sim.**Sim** - Handles the Environment, and an Agent. Steps the simulation, gets actions from agent, passes to env, etc.
   - .multi_sim.**MultiSim** - Handles running Sim objects multiple times with different seeds. Outputs MLflow logs and aggregated statistics.
- 
+
  ## .templates
 Example environment set ups.
 
@@ -294,7 +294,7 @@ Example environment set ups.
 The rest of this readme contains a dump of example experiments with outputs, which can be run using the code below or the relevant script in scripts/.
 
 ## Social distancing: Worth it? <a name="social_distancing"></a>
-![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)   
+![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)
 ([Discussion](https://new.reddit.com/r/dataisbeautiful/comments/fov56p/oc_comparing_the_effect_of_social_distancing_on/))
 
 The probabilities of inter and and intra community connectivity in the population can be modified to, for example, compare the effects between a densely connected population and a socially distanced population. In this example, fewer connections in the population give the disease fewer opportunities for disease to spread, which slows the progression through the population. This leads to a flatter infection curve and a lower peak burden on the health care system, results in fewer deaths.
@@ -304,10 +304,10 @@ python3 -m scripts.compare_two_populations
 ````
 
 ## Masks: Worth it? <a name="using_masks"></a>
-![Example MaskingAgent](https://github.com/garethjns/social-distancing-sim/blob/master/images/masking_agent_example_joined.gif)   
-Provision of masks to a population can be done by an agent. Using the default settings, individual masks reduce the chance of infection less than immunity, but both the source and target nodes can wear masks benefiting from a stacked effect (with diminishing returns). Here the DummyAgent does nothing. 
+![Example MaskingAgent](https://github.com/garethjns/social-distancing-sim/blob/master/images/masking_agent_example_joined.gif)
+Provision of masks to a population can be done by an agent. Using the default settings, individual masks reduce the chance of infection less than immunity, but both the source and target nodes can wear masks benefiting from a stacked effect (with diminishing returns). Here the DummyAgent does nothing.
 
-This example is part of a larger example comparing agents/actions - see below for more details. 
+This example is part of a larger example comparing agents/actions - see below for more details.
 
 ````bash
 python3 -m scripts.visual_compare_basic_agents_small
@@ -315,7 +315,7 @@ python3 -m scripts.visual_compare_basic_agents_small
 
 
 ## Importance of testing: Modifying ObservationSpace test rate <a name="importance_of_testing"></a>
-![Example testing rate](https://github.com/garethjns/social-distancing-sim/blob/master/images/testing_example.gif)  
+![Example testing rate](https://github.com/garethjns/social-distancing-sim/blob/master/images/testing_example.gif)
 ([Discussion](https://new.reddit.com/r/dataisbeautiful/comments/fse6l1/oc_the_importance_of_testing_and_effect_on/))
 
 This script and figure compares the populations shown above, to their observable features given a set level of testing.
@@ -325,7 +325,7 @@ In the observed model, a proportion of the population (here ~4%) is tested per 
   - If a node is tested and clear, status is marked as clear for the next 5 days
   - If a node is tested and is infected, status is marked as infected
   - For known infected nodes, status is switched to "dead" or "immune" at the end of disease, depending on survival
-  - For unknown infected nodes, status is set to "dead" if they die, but left as unknown if they survive - this is based on the assumption we know about all deaths, but don't know about acquired immunity unless we know about infection.  
+  - For unknown infected nodes, status is set to "dead" if they die, but left as unknown if they survive - this is based on the assumption we know about all deaths, but don't know about acquired immunity unless we know about infection.
 
 ````bash
 python3 -m social-distancing-sim.scripts.compare_two_pop_testing_rate
@@ -338,7 +338,7 @@ Version 0.2.0 adds incomplete immunity and decay of immunity. These are part of 
 
 ````bash
 python3 -m scripts.compare_two_diseases_immunity
-````  
+````
 
 ## Basic agents: Simple action comparison <a name="basic_agents_visual"></a>
 ![Test basic agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/basic_agent_comparison_score.png)
@@ -348,11 +348,11 @@ Runs the full set of basic agents, comparing the effects of their individual act
 ### Run visual examples
 ````bash
 python3 -m scripts.visual_compare_basic_agents
-````  
+````
 ### Run MultiSim and plot histograms
 ````bash
 python3 -m scripts.stats_compare_basic_agents
-````  
+````
 
 ## Static policies: Combining actions into strategies <a name="static_policies"></a>
 ![Test multi policy agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/multi_agent_comparison_score.png)
@@ -365,7 +365,7 @@ This example runs each policy agent multiple times and aggregates the scores. Th
 
 ````bash
 python3 -m social-distancing-sim.scripts.stats_compare_multi_agents
-````  
+````
 
 ## Reinforcement learning agents vs static policies <a name="reinforcement_agents"></a>
 ![Reinforcement agents](https://github.com/garethjns/social-distancing-sim/blob/master/images/linear_q_learner_2_comparison.png)
@@ -374,9 +374,9 @@ Compares two trained reinforcement agents (Linear and deep QAgents) against each
 
 ### Train agents
 ````bash
-````  
+````
 
 ### Run comparison
 ````bash
 python3 -m scripts.stats_compare_rl_to_baseline
-````  
+````
