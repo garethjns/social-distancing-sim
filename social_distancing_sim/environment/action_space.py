@@ -165,7 +165,7 @@ class ActionSpace:
         cls, n: int, available_targets: List[int], seed: Optional[int] = None
     ) -> List[int]:
         """Given a list of available targets, select a number of targets."""
-        rng = np.random.RandomState(seed=seed)
+        rng = np.random.default_rng(seed=seed)
         n_available = len(available_targets)
         valid = list(
             rng.choice(available_targets, size=min(n, n_available), replace=False)

@@ -12,3 +12,4 @@ gym>=0.26
 uvicorn
 aiofiles
 fastapi
+gradio

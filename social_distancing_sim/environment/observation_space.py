@@ -286,7 +286,7 @@ class ObservationSpace:
             nx.draw_networkx_nodes(
                 **common_plotting_args,
                 nodelist=self.unknown_nodes,
-                node_color=colours.get("Unknown", "#bdbcbb")
+                node_color=colours.get("Unknown", "#bdbcbb"),
             )
 
         # Draw selected set of properties and include default colours in case not defined in colours
@@ -299,7 +299,7 @@ class ObservationSpace:
             nx.draw_networkx_nodes(
                 **common_plotting_args,
                 nodelist=pv[0],
-                node_color=colours.get(pk, pv[1])
+                node_color=colours.get(pk, pv[1]),
             )
 
         # Draw mask indicators and edges

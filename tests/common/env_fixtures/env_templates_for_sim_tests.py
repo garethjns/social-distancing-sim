@@ -52,7 +52,7 @@ class SomePlottingEnvTemplate(TemplateBase):
         return env.Environment(
             name="some_plotting_env",
             **COMMON_SETUP,
-            environment_plotting=EnvironmentPlotting(ts_fields_g2=PLOT_SET_1)
+            environment_plotting=EnvironmentPlotting(ts_fields_g2=PLOT_SET_1),
         )
 
 
@@ -64,5 +64,5 @@ class ExtraPlottingEnvTemplate(TemplateBase):
             **COMMON_SETUP,
             environment_plotting=EnvironmentPlotting(
                 ts_fields_g2=PLOT_SET_1, ts_obs_fields_g2=PLOT_SET_2
-            )
+            ),
         )

@@ -34,6 +34,8 @@ class Environment:
     random_infection_chance: float = 0.01
     output_path: str = field(init=False)
 
+    _log_to_file: bool = field(init=False)
+
     def __post_init__(self) -> None:
         # Output path is only used for log file, so it's prepared along with the logger
         # (Plot path is handled in EnvironmentPlotting)
@@ -83,7 +85,7 @@ class Environment:
     def log_to_file(self, on: bool):
         if on and (not self._log_to_file):
             # Create a new handler and new log file. Create output dir if it doesn't exist.
-            # If already on, continue with previous log file (ie. doesn't enter here).
+            # If already on, continue with previous log file (i.e. doesn't enter here).
             self.set_output_path(self.output_path)
             os.makedirs(self.output_path, exist_ok=True)
             self.log_file = os.path.join(self.output_path, "log.txt").replace("\\", "/")

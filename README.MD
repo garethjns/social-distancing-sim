@@ -8,10 +8,10 @@ The code aims to be as simple and understandable as possible, but is still WIP (
 ![Example cats vs responsible](https://github.com/garethjns/social-distancing-sim/blob/master/images/joined.gif)
 
 # Contents
-1. [Dynamics](#dynamics)
+1. [Set up](#set_up)
+2. [Usage example](#usage_example)
+2. [Dynamics](#dynamics)
 2. [Features](#features)
-3. [Set up](#set_up)
-4. [Usage example](#usage_example)
 5. [Package structure and components](#package_structure)
 6. [Experiments](#experiments)
     1. [Social distancing](#social_distancing)
@@ -22,6 +22,46 @@ The code aims to be as simple and understandable as possible, but is still WIP (
     6. [Static policies](#static_policies)
     7. [Reinforcement learning agents](#reinforcement_agents)
 
+# Set up <a name="set_up"></a>
+
+To use as a python package:
+````bash
+pip install social_distancing_sim
+````
+
+To get full repo and script examples to run:
+````bash
+git clone https://github.com/garethjns/social-distancing-sim
+````
+
+# Usage examples <a name="usage_example"></a>
+
+```bash
+pip install social-distancing-sim
+```
+
+## In docker
+### Gradio UI
+
+```bash
+docker build . -f gradio.dockerfile --tag social-distancing-sim/gradio
+docker run -p 7860:7860 social-distancing-sim/gradio
+```
+
+### Fast API
+
+```bash
+docker build . -f fastapi.dockerfile --tag social-distancing-sim/fastapi
+docker run -p 8000:8000 social-distancing-sim/fastapi
+```
+For now, REST API supports get requests for running a few examples. These return either the rendered gif, or the stats for the simulation (JSON). See http://localhost:8001/docs for all implemented methods.
+
+For example (these will probably take a while to run):
+http://localhost:8000/run -> outputs gif
+http://localhost:8000/run_visual -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).
+
+The number of steps run and environment template to run can be specified in the url, eg.
+http://localhost:8000/run?env=SDS-746-v0&steps=300
 
 # Dynamics <a name="dynamics"></a>
 ## Simulation <a name="simulation"></a>
@@ -71,30 +111,6 @@ docker pull garethjns/social-distancing-sim
 docker run -p 8000:8000 social-distancing-sim
 ```
 
-For now, REST API supports get requests for running a few examples. These return either the rendered gif, or the stats for the simulation (JSON). See http://localhost:8001/docs for all implemented methods.
-
-For example (these will probably take a while to run):
-http://localhost:8000/run -> outputs gif
-http://localhost:8000/run_visual -> outputs json (if running through a browser, Firefox does a better job of displaying this than Chrome).
-
-The number of steps run and environment template to run can be specified in the url, eg.
-http://localhost:8000/run?env=SDS-746-v0&steps=300
-
-
-# Set up <a name="set_up"></a>
-
-To use as a python package:
-````bash
-pip install social_distancing_sim
-````
-
-To get full repo and script examples to run:
-````bash
-git clone https://github.com/garethjns/social-distancing-sim
-````
-
-# Usage examples <a name="usage_example"></a>
-
 ## Simple simulation
 ![single simulation example](https://github.com/garethjns/social-distancing-sim/blob/master/images/single_simulation_example.gif)
 To run a single passive, visual, simulation, the Environment object can be defined and run without using the Sim and MultiSim handlers.
@@ -107,15 +123,19 @@ Create environment components. See [below](#package_structure) for a more inform
 ```python
 import social_distancing_sim.environment as env
 # The graph is the "true" environment model, containing all the nodes and their data
-graph = env.Graph(community_n=50,
-                  community_size_mean=15,
-                  community_p_in=0.06,  # The likelihood of intra-community connections
-                  community_p_out=0.04)  # The likelihood of inter-community connections
+graph = env.Graph(
+    community_n=50,
+    community_size_mean=15,
+    community_p_in=0.06,  # The likelihood of intra-community connections
+    community_p_out=0.04
+)  # The likelihood of inter-community connections
 
 # The ObservationSpace wraps the true graph to filter the available information about the Graph. Here
 # test_rate = 1 means the ObservationSpace has access to the full Graph.
-observation_space = env.ObservationSpace(graph=graph,  # Create environments graph and window into it
-                                         test_rate=1)
+observation_space = env.ObservationSpace(
+    graph=graph,  # Create environments graph and window into it
+    test_rate=1
+)
 
 # Define a Disease with default parameters
 disease = env.Disease(name='COVID-19')
@@ -129,11 +149,13 @@ environment_plotting = env.EnvironmentPlotting(ts_fields_g2=["Turn score"])
 
 Construct the environment
 ```Python
-pop = env.Environment(name="example environments",
-                      disease=disease,
-                      healthcare=healthcare,
-                      environment_plotting=environment_plotting,
-                      observation_space=observation_space)
+pop = env.Environment(
+    name="example environments",
+    disease=disease,
+    healthcare=healthcare,
+    environment_plotting=environment_plotting,
+    observation_space=observation_space
+)
 
 # To log to file, turn on manually. This will be created in [env_name]/log.txt
 pop.log_to_file = True
@@ -169,18 +191,23 @@ from social_distancing_sim.environment.gym.gym_env import GymEnv
 # Define a template for the environment. This can include set seeds.
 class EnvTemplate(TemplateBase):
     def build(self):
-        return env.Environment(name="example_sim_env",
-                               action_space=env.ActionSpace(),
-                               disease=env.Disease(),
-                               healthcare=env.Healthcare(),
-                               environment_plotting=env.EnvironmentPlotting(ts_fields_g2=["Actions taken",
-                                                                                          "Overall score"]),
-                               observation_space=env.ObservationSpace(
-                                   graph=env.Graph(community_n=20,
-                                                   community_size_mean=15,
-                                                   considered_immune_threshold=0.7),
-                                   test_rate=1),
-                               initial_infections=15)
+        return env.Environment(
+            name="example_sim_env",
+            action_space=env.ActionSpace(),
+            disease=env.Disease(),
+            healthcare=env.Healthcare(),
+            environment_plotting=env.EnvironmentPlotting(
+                ts_fields_g2=["Actions taken", "Overall score"],
+            ),
+           observation_space=env.ObservationSpace(
+               graph=env.Graph(
+                   community_n=20,
+                   community_size_mean=15,
+                   considered_immune_threshold=0.7,
+               ),
+           test_rate=1),
+           initial_infections=15
+           )
 
 # Define an gym compatible environment environment
 class CustomEnv(GymEnv):
@@ -195,8 +222,11 @@ This should be changed to point to the correct env as appropriate. It can point 
 import gym
 
 env_name = f"SDSTests-CustomEnvForReadme-v0"
-gym.envs.register(id=env_name, entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
-                  max_episode_steps=1000)
+gym.envs.register(
+    id=env_name,
+    entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
+    max_episode_steps=1000
+)
 env_spec = gym.make(env_name).spec
 ````
 
@@ -206,12 +236,14 @@ import social_distancing_sim.sim as sim
 from social_distancing_sim.agent.basic_agents.vaccination_agent import VaccinationAgent
 
 # Create Sim
-sim_ = sim.Sim(env_spec=env_spec,
-              agent=VaccinationAgent(actions_per_turn=15),
-              plot=True,  # Show plots during simulation
-              save=True,  # Save plots after showing
-              logging=True,  # Log to file
-              tqdm_on=True)  # Show tqdm waitbar
+sim_ = sim.Sim(
+    env_spec=env_spec,
+    agent=VaccinationAgent(actions_per_turn=15),
+    plot=True,  # Show plots during simulation
+    save=True,  # Save plots after showing
+    logging=True,  # Log to file
+    tqdm_on=True
+)  # Show tqdm waitbar
 
 sim_.run()
 ```
@@ -231,19 +263,28 @@ from social_distancing_sim.agent.basic_agents.vaccination_agent import Vaccinati
 import social_distancing_sim.sim as sim
 
 env_name = f"SDSTests-CustomEnvForReadme-v0"
-gym.envs.register(id=env_name, entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
-                  max_episode_steps=1000)
+gym.envs.register(
+    id=env_name,
+    entry_point='social_distancing_sim.environment.gym.environments.sds_746:SDS746',
+    max_episode_steps=1000,
+)
 env_spec = gym.make(env_name).spec
 
-sim_ = sim.Sim(env_spec=env_spec,
-              agent=VaccinationAgent(actions_per_turn=15))
+sim_ = sim.Sim(
+    env_spec=env_spec,
+    agent=VaccinationAgent(actions_per_turn=15),
+)
 ```
 
 Then create and run MultiSim.
 
 ```Python
-multi_sim = sim.MultiSim(sim_, name='basic agent comparison',
-                         n_reps=300, n_jobs=30)
+multi_sim = sim.MultiSim(
+    sim_,
+    name='basic agent comparison',
+    n_reps=300,
+    n_jobs=30,
+)
 multi_sim.run()
 ```
 
