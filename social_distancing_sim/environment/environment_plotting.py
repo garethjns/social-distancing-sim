@@ -117,7 +117,6 @@ class EnvironmentPlotting:
         total_steps: int,
         save: bool = True,
         show: bool = True,
-        **kwargs,
     ) -> None:
         self._prepare_figure(test_rate=obs.test_rate)
         self.plot_graphs(
