@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["social_distancing_sim"]
+
+[project]
+name = "social_distancing_sim"
+requires-python = ">= 3.9"
+version = "0.2.0"
+description = ""
+authors = [
+    {name = "Gareth Jones ", email = "garethgithub@gmail.com"}
+]
+readme = "README.MD"
+classifiers=[
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+        "networkx",
+        "numpy<=1.23",
+        "matplotlib",
+        "imageio",
+        "dataclasses",
+        "seaborn<=0.13",
+        "tqdm",
+        "joblib",
+        "pandas",
+        "mlflow",
+        "gym>=0.26",
+        "uvicorn",
+        "aiofiles",
+    ]
+
+[project.optional-dependencies]
+rlk = ["reinforcement-learning-keras==0.5.1",]
+fastapi = ["fastapi",]
+gradio = ["gradio",]
+dev = ["pytest", "pre-commit"]
+
+[project.urls]
+Homepage = "https://github.com/garethjns/social-distancing-sim"
+Repository = "https://github.com/garethjns/social-distancing-sim"
