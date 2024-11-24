@@ -43,6 +43,8 @@ pip install social-distancing-sim
 ## In docker
 ### Gradio UI
 
+Run parameterized simulations and see results.
+
 ```bash
 docker build . -f gradio.dockerfile --tag social-distancing-sim/gradio
 docker run -p 7860:7860 social-distancing-sim/gradio

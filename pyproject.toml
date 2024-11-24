@@ -45,3 +45,6 @@ dev = ["pytest", "pre-commit"]
 [project.urls]
 Homepage = "https://github.com/garethjns/social-distancing-sim"
 Repository = "https://github.com/garethjns/social-distancing-sim"
+
+[tool.isort]
+known_first_party=["social_distancing_sim", "app"]

@@ -7,9 +7,11 @@ if __name__ == "__main__":
     graph = env.Graph(
         community_n=50,
         community_size_mean=15,
-        community_p_in=0.06,  # The likelihood of intra-community connections
+        # The likelihood of intra-community connections
+        community_p_in=0.06,
+        # The likelihood of inter-community connections
         community_p_out=0.04,
-    )  # The likelihood of inter-community connections
+    )
 
     # The ObservationSpace wraps the true graph to filter the available information about the Graph. Here
     # test_rate = 1 means the ObservationSpace has access to the full Graph.
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     # Run the environments, plotting and saving at each step
     pop.run(steps=150, plot=True, save=True)
 
-    # Save .gif to './example environments/replay.gif'
+    # Save .gif to './exps/example environments/replay.gif'
     pop.replay()
 
     # History can be accessed in the History object. These keys can also be set to plot during the simulation in the

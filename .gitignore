@@ -1,5 +1,12 @@
 mlruns/
+.gradio/
+node_modules/
+gradio_exps/
+exps/
 *.png
+*.csv
+**/log.txt
+**/replay.gif
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
