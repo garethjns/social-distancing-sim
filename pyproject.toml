@@ -11,7 +11,7 @@ exclude = ["docs*", "tests(", "images*"]
 [project]
 name = "social_distancing_sim"
 requires-python = ">= 3.9"
-version = "0.11.0"
+version = "0.11.1"
 description = ""
 authors = [
     {name = "Gareth Jones ", email = "garethgithub@gmail.com"}
