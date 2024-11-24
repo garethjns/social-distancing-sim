@@ -8,7 +8,7 @@ py-modules = ["social_distancing_sim"]
 [project]
 name = "social_distancing_sim"
 requires-python = ">= 3.9"
-version = "0.2.0"
+version = "0.11.0"
 description = ""
 authors = [
     {name = "Gareth Jones ", email = "garethgithub@gmail.com"}
@@ -45,6 +45,3 @@ dev = ["pytest", "pre-commit"]
 [project.urls]
 Homepage = "https://github.com/garethjns/social-distancing-sim"
 Repository = "https://github.com/garethjns/social-distancing-sim"
-
-[tool.pre-commit.isort]
-known_first_party=["social_distancing_sim", "app"]
