@@ -1,4 +1,5 @@
 import gradio as gr
+
 from app.gradio.single_population import run_single_population
 
 with gr.Blocks(theme=gr.themes.Glass()) as interface:
