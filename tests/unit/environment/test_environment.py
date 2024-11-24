@@ -1,9 +1,9 @@
 import unittest
 from unittest import mock
 
+from social_distancing_sim.environment.action_space import ActionSpace
 from social_distancing_sim.environment.environment import Environment
 from social_distancing_sim.environment.observation_space import ObservationSpace
-from social_distancing_sim.environment.action_space import ActionSpace
 
 
 class TestEnvironment(unittest.TestCase):
@@ -25,7 +25,9 @@ class TestEnvironment(unittest.TestCase):
 
     def test_select_random_targets_for_a_selection_of_valid_actions(self):
         # NB: Action 4 can replace action 2 with default environments selections
-        actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 3, 4, 4, 4])
+        actions_dict = self.mock_env.select_reasonable_targets(
+            self=self.mock_env, actions=[0, 1, 3, 4, 4, 4]
+        )
 
         # Assert
         # Inexact - action selections are partly random so can overwrite previously selected targets
@@ -35,7 +37,9 @@ class TestEnvironment(unittest.TestCase):
         self.assertNotIn(-1, actions_dict.keys())
 
     def test_select_random_targets_for_another_selection_of_valid_actions(self):
-        actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 2, 2, 3])
+        actions_dict = self.mock_env.select_reasonable_targets(
+            self=self.mock_env, actions=[0, 1, 2, 2, 3]
+        )
 
         # Assert
         # Inexact - action selections are partly random so can overwrite previously selected targets
@@ -45,7 +49,9 @@ class TestEnvironment(unittest.TestCase):
         self.assertNotIn(-1, actions_dict.keys())
 
     def test_select_random_targets_for_more_valid_actions_than_available_targets(self):
-        actions_dict = self.mock_env.select_reasonable_targets(self=self.mock_env, actions=[0, 1, 2, 3, 4, 4, 4, 4, 4])
+        actions_dict = self.mock_env.select_reasonable_targets(
+            self=self.mock_env, actions=[0, 1, 2, 3, 4, 4, 4, 4, 4]
+        )
 
         # Assert
         # Inexact - action selections are partly random so can overwrite previously selected targets

@@ -2,8 +2,8 @@ import copy
 import glob
 import os
 import shutil
-from dataclasses import dataclass
-from typing import List, Union, Dict
+from dataclasses import dataclass, field
+from typing import Dict, List, Union
 
 import imageio
 import numpy as np
@@ -26,6 +26,9 @@ class EnvironmentPlotting:
     ts_obs_fields_g1: List[str] = None
     ts_obs_fields_g2: List[str] = None
 
+    output_path: str = field(init=False)
+    graph_path: str = field(init=False)
+
     def __post_init__(self):
         self.output_path: Union[str, None] = None
         self.graph_path: Union[str, None] = None
@@ -33,8 +36,8 @@ class EnvironmentPlotting:
         sns.set()
 
     def set_output_path(self, path: str) -> None:
-        path = f"{os.path.abspath(path)}".replace('\\', '/')
-        self.name = path.split('/')[-1]
+        path = f"{os.path.abspath(path)}".replace("\\", "/")
+        self.name = path.split("/")[-1]
         self.output_path = path
         self.graph_path = f"{self.output_path}/graphs/"
         shutil.rmtree(self.graph_path, ignore_errors=True)
@@ -55,7 +58,7 @@ class EnvironmentPlotting:
 
         TODO: Add new specs with .plot_matrix and .plot_summary available in Graph and ObservationSpace.
         """
-        plt.close('all')
+        plt.close("all")
 
         self._g2_on = False
         ts_ax_g2 = None
@@ -64,7 +67,11 @@ class EnvironmentPlotting:
         if self.ts_fields_g1 is None:
             self.ts_fields_g1 = ["Current infections", "Total immune", "Total deaths"]
         if self.ts_obs_fields_g1 is None:
-            self.ts_obs_fields_g1 = ["Known current infections", "Known total immune", "Total deaths"]
+            self.ts_obs_fields_g1 = [
+                "Known current infections",
+                "Known total immune",
+                "Total deaths",
+            ]
         if self.ts_fields_g2 is None:
             self.ts_fields_g2 = []
         if self.ts_obs_fields_g2 is None:
@@ -101,14 +108,29 @@ class EnvironmentPlotting:
         self._ts_ax_g1: List[plt.Axes] = ts_ax_g1
         self._ts_ax_g2: List[plt.Axes] = ts_ax_g2
 
-    def plot(self, obs: ObservationSpace, history: History, healthcare: Healthcare, step: int,
-             total_steps: int,
-             save: bool = True, show: bool = True, **kwagrs) -> None:
+    def plot(
+        self,
+        obs: ObservationSpace,
+        history: History,
+        healthcare: Healthcare,
+        step: int,
+        total_steps: int,
+        save: bool = True,
+        show: bool = True,
+    ) -> None:
         self._prepare_figure(test_rate=obs.test_rate)
-        self.plot_graphs(obs=obs, title=f"{self.name}, day {step} (deaths = {len(obs.graph.current_dead_nodes)})",
-                         colours=history.colours)
-        self.plot_ts(history=history, healthcare=healthcare, step=step,
-                     total_steps=total_steps, total_population=obs.graph.total_population)
+        self.plot_graphs(
+            obs=obs,
+            title=f"{self.name}, day {step} (deaths = {len(obs.graph.current_dead_nodes)})",
+            colours=history.colours,
+        )
+        self.plot_ts(
+            history=history,
+            healthcare=healthcare,
+            step=step,
+            total_steps=total_steps,
+            total_population=obs.graph.total_population,
+        )
 
         self._figure.tight_layout()
 
@@ -119,29 +141,52 @@ class EnvironmentPlotting:
         if show:
             plt.show()
 
-    def plot_ts(self, history: History, healthcare: Healthcare, total_steps: int, total_population: int,
-                step: int) -> None:
-        for ax, fields in zip(self._ts_ax_g1, [self.ts_fields_g1, self.ts_obs_fields_g1]):
-            history.plot(ks=fields,
-                         x_lim=(-1, total_steps) if self.auto_lim_x else None,
-                         y_lim=(-10, int(total_population + total_population * 0.05)) if self.auto_lim_y else None,
-                         x_label='Day' if not self._g2_on else None,
-                         remove_x_tick_labels=self._g2_on,
-                         ax=ax,
-                         show=False)
-            ax.plot([0, step], [healthcare.capacity, healthcare.capacity],
-                    linestyle="--",
-                    color='k')
+    def plot_ts(
+        self,
+        history: History,
+        healthcare: Healthcare,
+        total_steps: int,
+        total_population: int,
+        step: int,
+    ) -> None:
+        for ax, fields in zip(
+            self._ts_ax_g1, [self.ts_fields_g1, self.ts_obs_fields_g1]
+        ):
+            history.plot(
+                ks=fields,
+                x_lim=(-1, total_steps) if self.auto_lim_x else None,
+                y_lim=(
+                    (-10, int(total_population + total_population * 0.05))
+                    if self.auto_lim_y
+                    else None
+                ),
+                x_label="Day" if not self._g2_on else None,
+                remove_x_tick_labels=self._g2_on,
+                ax=ax,
+                show=False,
+            )
+            ax.plot(
+                [0, step],
+                [healthcare.capacity, healthcare.capacity],
+                linestyle="--",
+                color="k",
+            )
 
         if self._g2_on:
-            for ax, fields in zip(self._ts_ax_g2, [self.ts_fields_g2, self.ts_obs_fields_g2]):
-                history.plot(ks=fields,
-                             y_label='',
-                             x_lim=(-1, total_steps) if self.auto_lim_x else None,
-                             ax=ax,
-                             show=False)
+            for ax, fields in zip(
+                self._ts_ax_g2, [self.ts_fields_g2, self.ts_obs_fields_g2]
+            ):
+                history.plot(
+                    ks=fields,
+                    y_label="",
+                    x_lim=(-1, total_steps) if self.auto_lim_x else None,
+                    ax=ax,
+                    show=False,
+                )
 
-    def plot_graphs(self, obs: ObservationSpace, title: str, colours: Dict[str, str] = None):
+    def plot_graphs(
+        self, obs: ObservationSpace, title: str, colours: Dict[str, str] = None
+    ):
         obs.plot(ax=self._graph_ax[0], colours=colours, god_mode=True)
         self._graph_ax[0].set_title(f"Full sim: {title}", fontsize=14)
 
@@ -165,16 +210,16 @@ class EnvironmentPlotting:
         # Find all previously saved steps
         fns = glob.glob(f"{self.graph_path}*_graph.png")
         # Ensure ordering
-        fns = [f.replace('\\', '/') for f in fns]
-        sorted_idx = np.argsort([int(f.split('_graph.png')[0].split(self.graph_path)[1]) for f in fns])
+        fns = [f.replace("\\", "/") for f in fns]
+        sorted_idx = np.argsort(
+            [int(f.split("_graph.png")[0].split(self.graph_path)[1]) for f in fns]
+        )
         fns = np.array(fns)[sorted_idx]
 
         # Generate gif
         output_path = f"{self.output_path}/replay.gif"
         images = [imageio.imread(f) for f in fns]
-        imageio.mimsave(output_path, images,
-                        duration=duration,
-                        subrectangles=True)
+        imageio.mimsave(output_path, images, duration=duration, subrectangles=True)
 
         return output_path
 

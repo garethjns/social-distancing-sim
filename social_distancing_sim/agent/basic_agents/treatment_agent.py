@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 

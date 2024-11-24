@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from social_distancing_sim.agent.non_learning_agent_base import NonLearningAgentBase
 
@@ -22,18 +22,23 @@ class DistancingPolicyAgent(NonLearningAgentBase):
     @property
     def available_targets(self) -> Dict[int, List[int]]:
         """Slightly different IsolationAgent - also isolates clear nodes and reconnects any isolated node."""
-        return {2: list(set(self.env.sds_env.observation_space.current_clear_nodes).difference(
-            self.env.sds_env.observation_space.current_isolated_nodes)),
-            3: self.env.sds_env.observation_space.current_isolated_nodes}
+        return {
+            2: list(
+                set(self.env.sds_env.observation_space.current_clear_nodes).difference(
+                    self.env.sds_env.observation_space.current_isolated_nodes
+                )
+            ),
+            3: self.env.sds_env.observation_space.current_isolated_nodes,
+        }
 
     def _select_actions_targets(self) -> Dict[int, str]:
         """Selects from actions that are currently available. If both are active, selects randomly between them."""
 
         available_actions = {}
         if len(self.currently_active_actions) > 0:
-            actions = self._random_state.choice(self.currently_active_actions,
-                                                replace=True,
-                                                size=self.actions_per_turn)
+            actions = self._random_state.choice(
+                self.currently_active_actions, replace=True, size=self.actions_per_turn
+            )
             available_targets = self.available_targets
 
             # This effectively discards duplicate actions/target if same target is randomly selected twice
@@ -42,6 +47,12 @@ class DistancingPolicyAgent(NonLearningAgentBase):
             for ac in actions:
                 available_targets_for_this_action = available_targets[ac]
                 if len(available_targets_for_this_action) > 0:
-                    available_actions.update({self._random_state.choice(available_targets_for_this_action): ac})
+                    available_actions.update(
+                        {
+                            self._random_state.choice(
+                                available_targets_for_this_action
+                            ): ac
+                        }
+                    )
 
         return available_actions

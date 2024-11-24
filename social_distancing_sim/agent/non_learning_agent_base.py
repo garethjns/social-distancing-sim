@@ -1,14 +1,20 @@
 import abc
 import copy
-from typing import List, Union, Dict, Tuple
+from typing import Dict, List, Tuple, Union
 
 import gym
 import numpy as np
 from gym.envs.registration import EnvSpec
-from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
 
 from social_distancing_sim.environment.action_space import ActionSpace
 from social_distancing_sim.environment.gym.gym_env import GymEnv
+
+try:
+    from reinforcement_learning_keras.agents.components.helpers.env_builder import (
+        EnvBuilder,
+    )
+except ImportError:
+    pass
 
 
 class NonLearningAgentBase(metaclass=abc.ABCMeta):
@@ -18,12 +24,15 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
     NonLearningAgents always used gym interface to environment, but are free to bypass this and access env.sds_env
     """
 
-    def __init__(self, env_spec: Union[str, None] = None,
-                 name: str = 'unnamed_agent',
-                 seed: Union[None, int] = None,
-                 actions_per_turn: int = 5,
-                 start_step: Union[Dict[str, int], None] = None,
-                 end_step: Union[Dict[str, int], None] = None) -> None:
+    def __init__(
+        self,
+        env_spec: Union[str, None] = None,
+        name: str = "unnamed_agent",
+        seed: Union[None, int] = None,
+        actions_per_turn: int = 5,
+        start_step: Union[Dict[str, int], None] = None,
+        end_step: Union[Dict[str, int], None] = None,
+    ) -> None:
         """
 
         :param env_spec: Name of registered env. Optional. If agent is not attached to an env, it will build one from
@@ -61,7 +70,9 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
             # will be None at this point.
             self._env = env_or_spec
 
-    def attach_to_env(self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]) -> None:
+    def attach_to_env(
+        self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]
+    ) -> None:
         """
         Attach agent to an existing env.
 
@@ -79,8 +90,11 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
     def _prepare_random_state(self) -> None:
         self._random_state = np.random.RandomState(seed=self.seed)
 
-    def _set_action_ranges(self, start_step: Union[Dict[str, int], None],
-                           end_step: Union[Dict[str, int], None]) -> None:
+    def _set_action_ranges(
+        self,
+        start_step: Union[Dict[str, int], None],
+        end_step: Union[Dict[str, int], None],
+    ) -> None:
         if start_step is None:
             start_step = {}
         self.start_step = start_step
@@ -94,11 +108,13 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
         self._step = 0  # Track steps as number of .sample calls to agent
 
         if self._start_step is None:
-            self._start_step = {ActionSpace().get_action_id(a): v
-                                for a, v in self.start_step.items()}
+            self._start_step = {
+                ActionSpace().get_action_id(a): v for a, v in self.start_step.items()
+            }
         if self._end_step is None:
-            self._end_step = {ActionSpace().get_action_id(a): v
-                              for a, v in self.end_step.items()}
+            self._end_step = {
+                ActionSpace().get_action_id(a): v for a, v in self.end_step.items()
+            }
 
     @property
     def available_actions(self) -> List[int]:
@@ -113,9 +129,12 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
     def currently_active_actions(self) -> List[int]:
         """Return the current active actions based on defined time periods."""
 
-        active_actions = [a for a in self.available_actions
-                          if (self._step >= self._start_step.get(a, 0))
-                          and (self._step <= self._end_step.get(a, np.inf))]
+        active_actions = [
+            a
+            for a in self.available_actions
+            if (self._step >= self._start_step.get(a, 0))
+            and (self._step <= self._end_step.get(a, np.inf))
+        ]
 
         return active_actions
 
@@ -145,20 +164,24 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_actions(self, state: Union[np.ndarray, Tuple[np.ndarray, np.ndarray],
-                                       Tuple[np.ndarray, np.ndarray, np.ndarray]] = None,
-                    training: bool = False) -> Union[Tuple[List[int], List[int]],
-                                                     Tuple[List[int], None]]:
+    def get_actions(
+        self,
+        state: Union[
+            np.ndarray,
+            Tuple[np.ndarray, np.ndarray],
+            Tuple[np.ndarray, np.ndarray, np.ndarray],
+        ] = None,
+        training: bool = False,
+    ) -> Union[Tuple[List[int], List[int]], Tuple[List[int], None]]:
         """Get next set of actions and targets and track."""
         if self.env is None:
-            raise AttributeError(f"No env set, set with agent.attach_to_env()")
+            raise AttributeError("No env set, set with agent.attach_to_env()")
 
         actions_dict = self._select_actions_targets()
         self._step += 1
         return list(actions_dict.values()), list(actions_dict.keys())
 
-    def sample(self,
-               track: bool = True) -> Dict[int, int]:
+    def sample(self, track: bool = True) -> Dict[int, int]:
         """
         Randomly return self.actions_per_turn actions and targets and optionally track.
 
@@ -167,11 +190,10 @@ class NonLearningAgentBase(metaclass=abc.ABCMeta):
         n = self._check_available_targets()
 
         # Randomly pick n actions and targets
-        actions = self._random_state.choice(self.available_actions,
-                                            size=n)
-        targets = self._random_state.choice(self.available_targets,
-                                            replace=False,
-                                            size=n)
+        actions = self._random_state.choice(self.available_actions, size=n)
+        targets = self._random_state.choice(
+            self.available_targets, replace=False, size=n
+        )
 
         if track:
             self._step += 1

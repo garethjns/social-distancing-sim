@@ -8,7 +8,15 @@ from social_distancing_sim.environment.graph import Graph
 
 class TestActionSpace(unittest.TestCase):
     _sut = ActionSpace()
-    _implemented_actions = ['nothing', 'vaccinate', 'isolate', 'reconnect', 'treat', 'provide_mask', 'remove_mask']
+    _implemented_actions = [
+        "nothing",
+        "vaccinate",
+        "isolate",
+        "reconnect",
+        "treat",
+        "provide_mask",
+        "remove_mask",
+    ]
     _implemented_action_ids = [0, 1, 2, 3, 4, 5, 6]
 
     @staticmethod
@@ -18,7 +26,7 @@ class TestActionSpace(unittest.TestCase):
         env.observation_space = MagicMock()
         env.observation_space.graph = MagicMock()
         env.observation_space.graph.g_ = MagicMock()
-        env.observation_space.graph.g_.nodes = {0: {'status': Status()}}
+        env.observation_space.graph.g_.nodes = {0: {"status": Status()}}
 
         return env
 
@@ -45,10 +53,10 @@ class TestActionSpace(unittest.TestCase):
 
     def test_name_to_id(self):
         # Act
-        action_id = self._sut.get_action_id('isolate')
+        action_id = self._sut.get_action_id("isolate")
 
         # Assert
-        self.assertEqual(self._implemented_actions.index('isolate'), action_id)
+        self.assertEqual(self._implemented_actions.index("isolate"), action_id)
 
     def test_id_to_name(self):
         # Act
@@ -59,8 +67,9 @@ class TestActionSpace(unittest.TestCase):
 
     def test_select_n_random_actions_with_larger_pool(self):
         # Act
-        targets = self._sut.select_random_target(n=2,
-                                                 available_targets=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+        targets = self._sut.select_random_target(
+            n=2, available_targets=[1, 2, 3, 4, 5, 6, 7, 8, 9]
+        )
 
         # Assert
         self.assertEqual(2, len(targets))
@@ -68,8 +77,9 @@ class TestActionSpace(unittest.TestCase):
 
     def test_select_n_random_actions_with_lesser_pool(self):
         # Act
-        targets = self._sut.select_random_target(n=12,
-                                                 available_targets=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+        targets = self._sut.select_random_target(
+            n=12, available_targets=[1, 2, 3, 4, 5, 6, 7, 8, 9]
+        )
 
         # Assert
         self.assertEqual(12, len(targets))
@@ -92,8 +102,8 @@ class TestActionSpace(unittest.TestCase):
         cost = self._sut.vaccinate(env=env, target_node_id=0, step=step)
 
         # Assert
-        self.assertEqual(step, env.observation_space.graph.g_.nodes[0]['last_tested'])
-        self.assertGreater(env.observation_space.graph.g_.nodes[0]['immune'], 0)
+        self.assertEqual(step, env.observation_space.graph.g_.nodes[0]["last_tested"])
+        self.assertGreater(env.observation_space.graph.g_.nodes[0]["immune"], 0)
         self.assertEqual(self._sut.vaccinate_cost, cost)
 
     def test_provide_mask_to_node_adds_mask_via_graph(self):
@@ -109,4 +119,4 @@ class TestActionSpace(unittest.TestCase):
         cost = self._sut.provide_mask(env=env, target_node_id=0, step=step)
 
         self.assertEqual(self._sut.mask_cost, cost)
-        self.assertGreater(env.observation_space.graph.g_.nodes[0]['mask'], 0)
+        self.assertGreater(env.observation_space.graph.g_.nodes[0]["mask"], 0)

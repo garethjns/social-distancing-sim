@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from typing import List, Union, Tuple, Dict
+import copy
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -15,15 +16,24 @@ class ObservationSpace:
     """
     Wraps a graph to limit observable space through testing.
 
-    Access methods and properties via ObservationSpace to limit access, use .graph to access full graph. Caller has
+    Access methods and properties via ObservationSpace to limit access, use .graph to access full graph. Caller
     has responsibility!
 
     If test rate is >= 1 observation space has full access to graph.
     """
+
     graph: Graph
     test_rate: float = 1
     test_validity_period: float = 5
-    seed: Union[None, int] = None
+    seed: Optional[int] = None
+
+    _unknown_nodes: Optional[List[int]] = field(init=False, default=None)
+    _known_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_infected_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_immune_nodes: Optional[List[int]] = field(init=False, default=None)
+    _current_clear_nodes: Optional[List[int]] = field(init=False, default=None)
+    _isolated_nodes: Optional[List[int]] = field(init=False, default=None)
+    _masked_nodes: Optional[List[int]] = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         self._prepare_random_state()
@@ -52,9 +62,17 @@ class ObservationSpace:
 
         Note this matches order returned by Status.state + unknown nodes at end at [-1].
         """
-        return np.array([len(self.current_alive_nodes), len(self.current_clear_nodes), len(self.current_infected_nodes),
-                         len(self.current_immune_nodes), len(self.current_isolated_nodes),
-                         len(self.current_masked_nodes), len(self.unknown_nodes)])
+        return np.array(
+            [
+                len(self.current_alive_nodes),
+                len(self.current_clear_nodes),
+                len(self.current_infected_nodes),
+                len(self.current_immune_nodes),
+                len(self.current_isolated_nodes),
+                len(self.current_masked_nodes),
+                len(self.unknown_nodes),
+            ]
+        )
 
     def state_graph(self) -> np.ndarray:
         """Node x node matrix representing graph. All connections are known, so same as .graph."""
@@ -66,31 +84,22 @@ class ObservationSpace:
 
     def state_full(self) -> np.ndarray:
         """.state_nodes + .state_graph"""
-        return np.concatenate([self.state_nodes(), self.state_graph()],
-                              axis=1)
+        return np.concatenate([self.state_nodes(), self.state_graph()], axis=1)
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        return (self.state_summary(),
-                self.state_graph(),
-                self.state_nodes())
+        return (self.state_summary(), self.state_graph(), self.state_nodes())
 
-    def plot_matrix(self,
-                    ax: Union[None, plt.Axes] = None) -> plt.Figure:
-        fig = sns.heatmap(self.state_graph(),
-                          ax=ax)
+    def plot_matrix(self, ax: Union[None, plt.Axes] = None) -> plt.Figure:
+        fig = sns.heatmap(self.state_graph(), ax=ax)
 
         return fig
 
-    def plot_summary(self,
-                     ax: Union[None, plt.Axes] = None) -> plt.Axes:
+    def plot_summary(self, ax: Union[None, plt.Axes] = None) -> plt.Axes:
 
         ax_ = ax
         for i, c in enumerate(Status().state_features_names):
-            ax_ = sns.distplot(self.state_nodes()[:, i],
-                               label=c,
-                               kde=False,
-                               ax=ax)
+            ax_ = sns.distplot(self.state_nodes()[:, i], label=c, kde=False, ax=ax)
         plt.legend()
 
         return ax_
@@ -116,7 +125,12 @@ class ObservationSpace:
     def unknown_nodes(self) -> List[int]:
         """Unknown nodes, excludes dead (as these are always known)"""
         if self._unknown_nodes is None:
-            self._unknown_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].clear is None]
+            self._unknown_nodes = [
+                nk
+                for nk, nv in self.graph.g_.nodes.data()
+                if nv["status"].clear is None
+            ]
+
         return self._unknown_nodes
 
     @property
@@ -126,7 +140,10 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._known_nodes = self.graph.current_alive_nodes
             else:
-                self._known_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].alive]
+                self._known_nodes = [
+                    nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].alive
+                ]
+
         return self._known_nodes
 
     @property
@@ -135,7 +152,10 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._current_infected_nodes = self.graph.current_infected_nodes
             else:
-                self._current_infected_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].infected]
+                self._current_infected_nodes = [
+                    nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].infected
+                ]
+
         return self._current_infected_nodes
 
     @property
@@ -144,7 +164,10 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._current_immune_nodes = self.graph.current_immune_nodes
             else:
-                self._current_immune_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].immune]
+                self._current_immune_nodes = [
+                    nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].immune
+                ]
+
         return self._current_immune_nodes
 
     @property
@@ -153,7 +176,10 @@ class ObservationSpace:
             if self.test_rate >= 1:
                 self._current_clear_nodes = self.graph.current_clear_nodes
             else:
-                self._current_clear_nodes = [nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].clear]
+                self._current_clear_nodes = [
+                    nk for nk, nv in self.graph.g_.nodes.data() if nv["status"].clear
+                ]
+
         return self._current_clear_nodes
 
     def test_population(self, time_step: int) -> None:
@@ -174,54 +200,57 @@ class ObservationSpace:
 
         for n in self.graph.current_clear_nodes:
             if self._random_state.binomial(1, clear_test_rate):
-                self.graph.g_.nodes[n]['status'].last_tested = time_step
+                self.graph.g_.nodes[n]["status"].last_tested = time_step
 
         for n in self.graph.current_infected_nodes:
             if self._random_state.binomial(1, infected_test_rate):
-                self.graph.g_.nodes[n]['status'].last_tested = time_step
+                self.graph.g_.nodes[n]["status"].last_tested = time_step
 
         for n in self.current_infected_nodes:
-            self.graph.g_.nodes[n]['status'].last_tested = time_step
+            self.graph.g_.nodes[n]["status"].last_tested = time_step
 
     def update_observed_statuses(self, time_step: int) -> int:
         known_new_infections = 0
 
         for nk, nv in self.graph.g_.nodes.data():
             # Is dead
-            if not nv['alive']:
-                nv['status'] = Status(alive=False)
+            if not nv["alive"]:
+                nv["status"] = Status(alive=False)
                 continue
 
             # Update if tested this turn
             if nv["status"].last_tested == time_step:
                 # Has mask
-                if nv['mask'] > 0:
+                if nv["mask"] > 0:
                     nv["status"].masked = True
                 else:
                     nv["status"].masked = False
 
                 # Is infected
-                if nv['infected'] > 0:
-                    nv['status'].infected = True
+                if nv["infected"] > 0:
+                    nv["status"].infected = True
                     known_new_infections += 1
 
                 # Is clear or immune
-                if nv['infected'] == 0:
-                    nv['status'].recovered = True
-                    if nv['immune'] >= self.graph.considered_immune_threshold:
-                        nv['status'].immune = True
+                if nv["infected"] == 0:
+                    nv["status"].recovered = True
+                    if nv["immune"] >= self.graph.considered_immune_threshold:
+                        nv["status"].immune = True
 
             # Test has expired (only for clear and immune nodes)
-            if ((nv["status"].clear or nv["status"].immune)
-                    and ((time_step - nv["status"].last_tested) > self.test_validity_period)):
-                nv['status'].set_health_unknown()
+            if (nv["status"].clear or nv["status"].immune) and (
+                (time_step - nv["status"].last_tested) > self.test_validity_period
+            ):
+                nv["status"].set_health_unknown()
 
         return known_new_infections
 
-    def plot(self,
-             ax: Union[None, plt.Axes] = None,
-             colours: Dict[str, str] = None,
-             god_mode: bool = True) -> None:
+    def plot(
+        self,
+        ax: Union[None, plt.Axes] = None,
+        colours: Dict[str, str] = None,
+        god_mode: bool = True,
+    ) -> None:
         """
         Plot the full or observed network graph.
 
@@ -239,44 +268,68 @@ class ObservationSpace:
         # Position nodes, but only if they haven't been before (this is expensive and nodes changing location is
         # confusing)
         if self.graph.g_pos_ is None:
-            self.graph.g_pos_ = nx.spring_layout(self.graph.g_,
-                                                 seed=self.seed)
+            self.graph.g_pos_ = nx.spring_layout(self.graph.g_, seed=self.seed)
 
-        common_plotting_args = {'G': self.graph.g_, 'pos': self.graph.g_pos_, 'ax': ax, "node_size": 12,
-                                "linewidths": 2, "alpha": 0.75}
+        common_plotting_args = {
+            "G": self.graph.g_,
+            "pos": self.graph.g_pos_,
+            "ax": ax,
+            "node_size": 12,
+            "linewidths": 2,
+            "alpha": 0.75,
+        }
 
         if god_mode:
             info_source = self.graph
         else:
             info_source = self
-            nx.draw_networkx_nodes(**common_plotting_args,
-                                   nodelist=self.unknown_nodes,
-                                   node_color=colours.get('Unknown', '#bdbcbb'))
+            nx.draw_networkx_nodes(
+                **common_plotting_args,
+                nodelist=self.unknown_nodes,
+                node_color=colours.get("Unknown", "#bdbcbb"),
+            )
 
         # Draw selected set of properties and include default colours in case not defined in colours
-        for pk, pv in {'Known current clear': (info_source.current_clear_nodes, '#1f77b4'),
-                       'Known total immune': (info_source.current_immune_nodes, '#9467bd'),
-                       'Known current infections': (info_source.current_infected_nodes, '#d62728'),
-                       'Total deaths': (self.graph.current_dead_nodes, 'k')}.items():
-            nx.draw_networkx_nodes(**common_plotting_args,
-                                   nodelist=pv[0],
-                                   node_color=colours.get(pk, pv[1]))
+        for pk, pv in {
+            "Known current clear": (info_source.current_clear_nodes, "#1f77b4"),
+            "Known total immune": (info_source.current_immune_nodes, "#9467bd"),
+            "Known current infections": (info_source.current_infected_nodes, "#d62728"),
+            "Total deaths": (self.graph.current_dead_nodes, "k"),
+        }.items():
+            nx.draw_networkx_nodes(
+                **common_plotting_args,
+                nodelist=pv[0],
+                node_color=colours.get(pk, pv[1]),
+            )
 
         # Draw mask indicators and edges
-        nx.draw_networkx_nodes(self.graph.g_, self.graph.g_pos_, ax=ax,
-                               nodelist=info_source.current_masked_nodes,
-                               node_color='k', node_size=2, alpha=1, linewidths=6)
-        nx.draw_networkx_edges(self.graph.g_, self.graph.g_pos_, ax=ax,
-                               width=1 / (self.graph.total_population / 5))
+        nx.draw_networkx_nodes(
+            self.graph.g_,
+            self.graph.g_pos_,
+            ax=ax,
+            nodelist=info_source.current_masked_nodes,
+            node_color="k",
+            node_size=2,
+            alpha=1,
+            linewidths=6,
+        )
+        nx.draw_networkx_edges(
+            self.graph.g_,
+            self.graph.g_pos_,
+            ax=ax,
+            width=1 / (self.graph.total_population / 5),
+        )
 
     def clone(self) -> "ObservationSpace":
-        """Clone a fresh object with same seed (could be None)."""
-        return ObservationSpace(graph=self.graph.clone(), test_rate=self.test_rate,
-                                test_validity_period=self.test_validity_period, seed=self.seed)
+        """
+        Clone the current observation space.
+
+        Don't create new as it'll use the same random state, but reset.
+        """
+        return copy.deepcopy(self)
 
 
 if __name__ == "__main__":
     obs = ObservationSpace(Graph())
-
     obs.plot_matrix()
     obs.plot_summary()

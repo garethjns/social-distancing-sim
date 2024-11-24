@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
 import gym
 
@@ -13,8 +13,9 @@ class MultiAgent(NonLearningAgentBase):
     Actions per turn is dynamic and determined by individual agents
     """
 
-    def __init__(self, agents: List[NonLearningAgentBase], env_spec: str = None,
-                 *args, **kwargs):
+    def __init__(
+        self, agents: List[NonLearningAgentBase], env_spec: str = None, *args, **kwargs
+    ):
         self.agents = agents
         self.actions_per_turn = sum([a.actions_per_turn for a in agents])
         super().__init__(env_spec, *args, **kwargs)
@@ -22,7 +23,9 @@ class MultiAgent(NonLearningAgentBase):
         if env_spec is not None:
             self.attach_to_env(env_spec)
 
-    def attach_to_env(self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]) -> None:
+    def attach_to_env(
+        self, env_or_spec: Union[GymEnv, str, gym.envs.registration.EnvSpec]
+    ) -> None:
 
         super().attach_to_env(env_or_spec)
 

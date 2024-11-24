@@ -15,21 +15,21 @@ class TestHistory(unittest.TestCase):
         self._hist["new_key"] = [1]
 
         # Act
-        self._hist.log({'new_key': 2})
+        self._hist.log({"new_key": 2})
 
         # Assert
         self.assertEqual(len(self._hist.keys()), 1)
-        self.assertIsInstance(self._hist['new_key'], list)
-        self.assertEqual(len(self._hist['new_key']), 2)
-        self.assertEqual(self._hist['new_key'][0], 1)
-        self.assertEqual(self._hist['new_key'][1], 2)
+        self.assertIsInstance(self._hist["new_key"], list)
+        self.assertEqual(len(self._hist["new_key"]), 2)
+        self.assertEqual(self._hist["new_key"][0], 1)
+        self.assertEqual(self._hist["new_key"][1], 2)
 
     def test_log_to_non_existing_key(self):
         # Act
-        self._hist.log({'new_key2': 1})
+        self._hist.log({"new_key2": 1})
 
         # Assert
         self.assertEqual(len(self._hist.keys()), 1)
-        self.assertIsInstance(self._hist['new_key2'], list)
-        self.assertEqual(len(self._hist['new_key2']), 1)
-        self.assertEqual(self._hist['new_key2'][0], 1)
+        self.assertIsInstance(self._hist["new_key2"], list)
+        self.assertEqual(len(self._hist["new_key2"]), 1)
+        self.assertEqual(self._hist["new_key2"][0], 1)
