@@ -5,13 +5,13 @@ requires = ["setuptools>=61.2", "wheel"]
 include-package-data = false
 
 [tool.setuptools.packages.find]
-include = ["social_distancing_sim"]
-exclude = ["docs*", "tests(", "images*"]
+include = ["social_distancing_sim*"]
+exclude = ["docs*", "tests*", "images*"]
 
 [project]
 name = "social_distancing_sim"
 requires-python = ">= 3.9"
-version = "0.11.0"
+version = "0.11.2"
 description = ""
 authors = [
     {name = "Gareth Jones ", email = "garethgithub@gmail.com"}
